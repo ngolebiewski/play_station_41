@@ -1,20 +1,19 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/ngolebiewski/play_station_41/gpad"
 )
 
-const (
-	sW = 240
-	sH = 160
-	sX = 2
-)
+
 type Game struct{}
 
 func (g *Game) Update() error {
+	if gpad.MoveLeft(){fmt.Print("left")}
 	return nil
 }
 
