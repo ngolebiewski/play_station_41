@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -13,7 +12,7 @@ import (
 type Game struct{}
 
 func (g *Game) Update() error {
-	if gpad.MoveLeft(){fmt.Print("left")}
+	gpad.TestInputs()
 	return nil
 }
 
