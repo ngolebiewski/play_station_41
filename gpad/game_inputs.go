@@ -14,7 +14,7 @@ const(
 
 // old school NES-like controller where D-Pad is:
 //.     12
-//.  14    15.    8.      9.     0  1git 
+//.  14    15.    8.      9.     0  1
 //.     13.       select. start  B  A
 
 
