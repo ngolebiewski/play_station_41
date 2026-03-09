@@ -8,16 +8,15 @@ import (
 	"github.com/ngolebiewski/play_station_41/gpad"
 )
 
-type Player struct{
-	x,y float32
+type Game struct{
+	scene Scene
 }
 
-type Game struct{}
 
-// State Machine for Scenes
-type Scene interface {
-	Update() error
-	Draw(screen *ebiten.Image)
+func NewGame() *Game {
+	g := &Game{}
+	g.scene = NewTitleScene(g)
+	return g
 }
 
 func (g *Game) Update() error {
@@ -30,7 +29,7 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(screen, "Play Station 41\nAKA PS41")
-
+	g.scene.Draw(screen)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -40,7 +39,8 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 func main() {
 	ebiten.SetWindowSize(sW*sX,sH*sX)
 	ebiten.SetWindowTitle("Play Station 41")
-	if err := ebiten.RunGame(&Game{}); err != nil {
+	game := NewGame()
+	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}
 }
