@@ -22,6 +22,7 @@ func MoveUp()bool{
 	return ebiten.IsKeyPressed(ebiten.KeyUp) || 
 	ebiten.IsKeyPressed(ebiten.KeyW) || 
 	ebiten.IsGamepadButtonPressed(0, 12) || 
+	ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftTop) ||
 	ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickVertical) < -deadZone
 }
 
@@ -29,6 +30,7 @@ func MoveDown()bool{
 	return ebiten.IsKeyPressed(ebiten.KeyDown) || 
 	ebiten.IsKeyPressed(ebiten.KeyS) || 
 	ebiten.IsGamepadButtonPressed(0, 13)  || 
+	ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftBottom) ||
 	ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickVertical) > deadZone
 }
 
@@ -36,13 +38,15 @@ func MoveLeft()bool{
 	return ebiten.IsKeyPressed(ebiten.KeyLeft) || 
 	ebiten.IsKeyPressed(ebiten.KeyA) ||
 	ebiten.IsGamepadButtonPressed(0, 14) || 
+	ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftLeft) ||
 	ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickHorizontal) < -deadZone
 }
 
 func MoveRight()bool{
 	return ebiten.IsKeyPressed(ebiten.KeyRight) || 
 	ebiten.IsKeyPressed(ebiten.KeyD) ||
-	ebiten.IsGamepadButtonPressed(0, 14) || 
+	ebiten.IsGamepadButtonPressed(0, 15) || 
+	ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftRight) ||
 	ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickHorizontal) > deadZone
 }
 
