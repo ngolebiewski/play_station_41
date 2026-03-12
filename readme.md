@@ -1,4 +1,4 @@
-# Art Auction Project 2026
+# Art Auction Project 2026 - 3rd Grade
 
 ## Project: "Pixel Classroom"
 
@@ -32,3 +32,7 @@ Students will learn about pixels, pixel-art, and game design.
 - Controller and Misc: $15
 - Color photographic Print: $16.80 + $5 Shipping
 Total cost $80-$90
+
+![P.lay S.tation 41 title art](aseprite_art/title_ps41_c.png)
+
+Image: Student Title Art
