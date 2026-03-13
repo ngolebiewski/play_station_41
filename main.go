@@ -10,11 +10,15 @@ import (
 
 type Game struct{
 	scene Scene
+	assets *Assets 
 }
 
 
 func NewGame() *Game {
-	g := &Game{}
+	assets := LoadAssets()
+	g := &Game{
+		assets: assets,
+	}
 	g.scene = NewTitleScene(g)
 	return g
 }

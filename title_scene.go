@@ -10,6 +10,7 @@ import (
 
 type TitleScene struct {
 	game *Game
+	img      *ebiten.Image
 }
 
 var gameFont = text.NewGoXFace(bitmapfont.Face)
@@ -18,7 +19,8 @@ var textStr = "START"
 var textW, textH = text.Measure(textStr, gameFont, 0)
 
 func NewTitleScene(game *Game) *TitleScene {
-	return &TitleScene{game: game}
+	return &TitleScene{game: game,
+	img:  game.assets.TitleImage,}
 }
 
 func (s *TitleScene) Update() error {
@@ -26,13 +28,23 @@ func (s *TitleScene) Update() error {
 }
 
 func (s *TitleScene) Draw(screen *ebiten.Image) {
+		op := &ebiten.DrawImageOptions{}
+	// size := s.img.Bounds().Size()
+	// op.GeoM.Translate(
+	// 	float64((sW-size.X)/2),
+	// 	float64((sH-size.Y)/2),
+	// )
+	screen.DrawImage(s.img, op)
+
 	// --- Draw button under text ---
 	buttonW := textW + 10 // padding
 	buttonH := textH 
 	buttonX := sW/2 - buttonW/2 
 	buttonY := sH*7/8  - textH/2 
 
-	red := color.RGBA{150, 0, 0, 255} // deep red
+	// red := color.RGBA{150, 0, 0, 255} // deep red
+
+	red := color.RGBA{10, 0, 0, 255} // deep red
 	ebitenutilDrawRect(screen, float64(buttonX), float64(buttonY), float64(buttonW), buttonH, red)
 
 	// --- Draw text ---
@@ -43,6 +55,9 @@ func (s *TitleScene) Draw(screen *ebiten.Image) {
 	)
 	opts.ColorScale.ScaleWithColor(color.White)
 	text.Draw(screen, textStr, gameFont, opts)
+
+
+
 }
 
 // Simple helper to draw filled rectangle (like ebitenutil.DrawRect)
