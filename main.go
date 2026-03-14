@@ -8,16 +8,18 @@ import (
 	"github.com/ngolebiewski/play_station_41/gpad"
 )
 
-type Game struct{
-	scene Scene
-	assets *Assets 
+type Game struct {
+	scene  Scene
+	assets *Assets
+	player *Player
 }
-
 
 func NewGame() *Game {
 	assets := LoadAssets()
+	player := NewPlayer()
 	g := &Game{
 		assets: assets,
+		player: player,
 	}
 	g.scene = NewTitleScene(g)
 	return g
@@ -41,7 +43,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func main() {
-	ebiten.SetWindowSize(sW*sX,sH*sX)
+	ebiten.SetWindowSize(sW*sX, sH*sX)
 	ebiten.SetWindowTitle("Play Station 41")
 	game := NewGame()
 	if err := ebiten.RunGame(game); err != nil {
