@@ -7,6 +7,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/ngolebiewski/play_station_41/gpad"
 )
 
 type TitleScene struct {
@@ -25,6 +26,9 @@ func NewTitleScene(game *Game) *TitleScene {
 }
 
 func (s *TitleScene) Update() error {
+	if gpad.PressB() {
+		s.game.scene = NewClassroomScene(s.game)
+	}
 	return nil
 }
 

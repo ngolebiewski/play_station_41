@@ -19,6 +19,7 @@ import (
 //go:embed tiled_files/exports/classroom_1..tmj
 //go:embed aseprite_art/objects.png
 //go:embed tiled_files/classroom_1.png
+//go:embed aseprite_art/default_player.png
 
 // could embed the entire directory with 'art/**' but there are files I don't want in there to keep the build small.
 // For example. ASEPRITE files with layers, and unused artworks or test files.
@@ -48,10 +49,11 @@ func loadJSON(path string, v any) error {
 }
 
 type Assets struct {
-	TitleImage    *ebiten.Image
+	TitleImage         *ebiten.Image
 	ClassroomTileset_1 *ebiten.Image
-	CharactersTileset    *ebiten.Image
-	ObjectsTileset   *ebiten.Image
+	CharactersTileset  *ebiten.Image
+	ObjectsTileset     *ebiten.Image
+	DefaultPlayer      *ebiten.Image
 	// StickersTileset  *ebiten.Image
 
 }
@@ -77,16 +79,21 @@ func LoadAssets() *Assets {
 		log.Fatal(err)
 	}
 
+	d, err := loadImage("aseprite_art/default_player.png")
+	if err != nil {
+		log.Fatal(err)
+	}
 	// stick, err := loadImage("aseprite_art/stickers.png")
 	// if err != nil {
-	// 	log.Fatal(err) 
+	// 	log.Fatal(err)
 	// }
 
 	return &Assets{
-		TitleImage:    title,
+		TitleImage:         title,
 		ClassroomTileset_1: classroomTiles_1,
-		CharactersTileset: char,
-		ObjectsTileset: obj,
+		CharactersTileset:  char,
+		ObjectsTileset:     obj,
+		DefaultPlayer:      d,
 		// StickersTileset: stick,
 	}
 }

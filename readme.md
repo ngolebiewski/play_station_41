@@ -33,6 +33,9 @@ Students will learn about pixels, pixel-art, and game design.
 - Color photographic Print: $16.80 + $5 Shipping
 Total cost $80-$90
 
+# The Game
 ![P.lay S.tation 41 title art](aseprite_art/title_ps41_c.png)
 
 Image: Student Title Art
+
+### Development Log

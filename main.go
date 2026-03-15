@@ -17,6 +17,9 @@ type Game struct {
 func NewGame() *Game {
 	assets := LoadAssets()
 	player := NewPlayer()
+
+	player.image = assets.DefaultPlayer
+
 	g := &Game{
 		assets: assets,
 		player: player,
@@ -26,10 +29,12 @@ func NewGame() *Game {
 }
 
 func (g *Game) Update() error {
+	g.scene.Update()
 	if gpad.PressFullscreen() {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
 	gpad.TestInputs()
+
 	return nil
 }
 
