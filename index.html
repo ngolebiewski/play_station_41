@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>P.lay S.tation 41</title>
+  <script src="wasm_exec.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background: black; /* dark grey */
+      color: #fff;
+      font-family: monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    #loading {
+      font-size: 1.5em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">Loading<span id="dots">.</span></div>
+
+  <script>
+    const go = new Go();
+    const dots = document.getElementById('dots');
+    let dotCount = 1;
+
+    // animate dots while loading
+    const interval = setInterval(() => {
+      dotCount = (dotCount % 3) + 1;
+      dots.textContent = '.'.repeat(dotCount);
+    }, 500);
+
+    WebAssembly.instantiateStreaming(fetch("play_station_41.wasm"), go.importObject)
+      .then(result => {
+        clearInterval(interval);      // stop the dots animation
+        document.getElementById('loading').remove(); // remove loading text
+        go.run(result.instance);      // run your game
+      })
+      .catch(err => {
+        clearInterval(interval);
+        document.getElementById('loading').textContent = "Failed to load WASM!";
+        console.error(err);
+      });
+  </script>
+</body>
+</html>

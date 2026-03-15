@@ -1,0 +1,7 @@
+[build.environment]
+  GO_VERSION = "1.25.1"
+
+  [build]
+  command = "cp $(go env GOROOT)/lib/wasm/wasm_exec.js . && env GOOS=js GOARCH=wasm go build -o play_station_41.wasm github.com/ngolebiewski/play_station_41"
+  
+  publish = "."
