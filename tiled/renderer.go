@@ -8,15 +8,12 @@ import (
 	gotiled "github.com/lafriks/go-tiled"
 )
 
-// Renderer draws a go-tiled Map to an Ebitengine screen using a single
-// tileset image. Scale multiplies tile size (e.g. Scale=2 makes 16px tiles 32px).
 type Renderer struct {
 	Map     *gotiled.Map
 	Tileset *ebiten.Image
 	Scale   float64
 }
 
-// NewRenderer creates a Renderer.
 func NewRenderer(m *gotiled.Map, tileset *ebiten.Image, scale float64) *Renderer {
 	b := tileset.Bounds()
 	fmt.Printf("Tileset loaded: %dx%d\n", b.Dx(), b.Dy())
@@ -56,16 +53,16 @@ func (r *Renderer) drawLayer(screen *ebiten.Image, layer *gotiled.Layer, tw, th,
 		v := tile.VerticalFlip
 		d := tile.DiagonalFlip
 
-		// Tiled flip/rotation encoding (H=horizontal, V=vertical, D=diagonal):
-		//   H  V  D
-		//   0  0  0  → normal
-		//   1  0  0  → flip horizontal
-		//   0  1  0  → flip vertical
-		//   1  1  0  → rotate 180°
-		//   1  0  1  → rotate 90° CCW
-		//   0  1  1  → rotate 90° CW
-		//   0  0  1  → anti-diagonal transpose
-		//   1  1  1  → anti-diagonal transpose + flip horizontal
+		// Tiled flip/rotation encoding, verified against actual tile data:
+		//   H  V  D   raw example
+		//   0  0  0   → normal
+		//   1  0  0   → flip horizontal
+		//   0  1  0   → flip vertical
+		//   1  1  0   → rotate 180°
+		//   1  0  1   → rotate 90° CW   (0xA0000000 series)
+		//   0  1  1   → rotate 90° CCW  (0x60000000 series)
+		//   0  0  1   → anti-diagonal transpose
+		//   1  1  1   → anti-diagonal transpose + flip horizontal
 		if d {
 			if h && v {
 				// Anti-diagonal transpose + flip horizontal
@@ -74,13 +71,13 @@ func (r *Renderer) drawLayer(screen *ebiten.Image, layer *gotiled.Layer, tw, th,
 				op.GeoM.Scale(-1, 1)
 				op.GeoM.Translate(tw, 0)
 			} else if h {
-				// Rotate 90° CCW
-				op.GeoM.Rotate(-math.Pi / 2)
-				op.GeoM.Translate(0, tw)
-			} else if v {
 				// Rotate 90° CW
 				op.GeoM.Rotate(math.Pi / 2)
 				op.GeoM.Translate(th, 0)
+			} else if v {
+				// Rotate 90° CCW
+				op.GeoM.Rotate(-math.Pi / 2)
+				op.GeoM.Translate(0, tw)
 			} else {
 				// Anti-diagonal transpose (pure)
 				op.GeoM.Scale(-1, 1)
