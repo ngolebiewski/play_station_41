@@ -66,6 +66,11 @@ func (s *ClassroomScene) Update() error {
 		p.directionRight = true
 	}
 
+	// test camera shake
+	if gpad.PressB() && s.game.debug {
+		s.camera.Shake(20, 3.0) // 20 ticks (~0.33s), 3px intensity
+	}
+
 	s.camera.Update(
 		float64(p.x), float64(p.y),
 		float64(tileSize*scale), float64(tileSize*scale),
@@ -77,7 +82,7 @@ func (s *ClassroomScene) Update() error {
 
 func (s *ClassroomScene) Draw(screen *ebiten.Image) {
 	// 1. Draw map with camera offset
-	s.renderer.Draw(screen, s.camera.X, s.camera.Y)
+	s.renderer.Draw(screen, s.camera.DrawX(), s.camera.DrawY())
 
 	// 2. Draw player at screen position (world pos minus camera offset)
 	p := s.game.player
@@ -88,8 +93,8 @@ func (s *ClassroomScene) Draw(screen *ebiten.Image) {
 			op.GeoM.Scale(-1, 1)
 			op.GeoM.Translate(float64(tileSize*scale), 0)
 		}
-		screenX := float64(p.x) - s.camera.X
-		screenY := float64(p.y) - s.camera.Y
+		screenX := float64(p.x) - s.camera.DrawX()
+		screenY := float64(p.y) - s.camera.DrawY()
 		op.GeoM.Translate(screenX, screenY)
 		screen.DrawImage(p.image, op)
 	}
