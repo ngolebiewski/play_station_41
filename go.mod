@@ -5,6 +5,7 @@ go 1.25.1
 require (
 	github.com/hajimehoshi/bitmapfont/v4 v4.1.0
 	github.com/hajimehoshi/ebiten/v2 v2.9.8
+	github.com/lafriks/go-tiled v0.14.0
 )
 
 require (

@@ -16,10 +16,26 @@ type ClassroomScene struct {
 
 func NewClassroomScene(game *Game) *ClassroomScene {
 	// Load the map from embedded assets
-	m, err := tiled.LoadMapFS(embeddedAssets, "tiled_files/exports/classroom_1..tmj")
+	m, err := tiled.LoadMapFS(embeddedAssets, "tiled_files/classroom_1.tmx")
+
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// DEBUG — remove once working
+	log.Printf("Map size: %dx%d tiles, tile size: %dx%d px",
+		m.Width, m.Height, m.TileWidth, m.TileHeight)
+	log.Printf("Tilesets: %d", len(m.Tilesets))
+	for i, ts := range m.Tilesets {
+		log.Printf("  Tileset %d: name=%q columns=%d tilecount=%d firstgid=%d image=%q",
+			i, ts.Name, ts.Columns, ts.TileCount, ts.FirstGID, ts.Image.Source)
+	}
+	log.Printf("Layers: %d", len(m.Layers))
+	for i, l := range m.Layers {
+		log.Printf("  Layer %d: name=%q visible=%v tiles=%d",
+			i, l.Name, l.Visible, len(l.Tiles))
+	}
+	log.Printf("Tileset image size: %v", game.assets.ClassroomTileset_1.Bounds())
 
 	return &ClassroomScene{
 		game: game,

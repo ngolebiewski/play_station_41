@@ -1,33 +1,12 @@
+// Package tiled wraps github.com/lafriks/go-tiled for use with Ebitengine.
+// The go-tiled library provides the Map, Layer, Tileset, and Object types.
+// This package adds only what go-tiled doesn't: a Spawn value type and
+// Ebitengine-specific rendering/collision helpers.
 package tiled
 
-type Map struct {
-	Width      int       `json:"width"`
-	Height     int       `json:"height"`
-	TileWidth  int       `json:"tilewidth"`
-	TileHeight int       `json:"tileheight"`
-	Layers     []Layer   `json:"layers"`
-	Tilesets   []Tileset `json:"tilesets"`
-}
-
-type Layer struct {
-	Name    string   `json:"name"`
-	Type    string   `json:"type"`   // "tilelayer", "objectgroup", "group"
-	Data    []uint32 `json:"data"`   // For tile layers
-	Layers  []Layer  `json:"layers"` // For groups
-	Visible bool     `json:"visible"`
-	Objects []Object `json:"objects,omitempty"`
-}
-
-type Tileset struct {
-	FirstGID int `json:"firstgid"`
-}
-
-type Object struct {
-	Name string  `json:"name"`
-	X    float64 `json:"x"`
-	Y    float64 `json:"y"`
-}
-
+// Spawn represents a single point object from the "spawn" object layer.
+// Type is the object's Name field in Tiled ("student", "teacher", "find").
+// X and Y are world pixel coordinates.
 type Spawn struct {
 	X, Y float64
 	Type string // "student", "teacher", "find"
