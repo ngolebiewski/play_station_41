@@ -16,10 +16,13 @@ import (
 
 //go:embed aseprite_art/title_ps41_c.png
 //go:embed aseprite_art/characters.png
-//go:embed tiled_files/exports/classroom_1..tmj
 //go:embed aseprite_art/objects.png
-//go:embed tiled_files/classroom_1.png
 //go:embed aseprite_art/default_player.png
+//go:embed aseprite_art/CLASSROOM.png
+
+//go:embed tiled_files/classroom_1.tmx
+//go:embed tiled_files/CLASSROOM.tsx
+//go:embed tiled_files/classroom_1.png
 
 // could embed the entire directory with 'art/**' but there are files I don't want in there to keep the build small.
 // For example. ASEPRITE files with layers, and unused artworks or test files.
@@ -64,7 +67,7 @@ func LoadAssets() *Assets {
 		log.Fatal(err)
 	}
 
-	classroomTiles_1, err := loadImage("tiled_files/classroom_1.png")
+	classroomTiles_1, err := loadImage("aseprite_art/CLASSROOM.png")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,6 +86,7 @@ func LoadAssets() *Assets {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	// stick, err := loadImage("aseprite_art/stickers.png")
 	// if err != nil {
 	// 	log.Fatal(err)

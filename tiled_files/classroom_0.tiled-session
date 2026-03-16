@@ -3,11 +3,23 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "",
+    "activeFile": "classroom_1.tmx",
     "expandedProjectPaths": [
     ],
     "exportAsImage.useCurrentScale": true,
     "fileStates": {
+        "CLASSROOM.tsx": {
+            "scaleInDock": 3,
+            "scaleInEditor": 1
+        },
+        "classroom_1.tmx": {
+            "scale": 4,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 94.875,
+                "y": 173.625
+            }
+        }
     },
     "last.exportedFilePath": "/Users/nickgolebiewski/Documents/Coding_Projects/2026/play_station_41/tiled_files/exports",
     "last.imagePath": "/Users/nickgolebiewski/Documents/Coding_Projects/2026/play_station_41/aseprite_art",
@@ -17,9 +29,13 @@
     "map.tileWidth": 16,
     "map.width": 12,
     "openFiles": [
+        "CLASSROOM.tsx",
+        "classroom_1.tmx"
     ],
     "project": "classroom_0.tiled-project",
     "recentFiles": [
+        "CLASSROOM.tsx",
+        "classroom_1.tmx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
