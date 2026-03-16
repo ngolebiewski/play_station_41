@@ -1,8 +1,10 @@
 package tiled
 
 import (
+	"image/color"
 	"strings"
 
+	"github.com/hajimehoshi/ebiten/v2"
 	gotiled "github.com/lafriks/go-tiled"
 )
 
@@ -10,19 +12,19 @@ import (
 // Index with grid.Solid[y][x].
 type CollisionGrid struct {
 	Width, Height int
+	TileW, TileH  int // tile size in pixels (from the map)
 	Solid         [][]bool
 }
 
-// BuildCollisionGrid scans all tile layers whose name contains "collide"
-// (case-insensitive) and marks any non-empty tile as solid.
-//
-// go-tiled decodes layer tile data into layer.Tiles ([]*LayerTile).
-// tile.IsNil() is true for empty cells (GID 0). Any non-nil tile in a
-// collision layer means that cell is solid.
+// BuildCollisionGrid scans all tile layers whose name contains "collide" or
+// "moveable" (case-insensitive) and marks any non-empty tile as solid.
+// "moveable" tiles block the player for now — a future issue will make them pushable.
 func BuildCollisionGrid(m *gotiled.Map) *CollisionGrid {
 	grid := &CollisionGrid{
 		Width:  m.Width,
 		Height: m.Height,
+		TileW:  m.TileWidth,
+		TileH:  m.TileHeight,
 		Solid:  make([][]bool, m.Height),
 	}
 	for y := range m.Height {
@@ -30,7 +32,10 @@ func BuildCollisionGrid(m *gotiled.Map) *CollisionGrid {
 	}
 
 	for _, layer := range m.Layers {
-		if !strings.Contains(strings.ToUpper(layer.Name), "COLLIDE") {
+		name := strings.ToUpper(layer.Name)
+		isCollide := strings.Contains(name, "COLLIDE")
+		isMoveable := strings.Contains(name, "MOVEABLE")
+		if !isCollide && !isMoveable {
 			continue
 		}
 		for i, tile := range layer.Tiles {
@@ -45,14 +50,38 @@ func BuildCollisionGrid(m *gotiled.Map) *CollisionGrid {
 	return grid
 }
 
-// IsSolid reports whether the tile at world pixel position (wx, wy) is solid.
-// tileW and tileH are the map's TileWidth and TileHeight in pixels.
-// Returns false (not solid) if the position is outside the map bounds.
-func (g *CollisionGrid) IsSolid(wx, wy float64, tileW, tileH int) bool {
-	x := int(wx) / tileW
-	y := int(wy) / tileH
+// IsSolid reports whether the world pixel position (wx, wy) is inside a solid tile.
+// Returns true (solid) if the position is outside the map bounds —
+// treats the map edge as a wall.
+func (g *CollisionGrid) IsSolid(wx, wy float64) bool {
+	x := int(wx) / g.TileW
+	y := int(wy) / g.TileH
 	if x < 0 || y < 0 || x >= g.Width || y >= g.Height {
-		return false
+		return true // out of bounds = solid
 	}
 	return g.Solid[y][x]
+}
+
+// DrawDebug draws a transparent red overlay over every solid tile.
+// Call after renderer.Draw, gated by debug mode.
+func (g *CollisionGrid) DrawDebug(screen *ebiten.Image, camX, camY, scale float64) {
+	overlay := ebiten.NewImage(g.TileW, g.TileH)
+	overlay.Fill(color.RGBA{R: 255, G: 0, B: 0, A: 80})
+
+	tw := float64(g.TileW) * scale
+	th := float64(g.TileH) * scale
+
+	for y, row := range g.Solid {
+		for x, solid := range row {
+			if !solid {
+				continue
+			}
+			worldX := float64(x)*float64(g.TileW)*scale - camX
+			worldY := float64(y)*float64(g.TileH)*scale - camY
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Scale(tw/float64(g.TileW), th/float64(g.TileH))
+			op.GeoM.Translate(worldX, worldY)
+			screen.DrawImage(overlay, op)
+		}
+	}
 }

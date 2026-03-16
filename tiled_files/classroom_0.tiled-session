@@ -13,11 +13,11 @@
             "scaleInEditor": 1
         },
         "classroom_1.tmx": {
-            "scale": 4,
+            "scale": 8,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 94.875,
-                "y": 173.625
+                "x": 123.3125,
+                "y": 181.5625
             }
         }
     },
@@ -34,8 +34,8 @@
     ],
     "project": "classroom_0.tiled-project",
     "recentFiles": [
-        "CLASSROOM.tsx",
-        "classroom_1.tmx"
+        "classroom_1.tmx",
+        "CLASSROOM.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
