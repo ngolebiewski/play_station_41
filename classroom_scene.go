@@ -94,5 +94,5 @@ func (s *ClassroomScene) Draw(screen *ebiten.Image) {
 		screen.DrawImage(p.image, op)
 	}
 
-	ebitenutil.DebugPrint(screen, "Classroom Scene Active")
+	ebitenutil.DebugPrint(screen, "3rd Grade Classroom")
 }

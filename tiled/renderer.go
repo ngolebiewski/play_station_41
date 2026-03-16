@@ -54,18 +54,18 @@ func (r *Renderer) drawLayer(screen *ebiten.Image, layer *gotiled.Layer, tw, th,
 		d := tile.DiagonalFlip
 
 		// Tiled flip/rotation encoding, verified against actual tile data:
-		//   H  V  D   raw example
-		//   0  0  0   → normal
-		//   1  0  0   → flip horizontal
-		//   0  1  0   → flip vertical
-		//   1  1  0   → rotate 180°
-		//   1  0  1   → rotate 90° CW   (0xA0000000 series)
-		//   0  1  1   → rotate 90° CCW  (0x60000000 series)
-		//   0  0  1   → anti-diagonal transpose
-		//   1  1  1   → anti-diagonal transpose + flip horizontal
+		//   H  V  D
+		//   0  0  0  → normal
+		//   1  0  0  → flip horizontal
+		//   0  1  0  → flip vertical
+		//   1  1  0  → rotate 180°
+		//   1  0  1  → rotate 90° CW
+		//   0  1  1  → rotate 90° CCW
+		//   0  0  1  → rotate 180° (testing this theory)
+		//   1  1  1  → anti-diagonal + flip horizontal
 		if d {
 			if h && v {
-				// Anti-diagonal transpose + flip horizontal
+				// Anti-diagonal + flip horizontal
 				op.GeoM.Rotate(math.Pi / 2)
 				op.GeoM.Translate(th, 0)
 				op.GeoM.Scale(-1, 1)
@@ -79,11 +79,9 @@ func (r *Renderer) drawLayer(screen *ebiten.Image, layer *gotiled.Layer, tw, th,
 				op.GeoM.Rotate(-math.Pi / 2)
 				op.GeoM.Translate(0, tw)
 			} else {
-				// Anti-diagonal transpose (pure)
-				op.GeoM.Scale(-1, 1)
-				op.GeoM.Translate(tw, 0)
-				op.GeoM.Rotate(math.Pi / 2)
-				op.GeoM.Translate(th, 0)
+				// Pure D
+				op.GeoM.Rotate(-math.Pi / 2)
+				op.GeoM.Translate(0, tw)
 			}
 		} else {
 			if h {
