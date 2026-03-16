@@ -17,7 +17,7 @@ func NewPlayer() *Player {
 		y:              sH / 2,
 		health:         100,
 		score:          0,
-		speed:          2,
+		speed:          1, // Seems like it should be 1xscale of player. i.e. 2 if player doubled
 		directionRight: true,
 	}
 	return p
