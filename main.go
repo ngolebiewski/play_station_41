@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -12,6 +13,7 @@ type Game struct {
 	scene  Scene
 	assets *Assets
 	player *Player
+	debug  bool
 }
 
 func NewGame() *Game {
@@ -23,6 +25,7 @@ func NewGame() *Game {
 	g := &Game{
 		assets: assets,
 		player: player,
+		debug:  false,
 	}
 	g.scene = NewTitleScene(g)
 	return g
@@ -33,7 +36,13 @@ func (g *Game) Update() error {
 	if gpad.PressFullscreen() {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
-	gpad.TestInputs()
+	if gpad.PressDebug() {
+		g.debug = !g.debug
+		fmt.Println("Debug mode on: ", g.debug)
+	}
+	if g.debug {
+		gpad.TestInputs()
+	}
 
 	return nil
 }
