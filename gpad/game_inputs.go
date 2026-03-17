@@ -12,13 +12,89 @@ const (
 	id       = 0
 )
 
-// old school NES-like controller where D-Pad is:
-//.     12
-//.  14    15.    8.      9.     0  1
-//.     13.       select. start  B  A
+// touchEnabled is set true the first time a touch is detected on the title screen.
+var touchEnabled bool
 
+// screenW/H are the logical game screen dimensions, set via Init.
+var screenW, screenH int
+
+// Init sets the logical screen size for touch input mapping.
+// Call this once at startup before any input is read.
+// e.g. gpad.Init(sW, sH)
+func Init(w, h int) {
+	screenW = w
+	screenH = h
+}
+
+// TouchEnabled returns whether touch mode is active.
+func TouchEnabled() bool { return touchEnabled }
+
+// EnableTouch activates touch input. Called from the title screen on first touch.
+func EnableTouch() { touchEnabled = true }
+
+// dpadTouch holds the current touch directions, computed once per frame.
+var dpadTouch struct{ up, down, left, right bool }
+
+// UpdateTouch should be called once per game tick.
+// Left half of screen = D-pad, right half = action button.
+// Touch coordinates are in logical game pixels, matching screenW/H from Init.
+func UpdateTouch() {
+	dpadTouch.up = false
+	dpadTouch.down = false
+	dpadTouch.left = false
+	dpadTouch.right = false
+
+	if !touchEnabled || screenW == 0 {
+		return
+	}
+
+	for _, t := range ebiten.AppendTouchIDs(nil) {
+		x, y := ebiten.TouchPosition(t)
+		if x > screenW/2 {
+			continue // right half = action buttons
+		}
+		// Center of the left half d-pad zone
+		cx := screenW / 4
+		cy := screenH / 2
+		dx := x - cx
+		dy := y - cy
+		if dy < -10 {
+			dpadTouch.up = true
+		}
+		if dy > 10 {
+			dpadTouch.down = true
+		}
+		if dx < -10 {
+			dpadTouch.left = true
+		}
+		if dx > 10 {
+			dpadTouch.right = true
+		}
+	}
+}
+
+// isTouchingRight returns true if any touch is in the right half of the screen.
+func isTouchingRight() bool {
+	if !touchEnabled || screenW == 0 {
+		return false
+	}
+	for _, t := range ebiten.AppendTouchIDs(nil) {
+		x, _ := ebiten.TouchPosition(t)
+		if x > screenW/2 {
+			return true
+		}
+	}
+	return false
+}
+
+// old school NES-like controller where D-Pad is:
+//
+//	   12
+//	14    15.    8.      9.     0  1
+//	   13.       select. start  B  A
 func MoveUp() bool {
-	return ebiten.IsKeyPressed(ebiten.KeyUp) ||
+	return dpadTouch.up ||
+		ebiten.IsKeyPressed(ebiten.KeyUp) ||
 		ebiten.IsKeyPressed(ebiten.KeyW) ||
 		ebiten.IsGamepadButtonPressed(0, 12) ||
 		ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftTop) ||
@@ -26,7 +102,8 @@ func MoveUp() bool {
 }
 
 func MoveDown() bool {
-	return ebiten.IsKeyPressed(ebiten.KeyDown) ||
+	return dpadTouch.down ||
+		ebiten.IsKeyPressed(ebiten.KeyDown) ||
 		ebiten.IsKeyPressed(ebiten.KeyS) ||
 		ebiten.IsGamepadButtonPressed(0, 13) ||
 		ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftBottom) ||
@@ -34,7 +111,8 @@ func MoveDown() bool {
 }
 
 func MoveLeft() bool {
-	return ebiten.IsKeyPressed(ebiten.KeyLeft) ||
+	return dpadTouch.left ||
+		ebiten.IsKeyPressed(ebiten.KeyLeft) ||
 		ebiten.IsKeyPressed(ebiten.KeyA) ||
 		ebiten.IsGamepadButtonPressed(0, 14) ||
 		ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftLeft) ||
@@ -42,7 +120,8 @@ func MoveLeft() bool {
 }
 
 func MoveRight() bool {
-	return ebiten.IsKeyPressed(ebiten.KeyRight) ||
+	return dpadTouch.right ||
+		ebiten.IsKeyPressed(ebiten.KeyRight) ||
 		ebiten.IsKeyPressed(ebiten.KeyD) ||
 		ebiten.IsGamepadButtonPressed(0, 15) ||
 		ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftRight) ||
@@ -60,7 +139,8 @@ func PressSelect() bool {
 }
 
 func PressB() bool {
-	return inpututil.IsKeyJustPressed(ebiten.KeySpace) ||
+	return isTouchingRight() ||
+		inpututil.IsKeyJustPressed(ebiten.KeySpace) ||
 		inpututil.IsKeyJustPressed(ebiten.KeyEnter) ||
 		inpututil.IsStandardGamepadButtonJustPressed(0, ebiten.StandardGamepadButtonRightBottom) ||
 		inpututil.IsStandardGamepadButtonJustPressed(0, 0)
@@ -82,7 +162,6 @@ func PressQuit() bool {
 }
 
 func PressDebug() bool {
-	// H for hitbox as not to be D as in WASD movement to turn debug mode on
 	return inpututil.IsKeyJustPressed(ebiten.KeyH)
 }
 
