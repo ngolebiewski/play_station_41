@@ -58,6 +58,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	ebiten.SetWindowSize(sW*sX, sH*sX)
+	gpad.Init(sW, sH)
 	ebiten.SetWindowTitle("Play Station 41")
 	game := NewGame()
 	if err := ebiten.RunGame(game); err != nil {

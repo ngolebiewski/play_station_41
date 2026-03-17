@@ -13,8 +13,18 @@ const (
 )
 
 // touchEnabled is set true the first time a touch is detected on the title screen.
-// All touch input is ignored until then — so desktop/gamepad users see no change.
 var touchEnabled bool
+
+// screenW/H are the logical game screen dimensions, set via Init.
+var screenW, screenH int
+
+// Init sets the logical screen size for touch input mapping.
+// Call this once at startup before any input is read.
+// e.g. gpad.Init(sW, sH)
+func Init(w, h int) {
+	screenW = w
+	screenH = h
+}
 
 // TouchEnabled returns whether touch mode is active.
 func TouchEnabled() bool { return touchEnabled }
@@ -22,32 +32,30 @@ func TouchEnabled() bool { return touchEnabled }
 // EnableTouch activates touch input. Called from the title screen on first touch.
 func EnableTouch() { touchEnabled = true }
 
-// dpadTouch holds the current touch directions, computed once per frame by Update.
+// dpadTouch holds the current touch directions, computed once per frame.
 var dpadTouch struct{ up, down, left, right bool }
 
-// UpdateTouch should be called once per game tick (from Game.Update).
-// It reads all active touches and maps them to directions.
+// UpdateTouch should be called once per game tick.
 // Left half of screen = D-pad, right half = action button.
+// Touch coordinates are in logical game pixels, matching screenW/H from Init.
 func UpdateTouch() {
 	dpadTouch.up = false
 	dpadTouch.down = false
 	dpadTouch.left = false
 	dpadTouch.right = false
 
-	if !touchEnabled {
+	if !touchEnabled || screenW == 0 {
 		return
 	}
 
-	sw, sh := ebiten.WindowSize()
-
 	for _, t := range ebiten.AppendTouchIDs(nil) {
 		x, y := ebiten.TouchPosition(t)
-		if x > sw/2 {
-			continue // right half is action buttons, not dpad
+		if x > screenW/2 {
+			continue // right half = action buttons
 		}
-		// Divide left half into 4 zones around its center
-		cx := sw / 4
-		cy := sh / 2
+		// Center of the left half d-pad zone
+		cx := screenW / 4
+		cy := screenH / 2
 		dx := x - cx
 		dy := y - cy
 		if dy < -10 {
@@ -66,15 +74,13 @@ func UpdateTouch() {
 }
 
 // isTouchingRight returns true if any touch is in the right half of the screen.
-// Used for B/A action buttons.
 func isTouchingRight() bool {
-	if !touchEnabled {
+	if !touchEnabled || screenW == 0 {
 		return false
 	}
-	sw, _ := ebiten.WindowSize()
 	for _, t := range ebiten.AppendTouchIDs(nil) {
 		x, _ := ebiten.TouchPosition(t)
-		if x > sw/2 {
+		if x > screenW/2 {
 			return true
 		}
 	}
@@ -156,7 +162,6 @@ func PressQuit() bool {
 }
 
 func PressDebug() bool {
-	// H for hitbox — not D since that's used for WASD movement
 	return inpututil.IsKeyJustPressed(ebiten.KeyH)
 }
 
