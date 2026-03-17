@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/ngolebiewski/play_station_41/gpad"
 )
 
@@ -48,7 +47,7 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	ebitenutil.DebugPrint(screen, "Play Station 41\nAKA PS41")
+	// ebitenutil.DebugPrint(screen, "Play Station 41\nAKA PS41")
 	g.scene.Draw(screen)
 }
 

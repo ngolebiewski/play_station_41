@@ -128,7 +128,7 @@ func MoveRight() bool {
 		ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickHorizontal) > deadZone
 }
 
-func PressPause() bool {
+func PressStart() bool {
 	return inpututil.IsKeyJustPressed(ebiten.KeyP) ||
 		inpututil.IsStandardGamepadButtonJustPressed(0, 9)
 }
@@ -178,7 +178,7 @@ func TestInputs() {
 	if MoveRight() {
 		fmt.Println("Right")
 	}
-	if PressPause() {
+	if PressStart() {
 		fmt.Println("Pause")
 	}
 	if PressSelect() {
