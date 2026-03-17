@@ -59,6 +59,7 @@ func (s *ClassroomScene) Update() error {
 
 	// Try each axis independently so the player slides along walls
 	// rather than stopping dead on diagonal collisions.
+	gpad.UpdateTouch()
 
 	if gpad.MoveUp() {
 		ny := float64(p.y) - float64(p.speed)
