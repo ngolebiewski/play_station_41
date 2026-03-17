@@ -36,7 +36,7 @@ func (s *TitleScene) Update() error {
 	// Tap anywhere on title screen OR press B to start
 	touchTapped := gpad.TouchEnabled() && len(inpututil.AppendJustReleasedTouchIDs(nil)) > 0
 	if gpad.PressB() || touchTapped {
-		s.game.scene = NewClassroomScene(s.game)
+		s.game.scene = NewCharacterSelectionScene(s.game)
 	}
 
 	return nil
