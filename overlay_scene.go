@@ -15,7 +15,7 @@ var textFace = text.NewGoXFace(bitmapfont.Face)
 
 const (
 	// Overlay display constants
-	overlayDarkAlpha = 180          // Alpha for the dark overlay behind
+	overlayDarkAlpha = 180 // Alpha for the dark overlay behind
 	overlayBoxW      = 100
 	overlayBoxH      = 80
 	overlayBoxX      = (sW - overlayBoxW) / 2
@@ -68,12 +68,12 @@ func (o *ObjectFindOverlay) Draw(screen *ebiten.Image) {
 	// Draw target object image (centered in box)
 	if o.gameplay.TargetObjectImage != nil {
 		imgW := float64(o.gameplay.TargetObjectImage.Bounds().Dx())
-		imgH := float64(o.gameplay.TargetObjectImage.Bounds().Dy())
+		// imgH := float64(o.gameplay.TargetObjectImage.Bounds().Dy())
 
 		// Center the image in box, with scaling
 		imgScale := 2.0
 		scaledW := imgW * imgScale
-		scaledH := imgH * imgScale
+		// scaledH := imgH * imgScale
 
 		imgX := float64(overlayBoxX) + (float64(overlayBoxW)-scaledW)/2
 		imgY := float64(overlayBoxY) + overlayPadding*float64(scale)
