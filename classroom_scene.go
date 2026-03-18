@@ -100,6 +100,7 @@ func (s *ClassroomScene) Update() error {
 	}
 
 	if gpad.PressB() && s.game.debug {
+		s.game.audioManager.PlaySE("zoing")
 		s.camera.Shake(20, 3.0)
 	}
 

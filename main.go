@@ -19,9 +19,16 @@ type Game struct {
 }
 
 func NewGame() *Game {
+	///////////////////////SOUND///////////////////////////////
 	// Create the Ebitengine audio context and audio managaer
 	audioContext := audio.NewContext(48000)
+	// Decode all SFX into RAM
+	err := music.PreloadSFX(audioContext)
+	if err != nil {
+		log.Fatal(err)
+	}
 	manager := music.NewAudioManager(audioContext)
+	///////////////////////////////////////////////////////////
 
 	// Load embedded assets (spritesheets + tilemaps) and initialize a Player
 	assets := LoadAssets()
