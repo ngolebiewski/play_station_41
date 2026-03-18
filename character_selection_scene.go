@@ -1,6 +1,8 @@
 package main
 
 import (
+	_ "embed"
+	"fmt"
 	"image"
 	"image/color"
 	"math/rand/v2"
@@ -13,13 +15,32 @@ import (
 	"github.com/ngolebiewski/play_station_41/gpad"
 )
 
+//go:embed portrait_bg.kage
+var portraitBgKage []byte
+
 const (
-	charGridX         = 8 // characters per row
-	charTileSize      = 16
-	charDisplaySize   = 32 // scaled up for display (16 * 2)
-	selectionPadding  = 4
-	autoSelectTimeout = 300  // frames (about 5 seconds at 60fps)
-	inactivityTimeout = 1800 // frames (30 seconds)
+	charGridX        = 8
+	charTileSize     = 16
+	charDisplaySize  = 16 // 1:1 display, no scaling
+	selectionPadding = 2
+
+	inactivityTimeout = 600 // frames (10s at 60fps)
+
+	// Layout for 240x160 screen
+	gridMarginLeft = 68                                     // space for portrait panel on left
+	gridMarginTop  = 18                                     // below title
+	gridCellSize   = charDisplaySize + selectionPadding + 1 // 19px per cell
+
+	portraitX     = 2
+	portraitY     = 24
+	portraitScale = 3
+	portraitSize  = charTileSize * portraitScale // 48px
+
+	// Touch START button (bottom strip) — raised to stay inside 160px
+	startBtnX = 150
+	startBtnY = 143
+	startBtnW = 86
+	startBtnH = 10
 )
 
 type CharacterSelectionScene struct {
@@ -30,66 +51,75 @@ type CharacterSelectionScene struct {
 	selectionY        int
 	inputCooldown     int
 	autoSelectCounter int
-	lastInputFrame    int
+	portraitShader    *ebiten.Shader
+	shaderTime        float32
+	// portraitCanvas is a reusable offscreen sized to the portrait area
+	portraitCanvas *ebiten.Image
 }
 
 func NewCharacterSelectionScene(game *Game) *CharacterSelectionScene {
 	chars := extractCharacterSprites(game.assets.CharactersTileset)
 
-	scene := &CharacterSelectionScene{
-		game:              game,
-		characters:        chars,
-		selectedIndex:     0,
-		selectionX:        0,
-		selectionY:        0,
-		inputCooldown:     0,
-		autoSelectCounter: 0,
-		lastInputFrame:    0,
+	shader, err := ebiten.NewShader(portraitBgKage)
+	if err != nil {
+		// Non-fatal: fall back to plain background if shader fails
+		shader = nil
 	}
 
-	return scene
+	canvas := ebiten.NewImage(portraitSize, portraitSize)
+
+	return &CharacterSelectionScene{
+		game:           game,
+		characters:     chars,
+		portraitShader: shader,
+		portraitCanvas: canvas,
+	}
 }
 
-// extractCharacterSprites extracts individual characters from the horizontal spritesheet
+// extractCharacterSprites extracts individual characters from the horizontal spritesheet.
+// Starts at index 1 — index 0 is blank (Aseprite convention).
 func extractCharacterSprites(spritesheet *ebiten.Image) []*ebiten.Image {
 	var characters []*ebiten.Image
-
-	// Get spritesheet dimensions
 	bounds := spritesheet.Bounds()
-	sheetWidth := bounds.Max.X
-
-	// Calculate how many characters fit in the spritesheet
-	totalChars := sheetWidth / charTileSize
-	if totalChars > 30 {
-		totalChars = 30 // cap at 30 for performance
-	}
-
-	// Extract each character sprite
+	totalChars := bounds.Max.X / charTileSize
 	for i := 1; i < totalChars; i++ {
 		x := i * charTileSize
 		rect := image.Rect(x, 0, x+charTileSize, charTileSize)
 		subImg := spritesheet.SubImage(rect).(*ebiten.Image)
 		characters = append(characters, subImg)
 	}
-
 	return characters
 }
 
+// totalTiles = characters + 1 "?" random tile at the end
+func (s *CharacterSelectionScene) totalTiles() int {
+	return len(s.characters) + 1
+}
+
+func (s *CharacterSelectionScene) isRandomTile(i int) bool {
+	return i == len(s.characters)
+}
+
+// tileScreenRect returns the top-left pixel of tile i in screen space
+func (s *CharacterSelectionScene) tileScreenPos(i int) (x, y int) {
+	col := i % charGridX
+	row := i / charGridX
+	return gridMarginLeft + col*gridCellSize, gridMarginTop + 4 + row*gridCellSize
+}
+
 func (s *CharacterSelectionScene) Update() error {
-	// Detect and enable touch if needed
-	if !gpad.TouchEnabled() && len(ebiten.AppendTouchIDs(nil)) > 0 {
-		gpad.EnableTouch()
-	}
+	s.shaderTime += 1.0 / 60.0
 	gpad.UpdateTouch()
 
-	// Track inactivity for auto-select
 	if s.inputCooldown > 0 {
 		s.inputCooldown--
 	}
 
 	hasInput := false
+	total := s.totalTiles()
+	maxIdx := total - 1
 
-	// Handle navigation input
+	// Keyboard / gamepad navigation
 	if s.inputCooldown == 0 {
 		if gpad.MoveUp() {
 			s.game.audioManager.PlaySE("blip")
@@ -98,7 +128,7 @@ func (s *CharacterSelectionScene) Update() error {
 			hasInput = true
 		} else if gpad.MoveDown() {
 			s.game.audioManager.PlaySE("blip")
-			maxY := (len(s.characters) - 1) / charGridX
+			maxY := maxIdx / charGridX
 			s.selectionY = min(maxY, s.selectionY+1)
 			s.inputCooldown = 10
 			hasInput = true
@@ -109,48 +139,79 @@ func (s *CharacterSelectionScene) Update() error {
 			hasInput = true
 		} else if gpad.MoveRight() {
 			s.game.audioManager.PlaySE("blip")
-			maxX := charGridX - 1
-			maxY := (len(s.characters) - 1) / charGridX
-			if s.selectionY < maxY || s.selectionX < (len(s.characters)%charGridX)-1 {
-				s.selectionX = min(maxX, s.selectionX+1)
+			maxY := maxIdx / charGridX
+			colMax := charGridX - 1
+			if s.selectionY < maxY || s.selectionX < (total%charGridX)-1 {
+				s.selectionX = min(colMax, s.selectionX+1)
 				s.inputCooldown = 10
 				hasInput = true
 			}
 		}
-
 	}
 
-	// Update selected index based on grid position
-	s.selectedIndex = s.selectionY*charGridX + s.selectionX
-	if s.selectedIndex >= len(s.characters) {
-		s.selectedIndex = len(s.characters) - 1
-		s.selectionX = s.selectedIndex % charGridX
-		s.selectionY = s.selectedIndex / charGridX
+	// Clamp index
+	idx := s.selectionY*charGridX + s.selectionX
+	if idx > maxIdx {
+		idx = maxIdx
+		s.selectionX = idx % charGridX
+		s.selectionY = idx / charGridX
 	}
+	s.selectedIndex = idx
 
-	// Handle random selection with ? button
-	if gpad.PressSelect() {
-		s.randomSelect()
+	// Keyboard/gamepad confirm
+	if gpad.PressB() || gpad.PressStart() {
 		hasInput = true
+		if s.isRandomTile(s.selectedIndex) {
+			s.randomSelect()
+		} else {
+			s.confirmSelection()
+			return nil
+		}
 	}
 
-	// Reset inactivity timer on input
+	// Touch: detect released taps
+	justReleased := inpututil.AppendJustReleasedTouchIDs(nil)
+	for _, tid := range justReleased {
+		tx, ty := inpututil.TouchPositionInPreviousTick(tid)
+
+		// Check START button tap
+		if tx >= startBtnX && tx <= startBtnX+startBtnW &&
+			ty >= startBtnY && ty <= startBtnY+startBtnH {
+			hasInput = true
+			s.confirmSelection()
+			return nil
+		}
+
+		// Check character tile tap
+		for i := 0; i < total; i++ {
+			cx, cy := s.tileScreenPos(i)
+			if tx >= cx && tx < cx+gridCellSize && ty >= cy && ty < cy+gridCellSize {
+				hasInput = true
+				s.game.audioManager.PlaySE("blip")
+				if s.isRandomTile(i) {
+					s.randomSelect()
+				} else if i == s.selectedIndex {
+					// Second tap on already-highlighted = confirm
+					s.confirmSelection()
+					return nil
+				} else {
+					s.selectedIndex = i
+					s.selectionX = i % charGridX
+					s.selectionY = i / charGridX
+				}
+				break
+			}
+		}
+	}
+
 	if hasInput {
-		s.lastInputFrame = 0
 		s.autoSelectCounter = 0
 	} else {
-		s.lastInputFrame++
 		s.autoSelectCounter++
 	}
 
-	// Auto select if inactivity timeout reached
 	if s.autoSelectCounter >= inactivityTimeout {
-		s.confirmSelection()
-	}
-
-	// Handle selection confirmation (Space, Enter, A button, or touch)
-	touchTapped := gpad.TouchEnabled() && len(inpututil.AppendJustReleasedTouchIDs(nil)) > 0
-	if gpad.PressB() || touchTapped {
+		s.randomSelect()
 		s.confirmSelection()
 	}
 
@@ -158,96 +219,139 @@ func (s *CharacterSelectionScene) Update() error {
 }
 
 func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
-	// Draw background (dark)
-	screen.Fill(color.RGBA{30, 30, 40, 255})
+	screen.Fill(color.RGBA{20, 20, 32, 255})
 
-	// Draw title
-	titleFont := text.NewGoXFace(bitmapfont.Face)
+	f := text.NewGoXFace(bitmapfont.Face)
+
+	// Title
 	titleOpts := &text.DrawOptions{}
-	titleOpts.GeoM.Translate(sW/2-30, 10)
-	titleOpts.ColorScale.ScaleWithColor(color.White)
-	text.Draw(screen, "SELECT STUDENT", titleFont, titleOpts)
+	titleOpts.GeoM.Translate(gridMarginLeft, 3)
+	titleOpts.ColorScale.ScaleWithColor(color.RGBA{255, 220, 60, 255})
+	text.Draw(screen, "SELECT PLAYER", f, titleOpts)
 
-	// Draw character grid
-	startX := (sW - charGridX*charDisplaySize) / 2
-	startY := 40
+	// Portrait panel — shader draws noisy background + sprite composited on top
+	if s.portraitShader != nil && s.selectedIndex < len(s.characters) {
+		s.portraitCanvas.Clear()
+		// Draw sprite onto canvas at 3x scale
+		spriteOp := &ebiten.DrawImageOptions{}
+		spriteOp.GeoM.Scale(portraitScale, portraitScale)
+		s.portraitCanvas.DrawImage(s.characters[s.selectedIndex], spriteOp)
 
-	for i, charSprite := range s.characters {
-		x := i % charGridX
-		y := i / charGridX
-
-		screenX := float64(startX + x*charDisplaySize)
-		screenY := float64(startY + y*charDisplaySize)
-
-		// Draw character sprite
-		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Scale(2, 2) // scale 2x (16->32)
-		op.GeoM.Translate(screenX, screenY)
-		screen.DrawImage(charSprite, op)
-
-		// Draw selection highlight if this is the selected character
-		if i == s.selectedIndex {
-			outlineSize := float32(charDisplaySize)
-			outlineX := float32(screenX)
-			outlineY := float32(screenY)
-
-			// Draw blue outline
-			vector.StrokeRect(screen, outlineX, outlineY, outlineSize, outlineSize, 2, color.RGBA{0, 100, 255, 255}, false)
+		// DrawRectShader: shader samples canvas as Src0, fills background with noise,
+		// and passes through opaque sprite pixels
+		shaderOpts := &ebiten.DrawRectShaderOptions{}
+		shaderOpts.GeoM.Translate(portraitX, portraitY)
+		shaderOpts.Uniforms = map[string]any{
+			"Time": s.shaderTime,
+		}
+		shaderOpts.Images[0] = s.portraitCanvas
+		screen.DrawRectShader(portraitSize, portraitSize, s.portraitShader, shaderOpts)
+	} else {
+		// Fallback: plain dark background + raw sprite draw
+		vector.DrawFilledRect(screen,
+			float32(portraitX), float32(portraitY),
+			float32(portraitSize), float32(portraitSize),
+			color.RGBA{10, 10, 20, 255}, false)
+		if s.selectedIndex < len(s.characters) {
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Scale(portraitScale, portraitScale)
+			op.GeoM.Translate(portraitX, portraitY)
+			screen.DrawImage(s.characters[s.selectedIndex], op)
 		}
 	}
 
-	// Draw "1P" indicator at top-left
-	p1Font := text.NewGoXFace(bitmapfont.Face)
+	// Portrait border (drawn over shader output)
+	vector.StrokeRect(screen,
+		float32(portraitX-1), float32(portraitY-1),
+		float32(portraitSize+2), float32(portraitSize+2),
+		1, color.RGBA{0, 180, 255, 255}, false)
+
+	// 1P label
 	p1Opts := &text.DrawOptions{}
-	p1Opts.GeoM.Translate(10, 10)
-	p1Opts.ColorScale.ScaleWithColor(color.RGBA{0, 100, 255, 255})
-	text.Draw(screen, "1P", p1Font, p1Opts)
+	p1Opts.GeoM.Translate(float64(portraitX+portraitSize/2-4), float64(portraitY+portraitSize+2))
+	p1Opts.ColorScale.ScaleWithColor(color.RGBA{0, 180, 255, 255})
+	text.Draw(screen, "1P", f, p1Opts)
 
-	// Draw selected character index below grid
-	indexFont := text.NewGoXFace(bitmapfont.Face)
-	indexOpts := &text.DrawOptions{}
-	indexOpts.GeoM.Translate(sW/2-20, sH-20)
-	indexOpts.ColorScale.ScaleWithColor(color.White)
-	text.Draw(screen, "START TO CONFIRM", indexFont, indexOpts)
-
-	// Draw inactivity warning
-	if s.autoSelectCounter > inactivityTimeout-60 {
-		warningFont := text.NewGoXFace(bitmapfont.Face)
-		warningOpts := &text.DrawOptions{}
-		warningOpts.GeoM.Translate(sW/2-50, sH-40)
-		warningOpts.ColorScale.ScaleWithColor(color.RGBA{255, 100, 0, 255})
-		text.Draw(screen, "AUTO-SELECT SOON...", warningFont, warningOpts)
+	// Countdown seconds (below 1P)
+	secondsLeft := (inactivityTimeout - s.autoSelectCounter) / 60
+	if secondsLeft < 0 {
+		secondsLeft = 0
 	}
+	cdOpts := &text.DrawOptions{}
+	cdOpts.GeoM.Translate(float64(portraitX), float64(portraitY+portraitSize+14))
+	if secondsLeft <= 5 {
+		cdOpts.ColorScale.ScaleWithColor(color.RGBA{255, 80, 0, 255})
+	} else {
+		cdOpts.ColorScale.ScaleWithColor(color.RGBA{160, 160, 160, 255})
+	}
+	text.Draw(screen, fmt.Sprintf("%2ds", secondsLeft), f, cdOpts)
+
+	// Character grid
+	total := s.totalTiles()
+	for i := 0; i < total; i++ {
+		col := i % charGridX
+		row := i / charGridX
+		sx := float32(gridMarginLeft + col*gridCellSize)
+		sy := float32(gridMarginTop + 4 + row*gridCellSize)
+
+		// White background tile
+		vector.DrawFilledRect(screen, sx, sy,
+			float32(charDisplaySize), float32(charDisplaySize),
+			color.RGBA{240, 236, 228, 255}, false)
+
+		if s.isRandomTile(i) {
+			// "?" tile
+			qOpts := &text.DrawOptions{}
+			qOpts.GeoM.Translate(float64(sx+4), float64(sy+4))
+			qOpts.ColorScale.ScaleWithColor(color.RGBA{60, 60, 200, 255})
+			text.Draw(screen, "?", f, qOpts)
+		} else {
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(sx), float64(sy))
+			screen.DrawImage(s.characters[i], op)
+		}
+
+		// Selection highlight
+		if i == s.selectedIndex {
+			vector.StrokeRect(screen,
+				sx-1, sy-1,
+				float32(charDisplaySize+2), float32(charDisplaySize+2),
+				1.5, color.RGBA{0, 180, 255, 255}, false)
+		}
+	}
+
+	// Touch START button
+	vector.DrawFilledRect(screen,
+		float32(startBtnX), float32(startBtnY),
+		float32(startBtnW), float32(startBtnH),
+		color.RGBA{0, 120, 200, 255}, false)
+	vector.StrokeRect(screen,
+		float32(startBtnX), float32(startBtnY),
+		float32(startBtnW), float32(startBtnH),
+		1, color.RGBA{0, 220, 255, 255}, false)
+	startTxtOpts := &text.DrawOptions{}
+	startTxtOpts.GeoM.Translate(float64(startBtnX+20), float64(startBtnY+1))
+	startTxtOpts.ColorScale.ScaleWithColor(color.White)
+	text.Draw(screen, "START", f, startTxtOpts)
+
+	// Small keyboard hint (left of START button)
+	hintOpts := &text.DrawOptions{}
+	hintOpts.GeoM.Translate(float64(gridMarginLeft), float64(startBtnY+1))
+	hintOpts.ColorScale.ScaleWithColor(color.RGBA{100, 100, 100, 255})
+	text.Draw(screen, "B:PICK", f, hintOpts)
 }
 
 func (s *CharacterSelectionScene) randomSelect() {
+	s.game.audioManager.PlaySE("blip")
 	s.selectedIndex = int(rand.IntN(len(s.characters)))
 	s.selectionX = s.selectedIndex % charGridX
 	s.selectionY = s.selectedIndex / charGridX
 }
 
 func (s *CharacterSelectionScene) confirmSelection() {
-	// Set the selected character in the player
 	if s.selectedIndex < len(s.characters) {
 		s.game.player.characterIndex = s.selectedIndex
 		s.game.player.image = s.characters[s.selectedIndex]
 	}
-
-	// Transition to classroom scene
 	s.game.scene = NewClassroomScene(s.game)
-}
-
-// Helper functions
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }

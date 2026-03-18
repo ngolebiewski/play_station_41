@@ -1,0 +1,26 @@
+//kage:unit pixels
+
+package main
+
+// Time advances each frame — used to animate the grain slightly.
+var Time float
+ 
+func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
+	sprite := imageSrc0UnsafeAt(srcPos)
+	if sprite.a > 0.01 {
+		return sprite
+	}
+ 
+	// Slow diagonal drift — asymmetric speeds avoid uniform shimmer
+	p := dstPos.xy + vec2(Time*1.1, Time*0.73)
+ 
+	// Two hash layers at different scales for organic film-grain feel
+	h1 := fract(sin(dot(p,       vec2(127.1, 311.7))) * 43758.5453)
+	h2 := fract(sin(dot(p*0.47,  vec2(269.5, 183.3))) * 17231.1234)
+	grain := h1*0.55 + h2*0.45
+ 
+	// Light warm-grey base; grain nudges brightness very gently
+	base  := vec4(0.82, 0.80, 0.78, 1.0)
+	noise := vec4(grain*0.06, grain*0.055, grain*0.05, 0.0)
+	return base + noise
+}
