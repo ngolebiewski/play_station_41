@@ -93,7 +93,6 @@ func NewGameplayState(objectsImage *ebiten.Image) *GameplayState {
 		RemainingTime:    3600,
 		TimerTriggered:   false,
 		ShowingTargetOverlay: true,
-		LevelDisplayText: "X1",
 	}
 }
 
