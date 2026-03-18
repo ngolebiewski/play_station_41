@@ -38,4 +38,12 @@ Total cost $80-$90
 
 Image: Student Title Art
 
-### Development Log
+### Technology
+
+Ebitengine: Go Game Engine
+Aseprite: Pixel Art Editor
+Tiled: Tilemaps
+
+Sounds made on:
+Beepbox sequencer: [____](https://www.beepbox.co/#9n31s7k4l00e03t2ma7g0fj07r1i0o432T0v1u13f10o5q00d03w5h1E0T0v1u11f0qg01d04w1h0E0T7v1u20f51562jb0s22nb2l3q0x20p41402d08H_SRJ5JIBxAAAAkh8IcE3c01c16c16T2v1u15f10w4qw02d03w0E0b4xc00000000h4g000000014h000000004h400000000p21JFEYpkCLV8YChOif9AqldvRMANqq_BvtknTSkkQvy1wbqWXGWWqF2BjkZue8Mnd7O448WGEOVeX8WGEOV06yeGG8M01jhD3bwyeAzEcKAzEE00)
+Sound effects ZZFX: https://killedbyapixel.github.io/ZzFX/

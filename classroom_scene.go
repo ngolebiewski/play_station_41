@@ -40,6 +40,17 @@ func NewClassroomScene(game *Game) *ClassroomScene {
 	mapPixelW := float64(m.Width*m.TileWidth) * scale
 	mapPixelH := float64(m.Height*m.TileHeight) * scale
 
+	/////////////////////////////////////////////////////
+	// Start the music!
+	// This will trigger the fade-in automatically.
+	if game.audioManager != nil {
+		err := game.audioManager.ChangeSong("classroom")
+		if err != nil {
+			log.Printf("Audio Error: %v", err)
+		}
+	}
+	/////////////////////////////////////////////////////
+
 	return &ClassroomScene{
 		game:          game,
 		renderer:      tiled.NewRenderer(m, game.assets.ClassroomTileset_1, scale),

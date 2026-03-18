@@ -5,32 +5,41 @@ import (
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/ngolebiewski/play_station_41/gpad"
+	"github.com/ngolebiewski/play_station_41/music"
 )
 
 type Game struct {
-	scene  Scene
-	assets *Assets
-	player *Player
-	debug  bool
+	scene        Scene
+	assets       *Assets
+	player       *Player
+	debug        bool
+	audioManager *music.AudioManager
 }
 
 func NewGame() *Game {
+	// Create the Ebitengine audio context and audio managaer
+	audioContext := audio.NewContext(48000)
+	manager := music.NewAudioManager(audioContext)
+
+	// Load embedded assets (spritesheets + tilemaps) and initialize a Player
 	assets := LoadAssets()
 	player := NewPlayer()
-
 	player.image = assets.DefaultPlayer
 
 	g := &Game{
-		assets: assets,
-		player: player,
-		debug:  false,
+		assets:       assets,
+		player:       player,
+		debug:        false,
+		audioManager: manager,
 	}
 	g.scene = NewTitleScene(g)
 	return g
 }
 
 func (g *Game) Update() error {
+	g.audioManager.Update()
 	g.scene.Update()
 	if gpad.PressFullscreen() {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
