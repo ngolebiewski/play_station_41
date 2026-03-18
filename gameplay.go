@@ -33,11 +33,14 @@ func extractObjectSprites(spritesheet *ebiten.Image) []*ebiten.Image {
 type ObjectInstance struct {
 	X              float64
 	Y              float64
-	ObjectIndex    int        // Index into the objects slice
+	OrigX          float64 // Original X for animation
+	OrigY          float64 // Original Y for animation
+	ObjectIndex    int     // Index into the objects slice
 	Image          *ebiten.Image
 	IsTarget       bool       // True if this is the object to find
 	IsCollected    bool       // True if player has found this object
-	CollectedFrame int        // Frame when collected
+	CollectedFrame int        // Frame when collected (for animation)
+	PickupProgress float64    // 0.0 to 1.0 for pickup animation
 }
 
 // GameplayState tracks the object-finding game state
@@ -138,9 +141,14 @@ func (gs *GameplayState) PlaceObjects(targetSpawns []tiled.SpawnPoint, otherSpaw
 	// Place target object on a random spawn point from targetSpawns
 	if len(targetSpawns) > 0 {
 		targetSpawn := targetSpawns[rand.IntN(len(targetSpawns))]
+		// Add small random offset to prevent perfect overlap
+		offsetX := float64(rand.IntN(8) - 4)
+		offsetY := float64(rand.IntN(8) - 4)
 		targetObj := &ObjectInstance{
-			X:           targetSpawn.X,
-			Y:           targetSpawn.Y,
+			X:           targetSpawn.X + offsetX,
+			Y:           targetSpawn.Y + offsetY,
+			OrigX:       targetSpawn.X + offsetX,
+			OrigY:       targetSpawn.Y + offsetY,
 			ObjectIndex: gs.TargetObjectIndex,
 			Image:       gs.Objects[gs.TargetObjectIndex],
 			IsTarget:    true,
@@ -150,8 +158,8 @@ func (gs *GameplayState) PlaceObjects(targetSpawns []tiled.SpawnPoint, otherSpaw
 	}
 
 	// Place distractors on other spawn points
-	// Use at most len(otherSpawns) distractors, but at least 1-2 per level
-	numDistractors := min(len(otherSpawns), max(1, gs.Level+1))
+	// Increase distractors: 2-3 per level, up to available spawn points
+	numDistractors := min(len(otherSpawns), max(2, gs.Level+1))
 
 	for i := 0; i < numDistractors && i < len(otherSpawns); i++ {
 		distractorIdx := gs.SelectRandomObject()
@@ -160,9 +168,14 @@ func (gs *GameplayState) PlaceObjects(targetSpawns []tiled.SpawnPoint, otherSpaw
 		}
 
 		spawn := otherSpawns[i]
+		// Add small random offset to prevent perfect overlap
+		offsetX := float64(rand.IntN(8) - 4)
+		offsetY := float64(rand.IntN(8) - 4)
 		distractorObj := &ObjectInstance{
-			X:           spawn.X,
-			Y:           spawn.Y,
+			X:           spawn.X + offsetX,
+			Y:           spawn.Y + offsetY,
+			OrigX:       spawn.X + offsetX,
+			OrigY:       spawn.Y + offsetY,
 			ObjectIndex: distractorIdx,
 			Image:       gs.Objects[distractorIdx],
 			IsTarget:    false,
@@ -248,4 +261,24 @@ func calculateLevelScore(level int, remainingTime int) int {
 	baseScore := level * 100
 	timeBonus := (remainingTime / 60) * 10 // Bonus for time left
 	return baseScore + timeBonus
+}
+
+// GetLevelName returns the grade level name for the current level
+func (gs *GameplayState) GetLevelName() string {
+	levelNames := []string{
+		"",      // 0 - unused
+		"3K",    // 1
+		"Pre-K", // 2
+		"K",     // 3
+		"1st",   // 4
+		"2nd",   // 5
+		"3rd",   // 6
+		"4th",   // 7
+		"5th",   // 8
+	}
+
+	if gs.Level < 1 || gs.Level >= len(levelNames) {
+		return "5th" // Cap at 5th grade
+	}
+	return levelNames[gs.Level]
 }

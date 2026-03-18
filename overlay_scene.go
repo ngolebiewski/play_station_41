@@ -15,7 +15,7 @@ var textFace = text.NewGoXFace(bitmapfont.Face)
 
 const (
 	// Overlay display constants
-	overlayDarkAlpha = 180 // Alpha for the dark overlay behind
+	overlayDarkAlpha = 230 // Alpha for the dark overlay behind (90%)
 	overlayBoxW      = 100
 	overlayBoxH      = 80
 	overlayBoxX      = (sW - overlayBoxW) / 2
@@ -92,14 +92,14 @@ func (o *ObjectFindOverlay) Draw(screen *ebiten.Image) {
 	)
 	text.Draw(screen, "Find:", textFace, textOpt)
 
-	// Draw level number (X1, X2, etc.)
-	levelText := fmt.Sprintf("X%d", o.gameplay.Level)
+	// Draw level name
+	levelName := o.gameplay.GetLevelName()
 	textOpt2 := &text.DrawOptions{}
 	textOpt2.GeoM.Translate(
 		float64(overlayBoxX)+overlayPadding,
 		float64(overlayBoxY)+overlayPadding+35,
 	)
-	text.Draw(screen, levelText, textFace, textOpt2)
+	text.Draw(screen, levelName, textFace, textOpt2)
 
 	// Draw countdown/message
 	secondsLeft := (180 - o.frames) / 60

@@ -181,8 +181,26 @@ func (s *ClassroomScene) Update() error {
 					// Found the target object!
 					gp.ObjectFound()
 					obj.IsCollected = true
+					obj.CollectedFrame = 0
+					obj.PickupProgress = 0.0
 					s.foundMessage = NewFoundObjectMessage()
 				}
+			}
+		}
+	}
+
+	// Update collected object animations (move toward player)
+	for _, obj := range gp.PlacedObjects {
+		if obj.IsCollected {
+			obj.CollectedFrame++
+			// Animate over 30 frames (0.5 seconds at 60fps)
+			if obj.CollectedFrame < 30 {
+				obj.PickupProgress = float64(obj.CollectedFrame) / 30.0
+				// Move toward player center
+				playerCenterX := float64(p.x) + pw/2
+				playerCenterY := float64(p.y) + ph/2
+				obj.X = obj.OrigX + (playerCenterX-obj.OrigX)*obj.PickupProgress
+				obj.Y = obj.OrigY + (playerCenterY-obj.OrigY)*obj.PickupProgress
 			}
 		}
 	}
@@ -363,43 +381,64 @@ func (s *ClassroomScene) Draw(screen *ebiten.Image) {
 func (s *ClassroomScene) drawHUD(screen *ebiten.Image) {
 	gp := s.game.gameplay
 
-	// Draw semi-transparent background for HUD
+	// Draw semi-transparent background for HUD (90% alpha = 230 alpha value)
 	hudBg := ebiten.NewImage(sW, 20)
-	hudBg.Fill(color.RGBA{0, 0, 0, 128})
+	hudBg.Fill(color.RGBA{0, 0, 0, 230})
 	screen.DrawImage(hudBg, &ebiten.DrawImageOptions{})
 
-	// Format timer display
-	minutes := gp.RemainingTime / 3600
-	seconds := (gp.RemainingTime % 3600) / 60
-	timerText := fmt.Sprintf("%d:%02d", minutes, seconds)
-
-	// Draw timer
+	// Draw timer: just "T:" + seconds
+	secondsRemaining := gp.RemainingTime / 60
 	timerOpt := &text.DrawOptions{}
-	timerOpt.GeoM.Translate(10, 5)
-	text.Draw(screen, fmt.Sprintf("Time: %s", timerText), hudTextFace, timerOpt)
+	timerOpt.GeoM.Translate(5, 5)
+	text.Draw(screen, fmt.Sprintf("T:%d", secondsRemaining), hudTextFace, timerOpt)
 
-	// Draw lives
-	livesOpt := &text.DrawOptions{}
-	livesOpt.GeoM.Translate(100, 5)
-	text.Draw(screen, fmt.Sprintf("Lives: %d", gp.Lives), hudTextFace, livesOpt)
+	// Draw lives: player image x count
+	if s.game.player.image != nil {
+		// Draw small player image
+		livesOp := &ebiten.DrawImageOptions{}
+		livesOp.GeoM.Scale(0.5, 0.5)
+		livesOp.GeoM.Translate(50, 4)
+		screen.DrawImage(s.game.player.image, livesOp)
 
-	// Draw level
+		// Draw "x" count
+		livesTextOpt := &text.DrawOptions{}
+		livesTextOpt.GeoM.Translate(65, 5)
+		text.Draw(screen, fmt.Sprintf("x%d", gp.Lives), hudTextFace, livesTextOpt)
+	}
+
+	// Draw level: "Lvl" + grade name
+	levelName := gp.GetLevelName()
 	levelOpt := &text.DrawOptions{}
-	levelOpt.GeoM.Translate(180, 5)
-	text.Draw(screen, fmt.Sprintf("Level: %d", gp.Level), hudTextFace, levelOpt)
+	levelOpt.GeoM.Translate(110, 5)
+	text.Draw(screen, fmt.Sprintf("Lvl %s", levelName), hudTextFace, levelOpt)
 
-	// Draw target object indicator (greyed out version)
-	if gp.TargetObjectImage != nil && !gp.HasFoundObject {
-		// Draw a small greyed out version
-		const targetIndicatorScale = 1.0
-		targetOp := &ebiten.DrawImageOptions{}
-		targetOp.GeoM.Scale(targetIndicatorScale, targetIndicatorScale)
-		targetOp.GeoM.Translate(220, 2)
-		// Apply greyscale by reducing the color
-		targetOp.ColorScale.SetR(0.5)
-		targetOp.ColorScale.SetG(0.5)
-		targetOp.ColorScale.SetB(0.5)
-		targetOp.ColorScale.SetA(0.7)
-		screen.DrawImage(gp.TargetObjectImage, targetOp)
+	// Draw target object indicator(s)
+	// Show 1-3 small grayscale/colored objects depending on level
+	if gp.TargetObjectImage != nil {
+		const objIndicatorSize = 0.75
+		const objSpace = 14 // Space between each object display
+
+		// Determine how many to show based on level
+		numToShow := min(3, gp.Lives)
+
+		startX := 190.0
+
+		for i := 0; i < numToShow; i++ {
+			objOp := &ebiten.DrawImageOptions{}
+			objOp.GeoM.Scale(objIndicatorSize, objIndicatorSize)
+			objOp.GeoM.Translate(startX+float64(i*objSpace), 2)
+
+			if gp.HasFoundObject {
+				// Use full color when found
+				objOp.ColorScale.SetA(1.0)
+			} else {
+				// Greyscale when not found
+				objOp.ColorScale.SetR(0.5)
+				objOp.ColorScale.SetG(0.5)
+				objOp.ColorScale.SetB(0.5)
+				objOp.ColorScale.SetA(0.7)
+			}
+			screen.DrawImage(gp.TargetObjectImage, objOp)
+		}
 	}
 }
