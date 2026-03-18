@@ -13,6 +13,9 @@ import (
 	"github.com/ngolebiewski/play_station_41/tiled"
 )
 
+// Create text face for classroom HUD
+var hudTextFace = text.NewGoXFace(bitmapfont.Face)
+
 type ClassroomScene struct {
 	game              *Game
 	renderer          *tiled.Renderer
@@ -171,7 +174,7 @@ func (s *ClassroomScene) Update() error {
 	}
 
 	// Check for object interaction
-	if (gpad.PressB() || gpad.PressA()) && !gp.ObjectFound {
+	if (gpad.PressB() || gpad.PressA()) && !gp.HasFoundObject {
 		for _, obj := range gp.PlacedObjects {
 			if !obj.IsCollected && s.checkPlayerObjectCollision(obj, pw, ph) {
 				if obj.IsTarget {
@@ -196,7 +199,7 @@ func (s *ClassroomScene) Update() error {
 		targetSpawns := s.getTargetSpawns()
 		otherSpawns := s.getOtherSpawns()
 		gp.PlaceObjects(targetSpawns, otherSpawns)
-		gp.ObjectFound = false
+		gp.HasFoundObject = false
 		gp.LevelComplete = false
 		gp.ShowingTargetOverlay = true
 		gp.OverlayFrames = 0
@@ -207,7 +210,7 @@ func (s *ClassroomScene) Update() error {
 	// Handle timer timeout (retry same level)
 	if gp.TimerTriggered && gp.Lives > 0 {
 		gp.TimerTriggered = false
-		gp.ObjectFound = false
+		gp.HasFoundObject = false
 		// Reset collected flags on objects for retry
 		for _, obj := range gp.PlacedObjects {
 			obj.IsCollected = false
@@ -373,20 +376,20 @@ func (s *ClassroomScene) drawHUD(screen *ebiten.Image) {
 	// Draw timer
 	timerOpt := &text.DrawOptions{}
 	timerOpt.GeoM.Translate(10, 5)
-	text.Draw(screen, fmt.Sprintf("Time: %s", timerText), &text.GoTextFace{Face: bitmapfont.Face}, timerOpt)
+	text.Draw(screen, fmt.Sprintf("Time: %s", timerText), hudTextFace, timerOpt)
 
 	// Draw lives
 	livesOpt := &text.DrawOptions{}
 	livesOpt.GeoM.Translate(100, 5)
-	text.Draw(screen, fmt.Sprintf("Lives: %d", gp.Lives), &text.GoTextFace{Face: bitmapfont.Face}, livesOpt)
+	text.Draw(screen, fmt.Sprintf("Lives: %d", gp.Lives), hudTextFace, livesOpt)
 
 	// Draw level
 	levelOpt := &text.DrawOptions{}
 	levelOpt.GeoM.Translate(180, 5)
-	text.Draw(screen, fmt.Sprintf("Level: %d", gp.Level), &text.GoTextFace{Face: bitmapfont.Face}, levelOpt)
+	text.Draw(screen, fmt.Sprintf("Level: %d", gp.Level), hudTextFace, levelOpt)
 
 	// Draw target object indicator (greyed out version)
-	if gp.TargetObjectImage != nil && !gp.ObjectFound {
+	if gp.TargetObjectImage != nil && !gp.HasFoundObject {
 		// Draw a small greyed out version
 		const targetIndicatorScale = 1.0
 		targetOp := &ebiten.DrawImageOptions{}

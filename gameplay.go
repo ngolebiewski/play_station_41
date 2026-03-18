@@ -48,7 +48,7 @@ type GameplayState struct {
 	Score              int
 	GameOver           bool
 	LevelComplete      bool
-	ObjectFound        bool
+	HasFoundObject     bool
 	OverlayActive      bool
 	OverlayFrames      int
 	FoundMessageFrames int
@@ -80,7 +80,7 @@ func NewGameplayState(objectsImage *ebiten.Image) *GameplayState {
 		Score:            0,
 		GameOver:         false,
 		LevelComplete:    false,
-		ObjectFound:      false,
+		HasFoundObject:   false,
 		OverlayActive:    false,
 		OverlayFrames:    0,
 		FoundMessageFrames: 0,
@@ -218,11 +218,11 @@ func (gs *GameplayState) Update() {
 
 // ObjectFound should be called when the player collects the target object
 func (gs *GameplayState) ObjectFound() {
-	if gs.ObjectFound {
+	if gs.HasFoundObject {
 		return
 	}
 
-	gs.ObjectFound = true
+	gs.HasFoundObject = true
 	gs.FoundMessageFrames = 120 // 2 seconds at 60fps
 	gs.Score += calculateLevelScore(gs.Level, gs.RemainingTime)
 	gs.Level++

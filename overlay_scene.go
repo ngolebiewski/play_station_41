@@ -10,6 +10,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
+// Create text face once at package level
+var textFace = text.NewGoXFace(bitmapfont.Face)
+
 const (
 	// Overlay display constants
 	overlayDarkAlpha = 180          // Alpha for the dark overlay behind
@@ -87,7 +90,7 @@ func (o *ObjectFindOverlay) Draw(screen *ebiten.Image) {
 		float64(overlayBoxX)+overlayPadding,
 		float64(overlayBoxY)+overlayPadding+25,
 	)
-	text.Draw(screen, "Find:", &text.GoTextFace{Face: bitmapfont.Face}, textOpt)
+	text.Draw(screen, "Find:", textFace, textOpt)
 
 	// Draw level number (X1, X2, etc.)
 	levelText := fmt.Sprintf("X%d", o.gameplay.Level)
@@ -96,7 +99,7 @@ func (o *ObjectFindOverlay) Draw(screen *ebiten.Image) {
 		float64(overlayBoxX)+overlayPadding,
 		float64(overlayBoxY)+overlayPadding+35,
 	)
-	text.Draw(screen, levelText, &text.GoTextFace{Face: bitmapfont.Face}, textOpt2)
+	text.Draw(screen, levelText, textFace, textOpt2)
 
 	// Draw countdown/message
 	secondsLeft := (180 - o.frames) / 60
@@ -106,7 +109,7 @@ func (o *ObjectFindOverlay) Draw(screen *ebiten.Image) {
 		float64(overlayBoxX)+overlayBoxW-30,
 		float64(overlayBoxY)+overlayBoxH-15,
 	)
-	text.Draw(screen, countText, &text.GoTextFace{Face: bitmapfont.Face}, textOpt3)
+	text.Draw(screen, countText, textFace, textOpt3)
 }
 
 // FoundObjectMessage shows a message when the object is found
@@ -156,5 +159,5 @@ func (m *FoundObjectMessage) Draw(screen *ebiten.Image) {
 	// Draw text
 	textOpt := &text.DrawOptions{}
 	textOpt.GeoM.Translate(float64(msgX+5), float64(msgY+8))
-	text.Draw(screen, "Object Found!", &text.GoTextFace{Face: bitmapfont.Face}, textOpt)
+	text.Draw(screen, "Object Found!", textFace, textOpt)
 }
