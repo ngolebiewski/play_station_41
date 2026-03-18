@@ -25,6 +25,9 @@ var zoingWav []byte
 //go:embed assets/sfx/bloop.wav
 var bloopWav []byte
 
+//go:embed assets/sfx/blip463.wav
+var blipWav []byte
+
 // sfxPool stores pre-decoded raw audio data
 var sfxPool = make(map[string][]byte)
 
@@ -50,6 +53,9 @@ func PreloadSFX(ctx *audio.Context) error {
 		return err
 	}
 	if err := load("bloop", bloopWav); err != nil {
+		return err
+	}
+	if err := load("blip", blipWav); err != nil {
 		return err
 	}
 

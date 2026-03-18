@@ -92,19 +92,23 @@ func (s *CharacterSelectionScene) Update() error {
 	// Handle navigation input
 	if s.inputCooldown == 0 {
 		if gpad.MoveUp() {
+			s.game.audioManager.PlaySE("blip")
 			s.selectionY = max(0, s.selectionY-1)
 			s.inputCooldown = 10
 			hasInput = true
 		} else if gpad.MoveDown() {
+			s.game.audioManager.PlaySE("blip")
 			maxY := (len(s.characters) - 1) / charGridX
 			s.selectionY = min(maxY, s.selectionY+1)
 			s.inputCooldown = 10
 			hasInput = true
 		} else if gpad.MoveLeft() {
+			s.game.audioManager.PlaySE("blip")
 			s.selectionX = max(0, s.selectionX-1)
 			s.inputCooldown = 10
 			hasInput = true
 		} else if gpad.MoveRight() {
+			s.game.audioManager.PlaySE("blip")
 			maxX := charGridX - 1
 			maxY := (len(s.characters) - 1) / charGridX
 			if s.selectionY < maxY || s.selectionX < (len(s.characters)%charGridX)-1 {
@@ -113,6 +117,7 @@ func (s *CharacterSelectionScene) Update() error {
 				hasInput = true
 			}
 		}
+
 	}
 
 	// Update selected index based on grid position

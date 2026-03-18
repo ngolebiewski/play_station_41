@@ -19,35 +19,43 @@ type Game struct {
 }
 
 func NewGame() *Game {
-	///////////////////////SOUND///////////////////////////////
-	// Create the Ebitengine audio context and audio managaer
+	// 1. Audio Setup
 	audioContext := audio.NewContext(48000)
-	// Decode all SFX into RAM
-	err := music.PreloadSFX(audioContext)
-	if err != nil {
+	if err := music.PreloadSFX(audioContext); err != nil {
 		log.Fatal(err)
 	}
 	manager := music.NewAudioManager(audioContext)
-	///////////////////////////////////////////////////////////
 
-	// Load embedded assets (spritesheets + tilemaps) and initialize a Player
+	// 2. Asset Setup
 	assets := LoadAssets()
 	player := NewPlayer()
 	player.image = assets.DefaultPlayer
 
+	// 3. Create the Game struct pointer FIRST
 	g := &Game{
 		assets:       assets,
 		player:       player,
 		debug:        false,
 		audioManager: manager,
 	}
+	g.audioManager.SFXVolume = 0.15
+
+	// 4. NOW initialize the starting scene and assign it
+	// This ensures g.scene is NOT nil when Update() runs
 	g.scene = NewTitleScene(g)
+
 	return g
 }
 
 func (g *Game) Update() error {
-	g.audioManager.Update()
-	g.scene.Update()
+	if g.audioManager != nil {
+		g.audioManager.Update()
+	}
+	if g.scene != nil {
+		if err := g.scene.Update(); err != nil {
+			return err
+		}
+	}
 	if gpad.PressFullscreen() {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
