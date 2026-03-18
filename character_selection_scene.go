@@ -36,11 +36,15 @@ const (
 	portraitScale = 3
 	portraitSize  = charTileSize * portraitScale // 48px
 
-	// Touch START button (bottom strip) — raised to stay inside 160px
+	// Touch START button — raised to stay inside 160px
 	startBtnX = 150
 	startBtnY = 143
 	startBtnW = 86
 	startBtnH = 10
+
+	// Frames to ignore all touch input on scene entry.
+	// Prevents a title-screen tap from bleeding into this scene.
+	touchEntryCooldown = 20
 )
 
 type CharacterSelectionScene struct {
@@ -49,12 +53,12 @@ type CharacterSelectionScene struct {
 	selectedIndex     int
 	selectionX        int
 	selectionY        int
-	inputCooldown     int
-	autoSelectCounter int
+	inputCooldown     int // keyboard/gamepad repeat cooldown
+	autoSelectCounter int // counts idle frames toward auto-select
+	entryCooldown     int // ignores touch for first N frames after scene load
 	portraitShader    *ebiten.Shader
 	shaderTime        float32
-	// portraitCanvas is a reusable offscreen sized to the portrait area
-	portraitCanvas *ebiten.Image
+	portraitCanvas    *ebiten.Image // reusable offscreen for shader input
 }
 
 func NewCharacterSelectionScene(game *Game) *CharacterSelectionScene {
@@ -62,8 +66,7 @@ func NewCharacterSelectionScene(game *Game) *CharacterSelectionScene {
 
 	shader, err := ebiten.NewShader(portraitBgKage)
 	if err != nil {
-		// Non-fatal: fall back to plain background if shader fails
-		shader = nil
+		shader = nil // non-fatal: falls back to plain background
 	}
 
 	canvas := ebiten.NewImage(portraitSize, portraitSize)
@@ -73,6 +76,7 @@ func NewCharacterSelectionScene(game *Game) *CharacterSelectionScene {
 		characters:     chars,
 		portraitShader: shader,
 		portraitCanvas: canvas,
+		entryCooldown:  touchEntryCooldown,
 	}
 }
 
@@ -100,7 +104,7 @@ func (s *CharacterSelectionScene) isRandomTile(i int) bool {
 	return i == len(s.characters)
 }
 
-// tileScreenRect returns the top-left pixel of tile i in screen space
+// tileScreenPos returns the top-left pixel of tile i in screen space
 func (s *CharacterSelectionScene) tileScreenPos(i int) (x, y int) {
 	col := i % charGridX
 	row := i / charGridX
@@ -109,6 +113,15 @@ func (s *CharacterSelectionScene) tileScreenPos(i int) (x, y int) {
 
 func (s *CharacterSelectionScene) Update() error {
 	s.shaderTime += 1.0 / 60.0
+
+	// Drain entry cooldown before processing any touch
+	if s.entryCooldown > 0 {
+		s.entryCooldown--
+		// Still update gpad state, but skip all input handling this frame
+		gpad.UpdateTouch()
+		return nil
+	}
+
 	gpad.UpdateTouch()
 
 	if s.inputCooldown > 0 {
@@ -169,12 +182,12 @@ func (s *CharacterSelectionScene) Update() error {
 		}
 	}
 
-	// Touch: detect released taps
+	// Touch input — only processed after entryCooldown has cleared
 	justReleased := inpututil.AppendJustReleasedTouchIDs(nil)
 	for _, tid := range justReleased {
 		tx, ty := inpututil.TouchPositionInPreviousTick(tid)
 
-		// Check START button tap
+		// START button — only touch confirm path
 		if tx >= startBtnX && tx <= startBtnX+startBtnW &&
 			ty >= startBtnY && ty <= startBtnY+startBtnH {
 			hasInput = true
@@ -182,18 +195,15 @@ func (s *CharacterSelectionScene) Update() error {
 			return nil
 		}
 
-		// Check character tile tap
+		// Character tile tap — moves focus only, never auto-confirms
 		for i := 0; i < total; i++ {
 			cx, cy := s.tileScreenPos(i)
 			if tx >= cx && tx < cx+gridCellSize && ty >= cy && ty < cy+gridCellSize {
 				hasInput = true
 				s.game.audioManager.PlaySE("blip")
 				if s.isRandomTile(i) {
+					// "?" tile: pick random and move focus, still needs START to confirm
 					s.randomSelect()
-				} else if i == s.selectedIndex {
-					// Second tap on already-highlighted = confirm
-					s.confirmSelection()
-					return nil
 				} else {
 					s.selectedIndex = i
 					s.selectionX = i % charGridX
@@ -229,16 +239,13 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 	titleOpts.ColorScale.ScaleWithColor(color.RGBA{255, 220, 60, 255})
 	text.Draw(screen, "SELECT PLAYER", f, titleOpts)
 
-	// Portrait panel — shader draws noisy background + sprite composited on top
+	// Portrait panel — shader composites noisy background + sprite
 	if s.portraitShader != nil && s.selectedIndex < len(s.characters) {
 		s.portraitCanvas.Clear()
-		// Draw sprite onto canvas at 3x scale
 		spriteOp := &ebiten.DrawImageOptions{}
 		spriteOp.GeoM.Scale(portraitScale, portraitScale)
 		s.portraitCanvas.DrawImage(s.characters[s.selectedIndex], spriteOp)
 
-		// DrawRectShader: shader samples canvas as Src0, fills background with noise,
-		// and passes through opaque sprite pixels
 		shaderOpts := &ebiten.DrawRectShaderOptions{}
 		shaderOpts.GeoM.Translate(portraitX, portraitY)
 		shaderOpts.Uniforms = map[string]any{
@@ -247,7 +254,7 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 		shaderOpts.Images[0] = s.portraitCanvas
 		screen.DrawRectShader(portraitSize, portraitSize, s.portraitShader, shaderOpts)
 	} else {
-		// Fallback: plain dark background + raw sprite draw
+		// Fallback: plain dark background + sprite
 		vector.DrawFilledRect(screen,
 			float32(portraitX), float32(portraitY),
 			float32(portraitSize), float32(portraitSize),
@@ -260,7 +267,7 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 		}
 	}
 
-	// Portrait border (drawn over shader output)
+	// Portrait border drawn over shader output
 	vector.StrokeRect(screen,
 		float32(portraitX-1), float32(portraitY-1),
 		float32(portraitSize+2), float32(portraitSize+2),
@@ -300,7 +307,6 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 			color.RGBA{240, 236, 228, 255}, false)
 
 		if s.isRandomTile(i) {
-			// "?" tile
 			qOpts := &text.DrawOptions{}
 			qOpts.GeoM.Translate(float64(sx+4), float64(sy+4))
 			qOpts.ColorScale.ScaleWithColor(color.RGBA{60, 60, 200, 255})
