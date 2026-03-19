@@ -40,8 +40,8 @@ func NewObjectFindOverlay(gameplay *GameplayState) *ObjectFindOverlay {
 // Update updates the overlay state (showing for a fixed duration)
 func (o *ObjectFindOverlay) Update() bool {
 	o.frames++
-	// Show for 3 seconds (180 frames at 60fps)
-	if o.frames > 180 {
+	// 1 second = 60fps)
+	if o.frames > 90 {
 		return true // Overlay is done
 	}
 	return false
@@ -71,7 +71,7 @@ func (o *ObjectFindOverlay) Draw(screen *ebiten.Image) {
 		// imgH := float64(o.gameplay.TargetObjectImage.Bounds().Dy())
 
 		// Center the image in box, with scaling
-		imgScale := 2.0
+		imgScale := 3.0
 		scaledW := imgW * imgScale
 		// scaledH := imgH * imgScale
 
@@ -92,14 +92,14 @@ func (o *ObjectFindOverlay) Draw(screen *ebiten.Image) {
 	)
 	text.Draw(screen, "Find:", textFace, textOpt)
 
-	// Draw level name
-	levelName := o.gameplay.GetLevelName()
-	textOpt2 := &text.DrawOptions{}
-	textOpt2.GeoM.Translate(
-		float64(overlayBoxX)+overlayPadding,
-		float64(overlayBoxY)+overlayPadding+35,
-	)
-	text.Draw(screen, levelName, textFace, textOpt2)
+	// // Draw level name
+	// levelName := o.gameplay.GetLevelName()
+	// textOpt2 := &text.DrawOptions{}
+	// textOpt2.GeoM.Translate(
+	// 	float64(overlayBoxX)+overlayPadding,
+	// 	float64(overlayBoxY)+overlayPadding+35,
+	// )
+	// text.Draw(screen, levelName, textFace, textOpt2)
 
 	// Draw countdown/message
 	secondsLeft := (180 - o.frames) / 60

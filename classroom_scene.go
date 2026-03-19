@@ -17,18 +17,18 @@ import (
 var hudTextFace = text.NewGoXFace(bitmapfont.Face)
 
 type ClassroomScene struct {
-	game              *Game
-	renderer          *tiled.Renderer
-	camera            Camera
-	mapPixelW         float64
-	mapPixelH         float64
-	collisionGrid     *tiled.CollisionGrid
-	spawns            []tiled.Spawn
-	overlay           *ObjectFindOverlay
-	foundMessage      *FoundObjectMessage
-	levelHasStarted   bool
-	playerSpawnX      float64
-	playerSpawnY      float64
+	game            *Game
+	renderer        *tiled.Renderer
+	camera          Camera
+	mapPixelW       float64
+	mapPixelH       float64
+	collisionGrid   *tiled.CollisionGrid
+	spawns          []tiled.Spawn
+	overlay         *ObjectFindOverlay
+	foundMessage    *FoundObjectMessage
+	levelHasStarted bool
+	playerSpawnX    float64
+	playerSpawnY    float64
 }
 
 func NewClassroomScene(game *Game) *ClassroomScene {
@@ -374,7 +374,9 @@ func (s *ClassroomScene) Draw(screen *ebiten.Image) {
 	}
 
 	// Debug info
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("3rd Grade Classroom\nLevel: %d | Lives: %d", gp.Level, gp.Lives))
+	if s.game.debug {
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("3rd Grade Classroom\nLevel: %d | Lives: %d", gp.Level, gp.Lives))
+	}
 }
 
 // drawHUD draws the heads-up display with timer, lives, and level
