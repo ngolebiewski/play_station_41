@@ -19,7 +19,7 @@ func NewPlayer() *Player {
 		y:              sH / 2,
 		health:         100,
 		score:          0,
-		speed:          1, // Seems like it should be 1xscale of player. i.e. 2 if player doubled
+		speed:          1 * scale, // Scale movement speed with render scale
 		directionRight: true,
 		characterIndex: 0,
 	}

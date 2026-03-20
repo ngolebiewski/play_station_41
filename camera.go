@@ -24,31 +24,33 @@ func (c *Camera) Shake(ticks int, intensity float64) {
 
 // Update recenters the camera on the player, clamps to map edges, and
 // advances the shake timer.
-//   - playerX, playerY — player's world position in pixels (unscaled)
-//   - playerW, playerH — player sprite size in pixels (unscaled, world space)
-//   - mapW, mapH       — full map size in SCALED pixels
+//   - playerX, playerY — player's world position in pixels
+//   - playerW, playerH — player sprite size in pixels  
+//   - mapW, mapH       — full map size in pixels (after scale applied: width*tileSize*scale)
 //   - renderScale      — the render scale factor (e.g., 1.0 or 2.0)
 func (c *Camera) Update(playerX, playerY, playerW, playerH, mapW, mapH, renderScale float64) {
 	// Center camera on player
 	c.X = playerX + playerW/2 - sW/2
 	c.Y = playerY + playerH/2 - sH/2
 
-	// Convert scaled map dimensions to world space
-	mapW_world := mapW / renderScale
-	mapH_world := mapH / renderScale
+	// Clamp to map bounds
+	// mapW/mapH are in scaled pixels. We need to figure out how much world we can see.
+	// At renderScale, sW logical pixels on screen = sW/renderScale world pixels visible
+	screenWidthInWorld := sW / renderScale
+	screenHeightInWorld := sH / renderScale
+	maxCameraX := mapW/renderScale - screenWidthInWorld
+	maxCameraY := mapH/renderScale - screenHeightInWorld
 
-	// Clamp to map bounds so we never show black outside the map
 	if c.X < 0 {
 		c.X = 0
+	} else if c.X > maxCameraX {
+		c.X = maxCameraX
 	}
+
 	if c.Y < 0 {
 		c.Y = 0
-	}
-	if c.X > mapW_world-sW {
-		c.X = mapW_world - sW
-	}
-	if c.Y > mapH_world-sH {
-		c.Y = mapH_world - sH
+	} else if c.Y > maxCameraY {
+		c.Y = maxCameraY
 	}
 
 	// Advance shake

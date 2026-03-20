@@ -7,5 +7,5 @@ const (
 	sX          = 2
 	tileSize    = 16
 	scale       = 1 //i.e. the player scale. not sure if the whole tileset and player scale should be x1 or x2
-	hitboxInset = 3 * scale
+	hitboxInset = 3  // Fixed inset for collision detection in world space
 )
