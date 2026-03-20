@@ -29,9 +29,13 @@ func (c *Camera) Shake(ticks int, intensity float64) {
 //   - mapW, mapH       — full map size in scaled pixels
 //   - scale            — the render scale factor
 func (c *Camera) Update(playerX, playerY, playerW, playerH, mapW, mapH, scale float64) {
+	// Unscale player dimensions for centering in unscaled world space
+	playerW_unscaled := playerW / scale
+	playerH_unscaled := playerH / scale
+
 	// Center camera on player
-	c.X = playerX + playerW/2 - sW/2
-	c.Y = playerY + playerH/2 - sH/2
+	c.X = playerX + playerW_unscaled/2 - sW/2
+	c.Y = playerY + playerH_unscaled/2 - sH/2
 
 	// Convert scaled map dimensions to unscaled world space for clamping
 	mapW_unscaled := mapW / scale
