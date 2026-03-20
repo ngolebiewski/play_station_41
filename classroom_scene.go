@@ -117,9 +117,9 @@ func (s *ClassroomScene) Update() error {
 	cg := s.collisionGrid
 	gp := s.game.gameplay
 
-	// Player bounding box size (one tile at render scale)
-	pw := float64(tileSize * scale)
-	ph := float64(tileSize * scale)
+	// Player bounding box size (one tile, unscaled - scale only affects rendering)
+	pw := float64(tileSize)
+	ph := float64(tileSize)
 
 	// Update overlay
 	if s.overlay != nil {
