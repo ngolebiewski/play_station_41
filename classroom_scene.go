@@ -135,6 +135,7 @@ func (s *ClassroomScene) Update() error {
 			float64(p.x), float64(p.y),
 			pw, ph,
 			s.mapPixelW, s.mapPixelH,
+			scale,
 		)
 		return nil
 	}
@@ -248,6 +249,7 @@ func (s *ClassroomScene) Update() error {
 		float64(p.x), float64(p.y),
 		pw, ph,
 		s.mapPixelW, s.mapPixelH,
+		scale,
 	)
 
 	return nil

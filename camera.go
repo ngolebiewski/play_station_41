@@ -24,13 +24,18 @@ func (c *Camera) Shake(ticks int, intensity float64) {
 
 // Update recenters the camera on the player, clamps to map edges, and
 // advances the shake timer.
-//   - playerX, playerY — player's world position in pixels
-//   - playerW, playerH — player sprite size in pixels (for centering)
-//   - mapW, mapH       — full map size in pixels (m.Width * tileSize * scale)
-func (c *Camera) Update(playerX, playerY, playerW, playerH, mapW, mapH float64) {
+//   - playerX, playerY — player's world position in pixels (unscaled)
+//   - playerW, playerH — player sprite size in pixels (scaled)
+//   - mapW, mapH       — full map size in scaled pixels
+//   - scale            — the render scale factor
+func (c *Camera) Update(playerX, playerY, playerW, playerH, mapW, mapH, scale float64) {
 	// Center camera on player
 	c.X = playerX + playerW/2 - sW/2
 	c.Y = playerY + playerH/2 - sH/2
+
+	// Convert scaled map dimensions to unscaled world space for clamping
+	mapW_unscaled := mapW / scale
+	mapH_unscaled := mapH / scale
 
 	// Clamp to map bounds so we never show black outside the map
 	if c.X < 0 {
@@ -39,11 +44,11 @@ func (c *Camera) Update(playerX, playerY, playerW, playerH, mapW, mapH float64) 
 	if c.Y < 0 {
 		c.Y = 0
 	}
-	if c.X > mapW-sW {
-		c.X = mapW - sW
+	if c.X > mapW_unscaled-sW {
+		c.X = mapW_unscaled - sW
 	}
-	if c.Y > mapH-sH {
-		c.Y = mapH - sH
+	if c.Y > mapH_unscaled-sH {
+		c.Y = mapH_unscaled - sH
 	}
 
 	// Advance shake
