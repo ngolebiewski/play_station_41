@@ -18,33 +18,108 @@ import (
 //go:embed portrait_bg.kage
 var portraitBgKage []byte
 
+// studentNames maps character slice index (0-based after extraction) to a display name.
+// Slice index 0 = spritesheet index 1 (first real sprite), etc.
+// Any index beyond the map falls back to "Student N" — safe to have more sprites than names.
+
+// FAKE NAMES for the most part now
+var studentNames = map[int]string{
+	0:  "Reece",
+	1:  "Adeline",
+	2:  "Brit",
+	3:  "Harmony",
+	4:  "Kevin",
+	5:  "Priya",
+	6:  "Marcus",
+	7:  "Luz",
+	8:  "Theo",
+	9:  "Yuki",
+	10: "Dante",
+	11: "Sasha",
+	12: "Obinna",
+	13: "Ingrid",
+	14: "Remy",
+	15: "Fatima",
+	16: "Cleo",
+	17: "Juno",
+	18: "Kwame",
+	19: "Petra",
+	20: "Sol",
+	21: "Nadia",
+	22: "Ezra",
+	23: "Mei",
+	24: "Archer",
+	25: "Zara",
+	26: "Tomás",
+	27: "Wren",
+	28: "Idris",
+	29: "Paloma",
+	30: "Felix",
+	31: "Rue",
+	32: "Kofi",
+	33: "Astrid",
+	34: "Bayo",
+	35: "Iris",
+	36: "Caspian",
+	37: "Mina",
+	38: "Orion",
+	39: "Leila",
+}
+
+// studentName returns the display name for character slice index i.
+// Falls back gracefully to "Student N" if the index isn't in the map.
+func studentName(i int) string {
+	if name, ok := studentNames[i]; ok {
+		return name
+	}
+	return fmt.Sprintf("Student %d", i+1)
+}
+
 const (
 	charGridX        = 8
 	charTileSize     = 16
-	charDisplaySize  = 16 // 1:1 display, no scaling
+	charDisplaySize  = 16
 	selectionPadding = 2
 
-	inactivityTimeout = 600 // frames (10s at 60fps)
+	inactivityTimeout = 540 // frames (9s at 60fps)
 
-	// Layout for 240x160 screen
-	gridMarginLeft = 68                                     // space for portrait panel on left
-	gridMarginTop  = 18                                     // below title
+	// Left panel — portrait fills most of it
+	panelW = 66
+	panelH = 160
+
+	portraitScale = 4                            // 4x → 64×64px
+	portraitSize  = charTileSize * portraitScale // 64px
+	portraitX     = (panelW - portraitSize) / 2  // horizontally centered
+	portraitY     = 22                           // below "1P" label
+
+	// Grid area starts after left panel
+	gridMarginLeft = panelW + 2
+	gridMarginTop  = 18
 	gridCellSize   = charDisplaySize + selectionPadding + 1 // 19px per cell
 
-	portraitX     = 2
-	portraitY     = 24
-	portraitScale = 3
-	portraitSize  = charTileSize * portraitScale // 48px
-
-	// Touch START button — raised to stay inside 160px
-	startBtnX = 150
+	// Touch START button
+	startBtnX = 152
 	startBtnY = 143
 	startBtnW = 86
 	startBtnH = 10
 
-	// Frames to ignore all touch input on scene entry.
-	// Prevents a title-screen tap from bleeding into this scene.
+	// Frames to ignore touch on scene entry (prevents title-tap bleed-through)
 	touchEntryCooldown = 20
+
+	// Slot machine
+	slotFastFrames   = 80 // total frames at/near full speed
+	slotSlowFrames   = 60 // deceleration frames
+	slotLandFrames   = 90 // hold on winner before auto-confirming
+	slotFastInterval = 2  // advance every N frames (fast)
+	slotSlowInterval = 12 // advance every N frames (slow)
+)
+
+type slotState int
+
+const (
+	slotIdle     slotState = iota
+	slotSpinning           // scrolling through characters
+	slotLanding            // stopped on winner, counting down to confirm
 )
 
 type CharacterSelectionScene struct {
@@ -53,12 +128,19 @@ type CharacterSelectionScene struct {
 	selectedIndex     int
 	selectionX        int
 	selectionY        int
-	inputCooldown     int // keyboard/gamepad repeat cooldown
-	autoSelectCounter int // counts idle frames toward auto-select
-	entryCooldown     int // ignores touch for first N frames after scene load
+	inputCooldown     int
+	autoSelectCounter int
+	entryCooldown     int
 	portraitShader    *ebiten.Shader
 	shaderTime        float32
-	portraitCanvas    *ebiten.Image // reusable offscreen for shader input
+	portraitCanvas    *ebiten.Image
+
+	// Slot machine
+	slot         slotState
+	slotFrame    int
+	slotTarget   int
+	slotTick     int
+	slotInterval int
 }
 
 func NewCharacterSelectionScene(game *Game) *CharacterSelectionScene {
@@ -66,7 +148,7 @@ func NewCharacterSelectionScene(game *Game) *CharacterSelectionScene {
 
 	shader, err := ebiten.NewShader(portraitBgKage)
 	if err != nil {
-		shader = nil // non-fatal: falls back to plain background
+		shader = nil
 	}
 
 	canvas := ebiten.NewImage(portraitSize, portraitSize)
@@ -95,7 +177,6 @@ func extractCharacterSprites(spritesheet *ebiten.Image) []*ebiten.Image {
 	return characters
 }
 
-// totalTiles = characters + 1 "?" random tile at the end
 func (s *CharacterSelectionScene) totalTiles() int {
 	return len(s.characters) + 1
 }
@@ -104,21 +185,71 @@ func (s *CharacterSelectionScene) isRandomTile(i int) bool {
 	return i == len(s.characters)
 }
 
-// tileScreenPos returns the top-left pixel of tile i in screen space
 func (s *CharacterSelectionScene) tileScreenPos(i int) (x, y int) {
 	col := i % charGridX
 	row := i / charGridX
 	return gridMarginLeft + col*gridCellSize, gridMarginTop + 4 + row*gridCellSize
 }
 
+func (s *CharacterSelectionScene) startSlot() {
+	s.slotTarget = rand.IntN(len(s.characters))
+	s.slot = slotSpinning
+	s.slotFrame = 0
+	s.slotTick = 0
+	s.slotInterval = slotFastInterval
+}
+
+func (s *CharacterSelectionScene) updateSlot() {
+	s.slotFrame++
+	s.slotTick++
+
+	totalSpin := slotFastFrames + slotSlowFrames
+
+	switch s.slot {
+	case slotSpinning:
+		t := float64(s.slotFrame) / float64(totalSpin)
+		if t > 1 {
+			t = 1
+		}
+		s.slotInterval = slotFastInterval + int(t*t*float64(slotSlowInterval-slotFastInterval))
+
+		if s.slotTick >= s.slotInterval {
+			s.slotTick = 0
+			next := (s.selectedIndex + 1) % len(s.characters)
+			s.selectedIndex = next
+			s.selectionX = next % charGridX
+			s.selectionY = next / charGridX
+			s.game.audioManager.PlaySE("blip")
+		}
+
+		if s.slotFrame >= totalSpin {
+			s.selectedIndex = s.slotTarget
+			s.selectionX = s.slotTarget % charGridX
+			s.selectionY = s.slotTarget / charGridX
+			s.slot = slotLanding
+			s.slotFrame = 0
+			s.game.audioManager.PlaySE("bloop")
+		}
+
+	case slotLanding:
+		if s.slotFrame >= slotLandFrames {
+			s.slot = slotIdle
+			s.confirmSelection()
+		}
+	}
+}
+
 func (s *CharacterSelectionScene) Update() error {
 	s.shaderTime += 1.0 / 60.0
 
-	// Drain entry cooldown before processing any touch
 	if s.entryCooldown > 0 {
 		s.entryCooldown--
-		// Still update gpad state, but skip all input handling this frame
 		gpad.UpdateTouch()
+		return nil
+	}
+
+	if s.slot != slotIdle {
+		s.updateSlot()
 		return nil
 	}
 
@@ -132,7 +263,6 @@ func (s *CharacterSelectionScene) Update() error {
 	total := s.totalTiles()
 	maxIdx := total - 1
 
-	// Keyboard / gamepad navigation
 	if s.inputCooldown == 0 {
 		if gpad.MoveUp() {
 			s.game.audioManager.PlaySE("blip")
@@ -162,7 +292,6 @@ func (s *CharacterSelectionScene) Update() error {
 		}
 	}
 
-	// Clamp index
 	idx := s.selectionY*charGridX + s.selectionX
 	if idx > maxIdx {
 		idx = maxIdx
@@ -171,23 +300,20 @@ func (s *CharacterSelectionScene) Update() error {
 	}
 	s.selectedIndex = idx
 
-	// Keyboard/gamepad confirm
 	if gpad.PressB() || gpad.PressStart() {
 		hasInput = true
 		if s.isRandomTile(s.selectedIndex) {
-			s.randomSelect()
+			s.startSlot()
 		} else {
 			s.confirmSelection()
 			return nil
 		}
 	}
 
-	// Touch input — only processed after entryCooldown has cleared
 	justReleased := inpututil.AppendJustReleasedTouchIDs(nil)
 	for _, tid := range justReleased {
 		tx, ty := inpututil.TouchPositionInPreviousTick(tid)
 
-		// START button — only touch confirm path
 		if tx >= startBtnX && tx <= startBtnX+startBtnW &&
 			ty >= startBtnY && ty <= startBtnY+startBtnH {
 			hasInput = true
@@ -195,15 +321,13 @@ func (s *CharacterSelectionScene) Update() error {
 			return nil
 		}
 
-		// Character tile tap — moves focus only, never auto-confirms
 		for i := 0; i < total; i++ {
 			cx, cy := s.tileScreenPos(i)
 			if tx >= cx && tx < cx+gridCellSize && ty >= cy && ty < cy+gridCellSize {
 				hasInput = true
 				s.game.audioManager.PlaySE("blip")
 				if s.isRandomTile(i) {
-					// "?" tile: pick random and move focus, still needs START to confirm
-					s.randomSelect()
+					s.startSlot()
 				} else {
 					s.selectedIndex = i
 					s.selectionX = i % charGridX
@@ -221,8 +345,7 @@ func (s *CharacterSelectionScene) Update() error {
 	}
 
 	if s.autoSelectCounter >= inactivityTimeout {
-		s.randomSelect()
-		s.confirmSelection()
+		s.startSlot()
 	}
 
 	return nil
@@ -233,19 +356,29 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 
 	f := text.NewGoXFace(bitmapfont.Face)
 
-	// Title
-	titleOpts := &text.DrawOptions{}
-	titleOpts.GeoM.Translate(gridMarginLeft, 3)
-	titleOpts.ColorScale.ScaleWithColor(color.RGBA{255, 220, 60, 255})
-	text.Draw(screen, "SELECT PLAYER", f, titleOpts)
+	// Left panel divider
+	vector.DrawFilledRect(screen,
+		float32(panelW), 0, 1, float32(panelH),
+		color.RGBA{0, 80, 120, 255}, false)
 
-	// Portrait panel — shader composites noisy background + sprite
-	if s.portraitShader != nil && s.selectedIndex < len(s.characters) {
+	// "1P" label
+	p1Opts := &text.DrawOptions{}
+	p1Opts.GeoM.Translate(float64(panelW/2-4), 8)
+	p1Opts.ColorScale.ScaleWithColor(color.RGBA{0, 180, 255, 255})
+	text.Draw(screen, "1P", f, p1Opts)
+
+	// Portrait panel
+	onRandomTile := s.isRandomTile(s.selectedIndex)
+
+	if s.portraitShader != nil {
 		s.portraitCanvas.Clear()
-		spriteOp := &ebiten.DrawImageOptions{}
-		spriteOp.GeoM.Scale(portraitScale, portraitScale)
-		s.portraitCanvas.DrawImage(s.characters[s.selectedIndex], spriteOp)
-
+		// Only draw a sprite into the canvas when not on the mystery tile
+		if !onRandomTile && s.selectedIndex < len(s.characters) {
+			spriteOp := &ebiten.DrawImageOptions{}
+			spriteOp.GeoM.Scale(portraitScale, portraitScale)
+			s.portraitCanvas.DrawImage(s.characters[s.selectedIndex], spriteOp)
+		}
+		// Shader runs regardless — gives animated background on mystery tile too
 		shaderOpts := &ebiten.DrawRectShaderOptions{}
 		shaderOpts.GeoM.Translate(portraitX, portraitY)
 		shaderOpts.Uniforms = map[string]any{
@@ -254,12 +387,11 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 		shaderOpts.Images[0] = s.portraitCanvas
 		screen.DrawRectShader(portraitSize, portraitSize, s.portraitShader, shaderOpts)
 	} else {
-		// Fallback: plain dark background + sprite
 		vector.DrawFilledRect(screen,
 			float32(portraitX), float32(portraitY),
 			float32(portraitSize), float32(portraitSize),
 			color.RGBA{10, 10, 20, 255}, false)
-		if s.selectedIndex < len(s.characters) {
+		if !onRandomTile && s.selectedIndex < len(s.characters) {
 			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Scale(portraitScale, portraitScale)
 			op.GeoM.Translate(portraitX, portraitY)
@@ -267,31 +399,74 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 		}
 	}
 
-	// Portrait border drawn over shader output
+	// Large "?" centered in portrait when on the mystery tile
+	if onRandomTile {
+		qw, qh := text.Measure("?", f, 0)
+		const qScale = 3.0
+		qOpts := &text.DrawOptions{}
+		qOpts.GeoM.Scale(qScale, qScale)
+		qOpts.GeoM.Translate(
+			float64(portraitX)+float64(portraitSize)/2-(qw*qScale)/2,
+			float64(portraitY)+float64(portraitSize)/2-(qh*qScale)/2,
+		)
+		qOpts.ColorScale.ScaleWithColor(color.RGBA{80, 80, 220, 255})
+		text.Draw(screen, "?", f, qOpts)
+	}
+
+	// Portrait border
 	vector.StrokeRect(screen,
 		float32(portraitX-1), float32(portraitY-1),
 		float32(portraitSize+2), float32(portraitSize+2),
 		1, color.RGBA{0, 180, 255, 255}, false)
 
-	// 1P label
-	p1Opts := &text.DrawOptions{}
-	p1Opts.GeoM.Translate(float64(portraitX+portraitSize/2-4), float64(portraitY+portraitSize+2))
-	p1Opts.ColorScale.ScaleWithColor(color.RGBA{0, 180, 255, 255})
-	text.Draw(screen, "1P", f, p1Opts)
-
-	// Countdown seconds (below 1P)
-	secondsLeft := (inactivityTimeout - s.autoSelectCounter) / 60
-	if secondsLeft < 0 {
-		secondsLeft = 0
-	}
-	cdOpts := &text.DrawOptions{}
-	cdOpts.GeoM.Translate(float64(portraitX), float64(portraitY+portraitSize+14))
-	if secondsLeft <= 5 {
-		cdOpts.ColorScale.ScaleWithColor(color.RGBA{255, 80, 0, 255})
+	// Name below portrait — "Mystery" (purple) or student name (yellow)
+	nameY := float64(portraitY + portraitSize + 4)
+	var name string
+	var nameColor color.RGBA
+	if onRandomTile {
+		name = "Mystery"
+		nameColor = color.RGBA{180, 140, 255, 255}
 	} else {
-		cdOpts.ColorScale.ScaleWithColor(color.RGBA{160, 160, 160, 255})
+		name = studentName(s.selectedIndex)
+		nameColor = color.RGBA{255, 220, 60, 255}
 	}
-	text.Draw(screen, fmt.Sprintf("%2ds", secondsLeft), f, cdOpts)
+	nw, _ := text.Measure(name, f, 0)
+	nameOpts := &text.DrawOptions{}
+	nameOpts.GeoM.Translate(float64(panelW)/2-nw/2, nameY)
+	nameOpts.ColorScale.ScaleWithColor(nameColor)
+	text.Draw(screen, name, f, nameOpts)
+
+	// Status line: countdown or GO!
+	statusY := nameY + 12
+	switch s.slot {
+	case slotIdle:
+		secondsLeft := (inactivityTimeout - s.autoSelectCounter) / 60
+		if secondsLeft < 0 {
+			secondsLeft = 0
+		}
+		cdOpts := &text.DrawOptions{}
+		cdOpts.GeoM.Translate(float64(panelW/2-6), statusY)
+		if secondsLeft <= 5 {
+			cdOpts.ColorScale.ScaleWithColor(color.RGBA{255, 80, 0, 255})
+		} else {
+			cdOpts.ColorScale.ScaleWithColor(color.RGBA{130, 130, 130, 255})
+		}
+		text.Draw(screen, fmt.Sprintf("%2ds", secondsLeft), f, cdOpts)
+
+	case slotLanding:
+		if (s.slotFrame/8)%2 == 0 {
+			goOpts := &text.DrawOptions{}
+			goOpts.GeoM.Translate(float64(panelW/2-8), statusY)
+			goOpts.ColorScale.ScaleWithColor(color.RGBA{80, 255, 120, 255})
+			text.Draw(screen, "GO!", f, goOpts)
+		}
+	}
+
+	// Title above grid
+	titleOpts := &text.DrawOptions{}
+	titleOpts.GeoM.Translate(float64(gridMarginLeft), 3)
+	titleOpts.ColorScale.ScaleWithColor(color.RGBA{255, 220, 60, 255})
+	text.Draw(screen, "SELECT STUDENT", f, titleOpts)
 
 	// Character grid
 	total := s.totalTiles()
@@ -301,10 +476,14 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 		sx := float32(gridMarginLeft + col*gridCellSize)
 		sy := float32(gridMarginTop + 4 + row*gridCellSize)
 
-		// White background tile
+		// Tile background — flash yellow on active slot tile
+		bgColor := color.RGBA{240, 236, 228, 255}
+		if s.slot == slotSpinning && i == s.selectedIndex {
+			bgColor = color.RGBA{255, 240, 160, 255}
+		}
 		vector.DrawFilledRect(screen, sx, sy,
 			float32(charDisplaySize), float32(charDisplaySize),
-			color.RGBA{240, 236, 228, 255}, false)
+			bgColor, false)
 
 		if s.isRandomTile(i) {
 			qOpts := &text.DrawOptions{}
@@ -317,12 +496,16 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 			screen.DrawImage(s.characters[i], op)
 		}
 
-		// Selection highlight
+		// Selection highlight — pulses gold when landing
 		if i == s.selectedIndex {
+			hlColor := color.RGBA{0, 180, 255, 255}
+			if s.slot == slotLanding && (s.slotFrame/6)%2 == 0 {
+				hlColor = color.RGBA{255, 200, 0, 255}
+			}
 			vector.StrokeRect(screen,
 				sx-1, sy-1,
 				float32(charDisplaySize+2), float32(charDisplaySize+2),
-				1.5, color.RGBA{0, 180, 255, 255}, false)
+				1.5, hlColor, false)
 		}
 	}
 
@@ -340,18 +523,11 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 	startTxtOpts.ColorScale.ScaleWithColor(color.White)
 	text.Draw(screen, "START", f, startTxtOpts)
 
-	// Small keyboard hint (left of START button)
+	// Keyboard hint
 	hintOpts := &text.DrawOptions{}
 	hintOpts.GeoM.Translate(float64(gridMarginLeft), float64(startBtnY+1))
 	hintOpts.ColorScale.ScaleWithColor(color.RGBA{100, 100, 100, 255})
 	text.Draw(screen, "B:PICK", f, hintOpts)
-}
-
-func (s *CharacterSelectionScene) randomSelect() {
-	s.game.audioManager.PlaySE("blip")
-	s.selectedIndex = int(rand.IntN(len(s.characters)))
-	s.selectionX = s.selectedIndex % charGridX
-	s.selectionY = s.selectedIndex / charGridX
 }
 
 func (s *CharacterSelectionScene) confirmSelection() {
