@@ -73,16 +73,16 @@ func NewClassroomScene(game *Game) *ClassroomScene {
 	var playerSpawnX, playerSpawnY float64
 
 	for _, spawn := range spawns {
-		sp := tiled.SpawnPoint{X: spawn.X, Y: spawn.Y, Type: spawn.Type}
+		sp := tiled.SpawnPoint{X: spawn.X * scale, Y: spawn.Y * scale, Type: spawn.Type}
 		switch spawn.Type {
 		case "find":
 			targetSpawns = append(targetSpawns, sp)
 		case "object":
 			otherSpawns = append(otherSpawns, sp)
 		case "student":
-			// Use student spawn for player position
-			playerSpawnX = spawn.X
-			playerSpawnY = spawn.Y
+			// Use student spawn for player position (scaled)
+			playerSpawnX = spawn.X * scale
+			playerSpawnY = spawn.Y * scale
 		}
 	}
 
@@ -148,26 +148,26 @@ func (s *ClassroomScene) Update() error {
 
 	if gpad.MoveUp() {
 		ny := float64(p.y) - float64(p.speed)
-		if !collidesWithGrid(cg, float64(p.x), ny, pw, ph) {
+		if !collidesWithGrid(cg, float64(p.x), ny, pw, ph, scale) {
 			p.y = float32(ny)
 		}
 	}
 	if gpad.MoveDown() {
 		ny := float64(p.y) + float64(p.speed)
-		if !collidesWithGrid(cg, float64(p.x), ny, pw, ph) {
+		if !collidesWithGrid(cg, float64(p.x), ny, pw, ph, scale) {
 			p.y = float32(ny)
 		}
 	}
 	if gpad.MoveLeft() {
 		nx := float64(p.x) - float64(p.speed)
-		if !collidesWithGrid(cg, nx, float64(p.y), pw, ph) {
+		if !collidesWithGrid(cg, nx, float64(p.y), pw, ph, scale) {
 			p.x = float32(nx)
 		}
 		p.directionRight = false
 	}
 	if gpad.MoveRight() {
 		nx := float64(p.x) + float64(p.speed)
-		if !collidesWithGrid(cg, nx, float64(p.y), pw, ph) {
+		if !collidesWithGrid(cg, nx, float64(p.y), pw, ph, scale) {
 			p.x = float32(nx)
 		}
 		p.directionRight = true
@@ -276,8 +276,8 @@ func (s *ClassroomScene) getTargetSpawns() []tiled.SpawnPoint {
 	for _, spawn := range s.spawns {
 		if spawn.Type == "find" {
 			spawns = append(spawns, tiled.SpawnPoint{
-				X:    spawn.X,
-				Y:    spawn.Y,
+				X:    spawn.X * scale,
+				Y:    spawn.Y * scale,
 				Type: spawn.Type,
 			})
 		}
@@ -291,8 +291,8 @@ func (s *ClassroomScene) getOtherSpawns() []tiled.SpawnPoint {
 	for _, spawn := range s.spawns {
 		if spawn.Type == "object" {
 			spawns = append(spawns, tiled.SpawnPoint{
-				X:    spawn.X,
-				Y:    spawn.Y,
+				X:    spawn.X * scale,
+				Y:    spawn.Y * scale,
 				Type: spawn.Type,
 			})
 		}
@@ -303,13 +303,13 @@ func (s *ClassroomScene) getOtherSpawns() []tiled.SpawnPoint {
 // collidesWithGrid checks all 4 corners of the player's bounding box
 // against the collision grid. Using corners means the player can't clip
 // through a tile by moving fast enough to skip over the center check.
-func collidesWithGrid(cg *tiled.CollisionGrid, x, y, w, h float64) bool {
+func collidesWithGrid(cg *tiled.CollisionGrid, x, y, w, h float64, scale float64) bool {
 	// Inset corners by 1px to allow tight squeezing through 1-tile-wide gaps
 	const inset = hitboxInset
-	return cg.IsSolid(x+inset, y+inset) ||
-		cg.IsSolid(x+w-inset, y+inset) ||
-		cg.IsSolid(x+inset, y+h-inset) ||
-		cg.IsSolid(x+w-inset, y+h-inset)
+	return cg.IsSolid(x+inset, y+inset, scale) ||
+		cg.IsSolid(x+w-inset, y+inset, scale) ||
+		cg.IsSolid(x+inset, y+h-inset, scale) ||
+		cg.IsSolid(x+w-inset, y+h-inset, scale)
 }
 
 func (s *ClassroomScene) Draw(screen *ebiten.Image) {

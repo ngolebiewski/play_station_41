@@ -51,11 +51,14 @@ func BuildCollisionGrid(m *gotiled.Map) *CollisionGrid {
 }
 
 // IsSolid reports whether the world pixel position (wx, wy) is inside a solid tile.
+// scale is the rendering scale factor - world coordinates are scaled, but the collision
+// grid is based on unscaled tile positions, so we divide by scale to get the correct tile.
 // Returns true (solid) if the position is outside the map bounds —
 // treats the map edge as a wall.
-func (g *CollisionGrid) IsSolid(wx, wy float64) bool {
-	x := int(wx) / g.TileW
-	y := int(wy) / g.TileH
+func (g *CollisionGrid) IsSolid(wx, wy float64, scale float64) bool {
+	// Unscale world coordinates to get tile-grid coordinates
+	x := int(wx/scale) / g.TileW
+	y := int(wy/scale) / g.TileH
 	if x < 0 || y < 0 || x >= g.Width || y >= g.Height {
 		return true // out of bounds = solid
 	}
