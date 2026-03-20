@@ -19,7 +19,7 @@ func NewPlayer() *Player {
 		y:              sH / 2,
 		health:         100,
 		score:          0,
-		speed:          1 * scale, // Scale movement speed with render scale
+		speed:          1, // World pixels per frame
 		directionRight: true,
 		characterIndex: 0,
 	}

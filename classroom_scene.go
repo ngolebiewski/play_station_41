@@ -315,8 +315,8 @@ func collidesWithGrid(cg *tiled.CollisionGrid, x, y, w, h float64) bool {
 }
 
 func (s *ClassroomScene) Draw(screen *ebiten.Image) {
-	// 1. Draw map
-	s.renderer.Draw(screen, s.camera.DrawX(), s.camera.DrawY())
+	// 1. Draw map - pass camera coordinates scaled for renderer
+	s.renderer.Draw(screen, s.camera.DrawX()*scale, s.camera.DrawY()*scale)
 
 	// 2. Debug: red overlay on collision tiles
 	if s.game.debug {

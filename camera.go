@@ -33,24 +33,36 @@ func (c *Camera) Update(playerX, playerY, playerW, playerH, mapW, mapH, renderSc
 	c.X = playerX + playerW/2 - sW/2
 	c.Y = playerY + playerH/2 - sH/2
 
-	// Clamp to map bounds
-	// mapW/mapH are in scaled pixels. We need to figure out how much world we can see.
-	// At renderScale, sW logical pixels on screen = sW/renderScale world pixels visible
+	// How much world space we can see on screen at this render scale
 	screenWidthInWorld := sW / renderScale
 	screenHeightInWorld := sH / renderScale
-	maxCameraX := mapW/renderScale - screenWidthInWorld
-	maxCameraY := mapH/renderScale - screenHeightInWorld
+	
+	// Map dimensions in world space
+	mapW_world := mapW / renderScale
+	mapH_world := mapH / renderScale
 
-	if c.X < 0 {
-		c.X = 0
-	} else if c.X > maxCameraX {
-		c.X = maxCameraX
+	// Clamp to map bounds
+	// Only clamp if map is larger than screen, otherwise center it
+	if mapW_world > screenWidthInWorld {
+		if c.X < 0 {
+			c.X = 0
+		} else if c.X > mapW_world-screenWidthInWorld {
+			c.X = mapW_world - screenWidthInWorld
+		}
+	} else {
+		// Map is smaller than screen width, center it
+		c.X = mapW_world/2 - screenWidthInWorld/2
 	}
 
-	if c.Y < 0 {
-		c.Y = 0
-	} else if c.Y > maxCameraY {
-		c.Y = maxCameraY
+	if mapH_world > screenHeightInWorld {
+		if c.Y < 0 {
+			c.Y = 0
+		} else if c.Y > mapH_world-screenHeightInWorld {
+			c.Y = mapH_world - screenHeightInWorld
+		}
+	} else {
+		// Map is smaller than screen height, center it
+		c.Y = mapH_world/2 - screenHeightInWorld/2
 	}
 
 	// Advance shake
