@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="15" height="24" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="24">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="15" height="24" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="28">
  <editorsettings>
   <export target="exports/classroom_1..tmj" format="json"/>
  </editorsettings>
@@ -141,19 +141,19 @@
   <object id="13" name="find" x="83" y="303.667">
    <point/>
   </object>
-  <object id="14" name="find" x="34.3333" y="289.333" rotation="-90">
+  <object id="14" name="find" x="40.7083" y="289.208" rotation="-90">
    <point/>
   </object>
-  <object id="15" name="find" x="34.6667" y="314" rotation="-90">
+  <object id="15" name="find" x="40.2917" y="314.375" rotation="-90">
    <point/>
   </object>
-  <object id="16" name="find" x="99.3333" y="349.333" rotation="-180">
+  <object id="16" name="find" x="97.8333" y="331.833" rotation="-180">
    <point/>
   </object>
-  <object id="17" name="find" x="152" y="50.3333">
+  <object id="17" name="find" x="152" y="52.5833">
    <point/>
   </object>
-  <object id="18" name="find" x="66.6667" y="50.6667">
+  <object id="18" name="find" x="66.4167" y="54.2917">
    <point/>
   </object>
   <object id="19" name="student" x="137" y="101.667">
@@ -168,7 +168,19 @@
   <object id="22" name="teacher" x="108.667" y="76.3333">
    <point/>
   </object>
-  <object id="23" name="find" x="178.333" y="325.333" rotation="90">
+  <object id="23" name="find" x="170.583" y="324.958" rotation="90">
+   <point/>
+  </object>
+  <object id="24" name="find" x="104.25" y="246.25">
+   <point/>
+  </object>
+  <object id="25" name="find" x="135.25" y="228.875">
+   <point/>
+  </object>
+  <object id="26" name="find" x="154" y="230.375">
+   <point/>
+  </object>
+  <object id="27" name="find" x="42.75" y="183.25">
    <point/>
   </object>
  </objectgroup>

@@ -18,52 +18,45 @@ import (
 //go:embed portrait_bg.kage
 var portraitBgKage []byte
 
+// shufflePlayers controls whether the character grid is randomised on each load.
+// Set to true for variety, false to keep the fixed spritesheet order (à la Street Fighter II).
+var shufflePlayers = true
+
 // studentNames maps character slice index (0-based after extraction) to a display name.
 // Slice index 0 = spritesheet index 1 (first real sprite), etc.
 // Any index beyond the map falls back to "Student N" — safe to have more sprites than names.
-
-// FAKE NAMES for the most part now
 var studentNames = map[int]string{
 	0:  "Reece",
 	1:  "Adeline",
-	2:  "Brit",
-	3:  "Harmony",
-	4:  "Kevin",
-	5:  "Priya",
-	6:  "Marcus",
-	7:  "Luz",
-	8:  "Theo",
-	9:  "Yuki",
-	10: "Dante",
-	11: "Sasha",
-	12: "Obinna",
-	13: "Ingrid",
-	14: "Remy",
-	15: "Fatima",
-	16: "Cleo",
-	17: "Juno",
-	18: "Kwame",
-	19: "Petra",
-	20: "Sol",
-	21: "Nadia",
-	22: "Ezra",
-	23: "Mei",
-	24: "Archer",
-	25: "Zara",
-	26: "Tomás",
-	27: "Wren",
-	28: "Idris",
-	29: "Paloma",
-	30: "Felix",
-	31: "Rue",
-	32: "Kofi",
-	33: "Astrid",
-	34: "Bayo",
-	35: "Iris",
-	36: "Caspian",
-	37: "Mina",
-	38: "Orion",
-	39: "Leila",
+	2:  "Lennon",
+	3:  "Lennon",
+	4:  "Dylan",
+	5:  "Uma",
+	6:  "Ansel",
+	7:  "Sylvie",
+	8:  "Bella",
+	9:  "Hudson",
+	10: "Teddy",
+	11: "Teddy",
+	12: "Teddy",
+	13: "Sena",
+	14: "Sena",
+	15: "Camile",
+	16: "Camile",
+	17: "Camile",
+	18: "Calder",
+	19: "Calder",
+	20: "Marlo",
+	21: "Marlo",
+	22: "Peter",
+	23: "Bodhi",
+	24: "Hudson",
+	25: "Mr. J",
+	26: "Ms. G",
+	27: "Ms. Kim",
+	28: "Jack",
+	29: "Liam",
+	30: "Ms. C",
 }
 
 // studentName returns the display name for character slice index i.
@@ -125,6 +118,7 @@ const (
 type CharacterSelectionScene struct {
 	game              *Game
 	characters        []*ebiten.Image
+	charOrder         []int // display order; values are original spritesheet indices
 	selectedIndex     int
 	selectionX        int
 	selectionY        int
@@ -146,6 +140,17 @@ type CharacterSelectionScene struct {
 func NewCharacterSelectionScene(game *Game) *CharacterSelectionScene {
 	chars := extractCharacterSprites(game.assets.CharactersTileset)
 
+	// Build the display order — shuffled or fixed depending on shufflePlayers.
+	order := make([]int, len(chars))
+	for i := range order {
+		order[i] = i
+	}
+	if shufflePlayers {
+		rand.Shuffle(len(order), func(i, j int) {
+			order[i], order[j] = order[j], order[i]
+		})
+	}
+
 	shader, err := ebiten.NewShader(portraitBgKage)
 	if err != nil {
 		shader = nil
@@ -156,6 +161,7 @@ func NewCharacterSelectionScene(game *Game) *CharacterSelectionScene {
 	return &CharacterSelectionScene{
 		game:           game,
 		characters:     chars,
+		charOrder:      order,
 		portraitShader: shader,
 		portraitCanvas: canvas,
 		entryCooldown:  touchEntryCooldown,
@@ -282,10 +288,9 @@ func (s *CharacterSelectionScene) Update() error {
 			hasInput = true
 		} else if gpad.MoveRight() {
 			s.game.audioManager.PlaySE("blip")
-			maxY := maxIdx / charGridX
-			colMax := charGridX - 1
-			if s.selectionY < maxY || s.selectionX < (total%charGridX)-1 {
-				s.selectionX = min(colMax, s.selectionX+1)
+			newIdx := s.selectionY*charGridX + s.selectionX + 1
+			if newIdx <= maxIdx {
+				s.selectionX = min(charGridX-1, s.selectionX+1)
 				s.inputCooldown = 10
 				hasInput = true
 			}
@@ -370,15 +375,19 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 	// Portrait panel
 	onRandomTile := s.isRandomTile(s.selectedIndex)
 
+	// Resolve the original spritesheet index for the current selection
+	origIdx := -1
+	if !onRandomTile && s.selectedIndex < len(s.charOrder) {
+		origIdx = s.charOrder[s.selectedIndex]
+	}
+
 	if s.portraitShader != nil {
 		s.portraitCanvas.Clear()
-		// Only draw a sprite into the canvas when not on the mystery tile
-		if !onRandomTile && s.selectedIndex < len(s.characters) {
+		if origIdx >= 0 {
 			spriteOp := &ebiten.DrawImageOptions{}
 			spriteOp.GeoM.Scale(portraitScale, portraitScale)
-			s.portraitCanvas.DrawImage(s.characters[s.selectedIndex], spriteOp)
+			s.portraitCanvas.DrawImage(s.characters[origIdx], spriteOp)
 		}
-		// Shader runs regardless — gives animated background on mystery tile too
 		shaderOpts := &ebiten.DrawRectShaderOptions{}
 		shaderOpts.GeoM.Translate(portraitX, portraitY)
 		shaderOpts.Uniforms = map[string]any{
@@ -391,11 +400,11 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 			float32(portraitX), float32(portraitY),
 			float32(portraitSize), float32(portraitSize),
 			color.RGBA{10, 10, 20, 255}, false)
-		if !onRandomTile && s.selectedIndex < len(s.characters) {
+		if origIdx >= 0 {
 			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Scale(portraitScale, portraitScale)
 			op.GeoM.Translate(portraitX, portraitY)
-			screen.DrawImage(s.characters[s.selectedIndex], op)
+			screen.DrawImage(s.characters[origIdx], op)
 		}
 	}
 
@@ -427,7 +436,7 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 		name = "Mystery"
 		nameColor = color.RGBA{180, 140, 255, 255}
 	} else {
-		name = studentName(s.selectedIndex)
+		name = studentName(origIdx)
 		nameColor = color.RGBA{255, 220, 60, 255}
 	}
 	nw, _ := text.Measure(name, f, 0)
@@ -493,7 +502,7 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 		} else {
 			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Translate(float64(sx), float64(sy))
-			screen.DrawImage(s.characters[i], op)
+			screen.DrawImage(s.characters[s.charOrder[i]], op)
 		}
 
 		// Selection highlight — pulses gold when landing
@@ -532,8 +541,9 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 
 func (s *CharacterSelectionScene) confirmSelection() {
 	if s.selectedIndex < len(s.characters) {
-		s.game.player.characterIndex = s.selectedIndex
-		s.game.player.image = s.characters[s.selectedIndex]
+		origIdx := s.charOrder[s.selectedIndex]
+		s.game.player.characterIndex = origIdx
+		s.game.player.image = s.characters[origIdx]
 	}
 	s.game.audioManager.PlaySE("bloop")
 	s.game.scene = NewClassroomScene(s.game)
