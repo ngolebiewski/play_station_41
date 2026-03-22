@@ -9,7 +9,8 @@
   <style>
     body {
       margin: 0;
-      background: #0f380f; /* Game Boy green */
+      background: #0f380f;
+      /* Game Boy green */
       color: #9bbc0f;
       font-family: monospace;
       display: flex;
@@ -38,6 +39,9 @@
       width: 0%;
       background: #9bbc0f;
       image-rendering: pixelated;
+      box-sizing: border-box;
+      /* ensures width stays inside parent */
+      transition: width 0.2s steps(2, end);
     }
   </style>
 </head>
