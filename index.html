@@ -9,8 +9,7 @@
   <style>
     body {
       margin: 0;
-      background: #0f380f;
-      /* classic Game Boy green */
+      background: #0f380f; /* Game Boy green */
       color: #9bbc0f;
       font-family: monospace;
       display: flex;
@@ -38,19 +37,7 @@
       height: 100%;
       width: 0%;
       background: #9bbc0f;
-      animation: loadbar 2s steps(16) infinite;
       image-rendering: pixelated;
-
-    }
-
-    @keyframes loadbar {
-      from {
-        width: 0%;
-      }
-
-      to {
-        width: 100%;
-      }
     }
   </style>
 </head>
@@ -65,18 +52,59 @@
 
   <script>
     const go = new Go();
-    const start = Date.now();
+    const fill = document.querySelector('.fill');
 
-    WebAssembly.instantiateStreaming(fetch("play_station_41.wasm"), go.importObject)
+    // 🟨 add stepped transition feel
+    fill.style.transition = "width 0.2s steps(2, end)";
+
+    async function loadWasmWithProgress() {
+      const response = await fetch("play_station_41.wasm");
+
+      const contentLength = response.headers.get('Content-Length');
+      const total = contentLength ? parseInt(contentLength, 10) : 0;
+
+      const reader = response.body.getReader();
+      let received = 0;
+      const chunks = [];
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        chunks.push(value);
+        received += value.length;
+
+        if (total) {
+          const percent = received / total;
+
+          // 🧠 Game Boy-style stepping (16 chunks)
+          const steps = 16;
+          const stepped = Math.floor(percent * steps) / steps;
+
+          fill.style.width = (stepped * 100) + "%";
+        }
+      }
+
+      // combine chunks into one buffer
+      const wasmBytes = new Uint8Array(received);
+      let position = 0;
+
+      for (let chunk of chunks) {
+        wasmBytes.set(chunk, position);
+        position += chunk.length;
+      }
+
+      return WebAssembly.instantiate(wasmBytes, go.importObject);
+    }
+
+    loadWasmWithProgress()
       .then(result => {
-        const elapsed = Date.now() - start;
-        const minTime = 2000; // force at least 2s of animation
-        const remaining = Math.max(0, minTime - elapsed);
+        fill.style.width = "100%"; // ensure full
 
         setTimeout(() => {
           document.getElementById('loading').remove();
           go.run(result.instance);
-        }, remaining);
+        }, 300); // small pause feels good
       })
       .catch(err => {
         document.getElementById('loading').textContent = "Failed to load WASM!";
