@@ -11,11 +11,12 @@ import (
 )
 
 type Game struct {
-	scene        Scene
-	assets       *Assets
-	player       *Player
-	debug        bool
-	audioManager *music.AudioManager
+	scene         Scene
+	assets        *Assets
+	player        *Player
+	debug         bool
+	audioManager  *music.AudioManager
+	gameplay      *GameplayState
 }
 
 func NewGame() *Game {
@@ -31,12 +32,13 @@ func NewGame() *Game {
 	player := NewPlayer()
 	player.image = assets.DefaultPlayer
 
-	// 3. Create the Game struct pointer FIRST
+	// 4. Create the Game struct pointer FIRST
 	g := &Game{
 		assets:       assets,
 		player:       player,
 		debug:        false,
 		audioManager: manager,
+		gameplay:     NewGameplayState(assets.ObjectsTileset),
 	}
 	g.audioManager.SFXVolume = 0.15
 

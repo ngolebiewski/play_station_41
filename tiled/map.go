@@ -11,3 +11,12 @@ type Spawn struct {
 	X, Y float64
 	Type string // "student", "teacher", "find"
 }
+
+// SpawnPoint represents a single spawn point with its type.
+// Used for object placement in gameplay.
+type SpawnPoint struct {
+	X    float64
+	Y    float64
+	Type string
+}
+

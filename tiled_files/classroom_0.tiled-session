@@ -12,16 +12,28 @@
             "scaleInDock": 3,
             "scaleInEditor": 1
         },
+        "CLASSROOM_MAX.tsx": {
+            "scaleInEditor": 1
+        },
         "classroom_1.tmx": {
-            "scale": 8,
-            "selectedLayer": 2,
+            "scale": 4,
+            "selectedLayer": 4,
             "viewCenter": {
-                "x": 87.875,
-                "y": 182.75
+                "x": 44,
+                "y": 268.875
+            }
+        },
+        "classroom_2.tmx": {
+            "scale": 1.5,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 215.33333333333331,
+                "y": 246.99999999999997
             }
         }
     },
     "last.exportedFilePath": "/Users/nickgolebiewski/Documents/Coding_Projects/2026/play_station_41/tiled_files/exports",
+    "last.externalTilesetPath": "/Users/nickgolebiewski/Documents/Coding_Projects/2026/play_station_41/tiled_files",
     "last.imagePath": "/Users/nickgolebiewski/Documents/Coding_Projects/2026/play_station_41/aseprite_art",
     "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
     "map.lastUsedFormat": "tmx",
@@ -35,8 +47,10 @@
     "project": "classroom_0.tiled-project",
     "recentFiles": [
         "CLASSROOM.tsx",
+        "CLASSROOM_MAX.tsx",
         "classroom_1.tmx"
     ],
+    "tileset.lastUsedFilter": "Tiled tileset files (*.tsx *.xml)",
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
         "height": 16,

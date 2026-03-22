@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>P.lay S.tation 41</title>
   <script src="wasm_exec.js"></script>
+
   <style>
     body {
       margin: 0;
-      background: black; /* dark grey */
-      color: #fff;
+      background: #0f380f;
+      /* classic Game Boy green */
+      color: #9bbc0f;
       font-family: monospace;
       display: flex;
       justify-content: center;
@@ -21,33 +24,65 @@
       font-size: 1.5em;
       text-align: center;
     }
+
+    .bar {
+      width: 160px;
+      height: 16px;
+      border: 3px solid #9bbc0f;
+      margin-top: 12px;
+      padding: 2px;
+      box-sizing: border-box;
+    }
+
+    .fill {
+      height: 100%;
+      width: 0%;
+      background: #9bbc0f;
+      animation: loadbar 2s steps(16) infinite;
+      image-rendering: pixelated;
+
+    }
+
+    @keyframes loadbar {
+      from {
+        width: 0%;
+      }
+
+      to {
+        width: 100%;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <div id="loading">Loading<span id="dots">.</span></div>
+  <div id="loading">
+    Loading
+    <div class="bar">
+      <div class="fill"></div>
+    </div>
+  </div>
 
   <script>
     const go = new Go();
-    const dots = document.getElementById('dots');
-    let dotCount = 1;
-
-    // animate dots while loading
-    const interval = setInterval(() => {
-      dotCount = (dotCount % 3) + 1;
-      dots.textContent = '.'.repeat(dotCount);
-    }, 500);
+    const start = Date.now();
 
     WebAssembly.instantiateStreaming(fetch("play_station_41.wasm"), go.importObject)
       .then(result => {
-        clearInterval(interval);      // stop the dots animation
-        document.getElementById('loading').remove(); // remove loading text
-        go.run(result.instance);      // run your game
+        const elapsed = Date.now() - start;
+        const minTime = 2000; // force at least 2s of animation
+        const remaining = Math.max(0, minTime - elapsed);
+
+        setTimeout(() => {
+          document.getElementById('loading').remove();
+          go.run(result.instance);
+        }, remaining);
       })
       .catch(err => {
-        clearInterval(interval);
         document.getElementById('loading').textContent = "Failed to load WASM!";
         console.error(err);
       });
   </script>
 </body>
+
 </html>
