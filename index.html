@@ -10,7 +10,7 @@
     body {
       margin: 0;
       background: #0f380f;
-      /* Game Boy green */
+      /* classic Game Boy green */
       color: #9bbc0f;
       font-family: monospace;
       display: flex;
@@ -30,21 +30,27 @@
       height: 16px;
       border: 3px solid #9bbc0f;
       margin-top: 12px;
-      padding: 0;
-      /* remove padding! */
+      padding: 2px;
       box-sizing: border-box;
-      position: relative;
-      background: black;
-      /* optional inner background */
     }
 
     .fill {
       height: 100%;
       width: 0%;
       background: #9bbc0f;
+      animation: loadbar 2s steps(16) infinite;
       image-rendering: pixelated;
-      box-sizing: border-box;
-      transition: width 0.2s steps(2, end);
+
+    }
+
+    @keyframes loadbar {
+      from {
+        width: 0%;
+      }
+
+      to {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -59,59 +65,18 @@
 
   <script>
     const go = new Go();
-    const fill = document.querySelector('.fill');
+    const start = Date.now();
 
-    // 🟨 add stepped transition feel
-    fill.style.transition = "width 0.2s steps(2, end)";
-
-    async function loadWasmWithProgress() {
-      const response = await fetch("play_station_41.wasm");
-
-      const contentLength = response.headers.get('Content-Length');
-      const total = contentLength ? parseInt(contentLength, 10) : 0;
-
-      const reader = response.body.getReader();
-      let received = 0;
-      const chunks = [];
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        chunks.push(value);
-        received += value.length;
-
-        if (total) {
-          const percent = received / total;
-
-          // 🧠 Game Boy-style stepping (16 chunks)
-          const steps = 16;
-          const stepped = Math.floor(percent * steps) / steps;
-
-          fill.style.width = (stepped * 100) + "%";
-        }
-      }
-
-      // combine chunks into one buffer
-      const wasmBytes = new Uint8Array(received);
-      let position = 0;
-
-      for (let chunk of chunks) {
-        wasmBytes.set(chunk, position);
-        position += chunk.length;
-      }
-
-      return WebAssembly.instantiate(wasmBytes, go.importObject);
-    }
-
-    loadWasmWithProgress()
+    WebAssembly.instantiateStreaming(fetch("play_station_41.wasm"), go.importObject)
       .then(result => {
-        fill.style.width = "100%"; // ensure full
+        const elapsed = Date.now() - start;
+        const minTime = 2000; // force at least 2s of animation
+        const remaining = Math.max(0, minTime - elapsed);
 
         setTimeout(() => {
           document.getElementById('loading').remove();
           go.run(result.instance);
-        }, 300); // small pause feels good
+        }, remaining);
       })
       .catch(err => {
         document.getElementById('loading').textContent = "Failed to load WASM!";
