@@ -9,7 +9,8 @@
   <style>
     body {
       margin: 0;
-      background: #0f380f; /* classic Game Boy green */
+      background: #0f380f;
+      /* classic Game Boy green */
       color: #9bbc0f;
       font-family: monospace;
       display: flex;
@@ -38,11 +39,18 @@
       width: 0%;
       background: #9bbc0f;
       animation: loadbar 2s steps(16) infinite;
+      image-rendering: pixelated;
+
     }
 
     @keyframes loadbar {
-      from { width: 0%; }
-      to   { width: 100%; }
+      from {
+        width: 0%;
+      }
+
+      to {
+        width: 100%;
+      }
     }
   </style>
 </head>
