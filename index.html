@@ -30,8 +30,12 @@
       height: 16px;
       border: 3px solid #9bbc0f;
       margin-top: 12px;
-      padding: 2px;
+      padding: 0;
+      /* remove padding! */
       box-sizing: border-box;
+      position: relative;
+      background: black;
+      /* optional inner background */
     }
 
     .fill {
@@ -40,7 +44,6 @@
       background: #9bbc0f;
       image-rendering: pixelated;
       box-sizing: border-box;
-      /* ensures width stays inside parent */
       transition: width 0.2s steps(2, end);
     }
   </style>
