@@ -14,10 +14,10 @@
         },
         "classroom_1.tmx": {
             "scale": 8,
-            "selectedLayer": 2,
+            "selectedLayer": 4,
             "viewCenter": {
-                "x": 87.875,
-                "y": 182.75
+                "x": 103.125,
+                "y": 124.0625
             }
         }
     },
