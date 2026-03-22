@@ -10,6 +10,11 @@ import (
 const (
 	deadZone = .2
 	id       = 0
+
+	// Touch tuning
+	dragThreshold    = 12  // pixels of movement before a drag direction locks in
+	doubleTapMs      = 300 // milliseconds between taps to count as double-tap
+	doubleTapMaxMove = 20  // max pixel drift between the two taps
 )
 
 // touchEnabled is set true the first time a touch is detected on the title screen.
@@ -20,7 +25,6 @@ var screenW, screenH int
 
 // Init sets the logical screen size for touch input mapping.
 // Call this once at startup before any input is read.
-// e.g. gpad.Init(sW, sH)
 func Init(w, h int) {
 	screenW = w
 	screenH = h
@@ -32,66 +36,131 @@ func TouchEnabled() bool { return touchEnabled }
 // EnableTouch activates touch input. Called from the title screen on first touch.
 func EnableTouch() { touchEnabled = true }
 
-// dpadTouch holds the current touch directions, computed once per frame.
-var dpadTouch struct{ up, down, left, right bool }
+// ── per-touch tracking ───────────────────────────────────────────────────────
 
-// UpdateTouch should be called once per game tick.
-// Left half of screen = D-pad, right half = action button.
-// Touch coordinates are in logical game pixels, matching screenW/H from Init.
+type touchInfo struct {
+	startX, startY int  // position when finger went down
+	locked         bool // direction has been committed
+}
+
+var activeTouches = map[ebiten.TouchID]*touchInfo{}
+
+// ── double-tap detection ─────────────────────────────────────────────────────
+
+type tapRecord struct {
+	x, y    int
+	ticksAt int // ebiten tick count approximated via frame counter
+}
+
+var (
+	lastTap        *tapRecord
+	frameCounter   int
+	doubleTapFired bool // consumed once per double-tap event
+)
+
+// ticksToMs converts our frame counter delta to milliseconds (assumes 60 fps).
+func ticksToMs(delta int) int { return delta * 1000 / 60 }
+
+// ── computed state (set once per frame by UpdateTouch) ───────────────────────
+
+var dpadTouch struct{ up, down, left, right bool }
+var bButtonTouch bool // double-tap fired this frame
+
+// UpdateTouch must be called once per game tick.
+// Full screen drag = D-pad direction; double-tap anywhere = B button.
 func UpdateTouch() {
+	// Reset frame state
 	dpadTouch.up = false
 	dpadTouch.down = false
 	dpadTouch.left = false
 	dpadTouch.right = false
+	doubleTapFired = false
 
-	if !touchEnabled || screenW == 0 {
+	frameCounter++
+
+	if !touchEnabled {
 		return
 	}
 
-	for _, t := range ebiten.AppendTouchIDs(nil) {
+	// ── track newly started touches ──────────────────────────────────────────
+	newIDs := inpututil.AppendJustPressedTouchIDs(nil)
+	for _, t := range newIDs {
 		x, y := ebiten.TouchPosition(t)
-		if x > screenW/2 {
-			continue // right half = action buttons
+		activeTouches[t] = &touchInfo{startX: x, startY: y}
+	}
+
+	// ── detect double-tap on just-released touches ───────────────────────────
+	releasedIDs := inpututil.AppendJustReleasedTouchIDs(nil)
+	for _, t := range releasedIDs {
+		info, ok := activeTouches[t]
+		if !ok {
+			continue
 		}
-		// Center of the left half d-pad zone
-		cx := screenW / 4
-		cy := screenH / 2
-		dx := x - cx
-		dy := y - cy
-		if dy < -10 {
-			dpadTouch.up = true
+		rx, ry := inpututil.TouchPositionInPreviousTick(t)
+		dx := rx - info.startX
+		dy := ry - info.startY
+		moved := dx*dx+dy*dy > doubleTapMaxMove*doubleTapMaxMove
+
+		if !moved && !info.locked {
+			// This was a tap — check for double-tap
+			if lastTap != nil &&
+				ticksToMs(frameCounter-lastTap.ticksAt) <= doubleTapMs {
+				// Close enough in time — fire B
+				doubleTapFired = true
+				lastTap = nil
+			} else {
+				lastTap = &tapRecord{x: rx, y: ry, ticksAt: frameCounter}
+			}
 		}
-		if dy > 10 {
-			dpadTouch.down = true
+		delete(activeTouches, t)
+	}
+
+	// Expire stale last-tap record
+	if lastTap != nil && ticksToMs(frameCounter-lastTap.ticksAt) > doubleTapMs {
+		lastTap = nil
+	}
+
+	// ── derive D-pad directions from active drags ────────────────────────────
+	for t, info := range activeTouches {
+		x, y := ebiten.TouchPosition(t)
+		dx := x - info.startX
+		dy := y - info.startY
+		dist2 := dx*dx + dy*dy
+
+		if dist2 < dragThreshold*dragThreshold {
+			continue // finger hasn't moved enough yet
 		}
-		if dx < -10 {
-			dpadTouch.left = true
-		}
-		if dx > 10 {
-			dpadTouch.right = true
+
+		info.locked = true // mark as a drag, not a tap
+
+		// Pick the dominant axis
+		if abs(dx) >= abs(dy) {
+			if dx > 0 {
+				dpadTouch.right = true
+			} else {
+				dpadTouch.left = true
+			}
+		} else {
+			if dy > 0 {
+				dpadTouch.down = true
+			} else {
+				dpadTouch.up = true
+			}
 		}
 	}
+
+	bButtonTouch = doubleTapFired
 }
 
-// isTouchingRight returns true if any touch is in the right half of the screen.
-func isTouchingRight() bool {
-	if !touchEnabled || screenW == 0 {
-		return false
+func abs(n int) int {
+	if n < 0 {
+		return -n
 	}
-	for _, t := range ebiten.AppendTouchIDs(nil) {
-		x, _ := ebiten.TouchPosition(t)
-		if x > screenW/2 {
-			return true
-		}
-	}
-	return false
+	return n
 }
 
-// old school NES-like controller where D-Pad is:
-//
-//	   12
-//	14    15.    8.      9.     0  1
-//	   13.       select. start  B  A
+// ── public input API ─────────────────────────────────────────────────────────
+
 func MoveUp() bool {
 	return dpadTouch.up ||
 		ebiten.IsKeyPressed(ebiten.KeyUp) ||
@@ -139,7 +208,7 @@ func PressSelect() bool {
 }
 
 func PressB() bool {
-	return isTouchingRight() ||
+	return bButtonTouch ||
 		inpututil.IsKeyJustPressed(ebiten.KeySpace) ||
 		inpututil.IsKeyJustPressed(ebiten.KeyEnter) ||
 		inpututil.IsStandardGamepadButtonJustPressed(0, ebiten.StandardGamepadButtonRightBottom) ||
