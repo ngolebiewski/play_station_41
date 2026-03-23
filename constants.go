@@ -8,4 +8,7 @@ const (
 	tileSize    = 16
 	scale       = 1 //i.e. the player scale. not sure if the whole tileset and player scale should be x1 or x2
 	hitboxInset = 3 * scale
+
+	// Level Transition timing
+	levelTransitionDuration = 120 // 2 seconds at 60fps
 )

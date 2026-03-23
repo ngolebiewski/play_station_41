@@ -546,5 +546,5 @@ func (s *CharacterSelectionScene) confirmSelection() {
 		s.game.player.image = s.characters[origIdx]
 	}
 	s.game.audioManager.PlaySE("bloop")
-	s.game.scene = NewClassroomScene(s.game)
+	s.game.scene = NewClassroomScene(s.game, 1)
 }
