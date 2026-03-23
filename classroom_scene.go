@@ -385,43 +385,50 @@ func (s *ClassroomScene) drawHUD(screen *ebiten.Image) {
 
 	// Draw semi-transparent background for HUD (90% alpha = 230 alpha value)
 	hudBg := ebiten.NewImage(sW, 20)
-	hudBg.Fill(color.RGBA{0, 0, 0, 230})
+	hudBg.Fill(color.RGBA{0, 0, 0, 240})
 	screen.DrawImage(hudBg, &ebiten.DrawImageOptions{})
 
 	// Draw timer: just "T:" + seconds
 	secondsRemaining := gp.RemainingTime / 60
 	timerOpt := &text.DrawOptions{}
 	timerOpt.GeoM.Translate(5, 5)
-	text.Draw(screen, fmt.Sprintf("T:%d", secondsRemaining), hudTextFace, timerOpt)
+	text.Draw(screen, fmt.Sprintf("Time:%d", secondsRemaining), hudTextFace, timerOpt)
 
-	// Draw lives: player image x count
-	if s.game.player.image != nil {
-		// Draw small player image
-		livesOp := &ebiten.DrawImageOptions{}
-		livesOp.GeoM.Scale(0.5, 0.5)
-		livesOp.GeoM.Translate(50, 4)
-		screen.DrawImage(s.game.player.image, livesOp)
+	// Removing Lives for now. Was not in original Super Mario brothers. on hud. Just shows when you lose a life?
+	// // Draw lives: player image x count
+	// if s.game.player.image != nil {
+	// 	// Draw small player image
+	// 	livesOp := &ebiten.DrawImageOptions{}
+	// 	// livesOp.GeoM.Scale(0.5, 0.5)
+	// 	livesOp.GeoM.Translate(50, 4)
+	// 	livesOp.ColorScale.SetR(1.5)
+	// 	livesOp.ColorScale.SetG(1.5)
+	// 	livesOp.ColorScale.SetB(1.5)
+	// 	screen.DrawImage(s.game.player.image, livesOp)
 
-		// Draw "x" count
-		livesTextOpt := &text.DrawOptions{}
-		livesTextOpt.GeoM.Translate(65, 5)
-		text.Draw(screen, fmt.Sprintf("x%d", gp.Lives), hudTextFace, livesTextOpt)
-	}
+	// 	// Draw "x" count
+	// 	livesTextOpt := &text.DrawOptions{}
+	// 	livesTextOpt.GeoM.Translate(65, 5)
+	// 	text.Draw(screen, fmt.Sprintf("x%d", gp.Lives), hudTextFace, livesTextOpt)
+	// }
 
 	// Draw level: "Lvl" + grade name
 	levelName := gp.GetLevelName()
 	levelOpt := &text.DrawOptions{}
-	levelOpt.GeoM.Translate(110, 5)
-	text.Draw(screen, fmt.Sprintf("Lvl %s", levelName), hudTextFace, levelOpt)
+	// levelOpt.GeoM.Translate(110, 5)
+	levelOpt.GeoM.Translate(80, 5)
+	levelOpt.ColorScale.ScaleWithColor(color.RGBA{255, 220, 60, 255})
+	text.Draw(screen, fmt.Sprintf("Lvl %d: %s", gp.Level, levelName), hudTextFace, levelOpt)
 
 	// Draw target object indicator(s)
 	// Show 1-3 small grayscale/colored objects depending on level
 	if gp.TargetObjectImage != nil {
-		const objIndicatorSize = 0.75
+		const objIndicatorSize = 1
 		const objSpace = 14 // Space between each object display
 
 		// Determine how many to show based on level
-		numToShow := min(3, gp.Lives)
+		// was 3 before
+		numToShow := min(1, gp.Lives)
 
 		startX := 190.0
 
@@ -434,13 +441,17 @@ func (s *ClassroomScene) drawHUD(screen *ebiten.Image) {
 				// Use full color when found
 				objOp.ColorScale.SetA(1.0)
 			} else {
-				// Greyscale when not found
-				objOp.ColorScale.SetR(0.5)
-				objOp.ColorScale.SetG(0.5)
-				objOp.ColorScale.SetB(0.5)
+				// True greyscale via luminance matrix
+				var cm ebiten.ColorM
+				cm.ChangeHSV(0, 0, 0.6) // saturation=0 kills all color, value=0.6 for brightness
+				objOp.ColorM = cm
 				objOp.ColorScale.SetA(0.7)
 			}
 			screen.DrawImage(gp.TargetObjectImage, objOp)
 		}
+		FindOpt := &text.DrawOptions{}
+		// levelOpt.GeoM.Translate(110, 5)
+		FindOpt.GeoM.Translate(165, 5)
+		text.Draw(screen, "Find", hudTextFace, FindOpt)
 	}
 }
