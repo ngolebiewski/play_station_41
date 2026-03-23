@@ -140,7 +140,7 @@
 0,0,0,0,0,0,0,0,0,0,3221225584,3221225583,0,0,0,1073741884,1073741885,1073741886,0,0,0,0,0,0,1073741917
 </data>
  </layer>
- <objectgroup id="4" name="spawn" visible="0">
+ <objectgroup id="4" name="spawn">
   <object id="3" name="find" x="272" y="120">
    <point/>
   </object>
