@@ -49,6 +49,7 @@ type GameplayState struct {
 	Level              int
 	Lives              int
 	Score              int
+	Points             int  // Bonus points from dismissing distractors
 	GameOver           bool
 	LevelComplete      bool
 	HasFoundObject     bool
@@ -83,6 +84,7 @@ func NewGameplayState(objectsImage *ebiten.Image) *GameplayState {
 		Level:                1,
 		Lives:                3,
 		Score:                0,
+		Points:               0,
 		GameOver:             false,
 		LevelComplete:        false,
 		HasFoundObject:       false,

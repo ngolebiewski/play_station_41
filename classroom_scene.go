@@ -60,6 +60,16 @@ type objectTween struct {
 
 const tweenDuration = 40 // frames (~0.67s at 60fps)
 
+// objectTweenOff animates a distractor object flying off-screen downward.
+type objectTweenOff struct {
+	startScreenX, startScreenY float64
+	frame                      int
+	duration                   int
+	img                        *ebiten.Image
+}
+
+const tweenOffDuration = 30 // frames for off-screen animation
+
 // easeOutQuad gives a snappy deceleration into the HUD slot.
 func easeOutQuad(t float64) float64 {
 	return 1 - (1-t)*(1-t)
@@ -83,6 +93,8 @@ type ClassroomScene struct {
 	tween *objectTween
 	// True once tween finishes — HUD icon draws full-color from this point
 	hudLit bool
+	// Active off-screen tweens for dismissed distractors
+	tweensOff []*objectTweenOff
 }
 
 func NewClassroomScene(game *Game, level int) *ClassroomScene {
@@ -162,6 +174,7 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 		levelHasStarted: false,
 		playerSpawnX:    playerSpawnX,
 		playerSpawnY:    playerSpawnY,
+		tweensOff:       make([]*objectTweenOff, 0),
 	}
 
 	return scene
@@ -249,6 +262,45 @@ func (s *ClassroomScene) Update() error {
 		}
 	}
 
+	// ── Action button on distractor objects (dismiss them) ───────────────────
+	if gpad.PressB() {
+		for _, obj := range gp.PlacedObjects {
+			if !obj.IsCollected && !obj.IsTarget && s.checkPlayerObjectCollision(obj, pw, ph) {
+				s.game.audioManager.PlaySE("blip")
+				s.camera.Shake(15, 2.0)
+				gp.Points++ // Award 1 point
+
+				// Capture screen-space position for off-screen tween
+				screenX := obj.X - s.camera.DrawX()
+				screenY := obj.Y - s.camera.DrawY()
+
+				// Kick off tween to move object off-screen
+				s.tweensOff = append(s.tweensOff, &objectTweenOff{
+					startScreenX: screenX,
+					startScreenY: screenY,
+					frame:        0,
+					duration:     tweenOffDuration,
+					img:          obj.Image,
+				})
+
+				// Mark as collected so it won't be drawn or checked again
+				obj.IsCollected = true
+				break
+			}
+		}
+	}
+
+	// ── Advance tweens off-screen ───────────────────────────────────────────
+	for i := 0; i < len(s.tweensOff); i++ {
+		toff := s.tweensOff[i]
+		toff.frame++
+		if toff.frame >= toff.duration {
+			// Remove this tween from the list
+			s.tweensOff = append(s.tweensOff[:i], s.tweensOff[i+1:]...)
+			i--
+		}
+	}
+
 	// ── Advance tween ─────────────────────────────────────────────────────────
 	if s.tween != nil {
 		s.tween.frame++
@@ -279,6 +331,7 @@ func (s *ClassroomScene) Update() error {
 		gp.ObjectsFound = 0
 		s.tween = nil
 		s.hudLit = false
+		s.tweensOff = make([]*objectTweenOff, 0)
 		for _, obj := range gp.PlacedObjects {
 			obj.IsCollected = false
 		}
@@ -391,6 +444,11 @@ func (s *ClassroomScene) Draw(screen *ebiten.Image) {
 		s.drawTween(screen)
 	}
 
+	// 6b. Distractors tweening off-screen
+	for _, toff := range s.tweensOff {
+		s.drawTweenOff(screen, toff)
+	}
+
 	// 7. Overlay / found message
 	if s.overlay != nil {
 		s.overlay.Draw(screen)
@@ -429,6 +487,27 @@ func (s *ClassroomScene) drawTween(screen *ebiten.Image) {
 	// progress >= 0.5: full color, no ColorM needed
 
 	screen.DrawImage(t.img, op)
+}
+
+// drawTweenOff renders a distractor object flying off-screen downward.
+func (s *ClassroomScene) drawTweenOff(screen *ebiten.Image, toff *objectTweenOff) {
+	progress := easeOutQuad(float64(toff.frame) / float64(toff.duration))
+
+	// Move downward off-screen
+	x := toff.startScreenX
+	y := toff.startScreenY + progress*float64(sH+100)
+
+	// Scale: shrink as it falls
+	spriteScale := scale * (1.0 - progress*0.3)
+
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(spriteScale, spriteScale)
+	op.GeoM.Translate(x, y)
+
+	// Fade out as it leaves
+	op.ColorScale.SetA(1.0 - progress)
+
+	screen.DrawImage(toff.img, op)
 }
 
 // drawHUD draws the heads-up display with timer, lives, and level
@@ -490,6 +569,17 @@ func (s *ClassroomScene) drawHUD(screen *ebiten.Image) {
 		FindOpt.GeoM.Translate(165, 5)
 		text.Draw(screen, fmt.Sprintf("Find %d/%d", gp.ObjectsFound, gp.ObjectsToFind), hudTextFace, FindOpt)
 	}
+
+	// Points row (second row)
+	ptsRowBg := ebiten.NewImage(sW, 15)
+	ptsRowBg.Fill(color.RGBA{20, 20, 20, 240})
+	ptsOp := &ebiten.DrawImageOptions{}
+	ptsOp.GeoM.Translate(0, 20)
+	screen.DrawImage(ptsRowBg, ptsOp)
+
+	ptsOpt := &text.DrawOptions{}
+	ptsOpt.GeoM.Translate(5, 23)
+	text.Draw(screen, fmt.Sprintf("Pts: %d", gp.Points), hudTextFace, ptsOpt)
 }
 
 // getTilemapPath returns the path to the tilemap file for the given level.
