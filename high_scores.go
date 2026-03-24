@@ -6,7 +6,6 @@ import (
 	"os"
 	"runtime"
 	"sort"
-	"syscall/js"
 )
 
 // HighScore represents a single high score entry
@@ -42,7 +41,7 @@ func NewHighScoreManager() *HighScoreManager {
 // SaveHighScore saves a new high score
 func (hsm *HighScoreManager) SaveHighScore(initials string, score int) error {
 	if hsm.isWasm {
-		return hsm.saveToLocalStorage(initials, score)
+		return hsm.saveToLocalStorageImpl(initials, score)
 	}
 	return hsm.saveToFile(initials, score)
 }
@@ -50,67 +49,13 @@ func (hsm *HighScoreManager) SaveHighScore(initials string, score int) error {
 // LoadHighScores loads the top 7 high scores
 func (hsm *HighScoreManager) LoadHighScores() ([]HighScore, error) {
 	if hsm.isWasm {
-		return hsm.loadFromLocalStorage()
+		return hsm.loadFromLocalStorageImpl()
 	}
 	// Return cached in-memory scores on native
 	if len(hsm.inMemory) == 0 {
 		return getDefaultHighScores(), nil
 	}
 	return hsm.inMemory, nil
-}
-
-// ─── Web/WASM Storage (localStorage) ───────────────────────────────────────
-
-func (hsm *HighScoreManager) saveToLocalStorage(initials string, score int) error {
-	// Get existing scores
-	scores, _ := hsm.loadFromLocalStorage()
-
-	// Add new score
-	scores = append(scores, HighScore{
-		Initials: initials,
-		Score:    score,
-	})
-
-	// Sort by score descending
-	sort.Slice(scores, func(i, j int) bool {
-		return scores[i].Score > scores[j].Score
-	})
-
-	// Keep top 7
-	if len(scores) > 7 {
-		scores = scores[:7]
-	}
-
-	// Serialize and save to localStorage
-	data, err := json.Marshal(scores)
-	if err != nil {
-		return err
-	}
-
-	// Use JS to save to localStorage
-	localStorage := js.Global().Get("localStorage")
-	localStorage.Call("setItem", "ps41_high_scores", string(data))
-
-	return nil
-}
-
-func (hsm *HighScoreManager) loadFromLocalStorage() ([]HighScore, error) {
-	localStorage := js.Global().Get("localStorage")
-	jsonStr := localStorage.Call("getItem", "ps41_high_scores")
-
-	if jsonStr.IsNull() {
-		// No scores yet, return prepopulated list
-		return getDefaultHighScores(), nil
-	}
-
-	var scores []HighScore
-	err := json.Unmarshal([]byte(jsonStr.String()), &scores)
-	if err != nil {
-		// Fall back to defaults if JSON is corrupted
-		return getDefaultHighScores(), nil
-	}
-
-	return scores, nil
 }
 
 // ─── Native Storage (JSON file) ────────────────────────────────────────────
@@ -178,10 +123,10 @@ func getDefaultHighScores() []HighScore {
 	return []HighScore{
 		{Initials: "YAG", Score: 7000},
 		{Initials: "INK", Score: 6000},
-		{Initials: "NYC", Score: 5000},
-		{Initials: "CAL", Score: 4000},
-		{Initials: "MSK", Score: 3000},
-		{Initials: "MSG", Score: 2000},
-		{Initials: "", Score: 1000},
+		{Initials: "CCC", Score: 5000},
+		{Initials: "DDD", Score: 4000},
+		{Initials: "EEE", Score: 3000},
+		{Initials: "FFF", Score: 2000},
+		{Initials: "GGG", Score: 1000},
 	}
 }
