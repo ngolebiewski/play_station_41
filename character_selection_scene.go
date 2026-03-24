@@ -26,7 +26,7 @@ var shufflePlayers = true
 // Slice index 0 = spritesheet index 1 (first real sprite), etc.
 // Any index beyond the map falls back to "Student N" — safe to have more sprites than names.
 var studentNames = map[int]string{
-	0:  "Reece",
+	0:  "Reese",
 	1:  "Adeline",
 	2:  "Lennon",
 	3:  "Lennon",
@@ -41,9 +41,9 @@ var studentNames = map[int]string{
 	12: "Teddy",
 	13: "Sena",
 	14: "Sena",
-	15: "Camile",
-	16: "Camile",
-	17: "Camile",
+	15: "Camila",
+	16: "Camila",
+	17: "Camila",
 	18: "Calder",
 	19: "Calder",
 	20: "Marlo",
