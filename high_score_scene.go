@@ -98,14 +98,14 @@ func (s *HighScoreScene) Update() error {
 			}
 
 			// ─── A/Action button: Confirm letter and move to next ─────────────
-			if gpad.PressA() || gpad.PressStart() {
+			if gpad.PressB() || gpad.PressStart() {
 				s.game.audioManager.PlaySE("pickup") // Visual feedback
 				s.currentPosition++                  // Move to next letter or confirmation prompt
 				s.lastInputFrame = s.framecounter
 			}
 
 			// ─── B button: Go back to previous letter (if not first) ────
-			if gpad.PressB() && s.currentPosition > 0 {
+			if gpad.PressA() && s.currentPosition > 0 {
 				s.game.audioManager.PlaySE("blip") // Feedback
 				s.currentPosition--
 				s.lastInputFrame = s.framecounter
@@ -114,7 +114,7 @@ func (s *HighScoreScene) Update() error {
 			// Confirmation prompt ("OK?")
 
 			// ─── A/Action: Confirm and save ──────────────────────────────────
-			if gpad.PressA() || gpad.PressStart() {
+			if gpad.PressB() || gpad.PressStart() {
 				initialsStr := string([]rune{
 					rune(availableLetters[s.initials[0]]),
 					rune(availableLetters[s.initials[1]]),
@@ -253,13 +253,13 @@ func (s *HighScoreScene) drawInitialsEntry(screen *ebiten.Image) {
 		instrOpt2 := &text.DrawOptions{}
 		instrOpt2.GeoM.Translate(40, 235)
 		instrOpt2.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
-		text.Draw(screen, "A/ACTION: Set Letter", highScoreTextFace, instrOpt2)
+		text.Draw(screen, "B/ACTION: Set Letter", highScoreTextFace, instrOpt2)
 
 		if s.currentPosition > 0 {
 			instrOpt3 := &text.DrawOptions{}
 			instrOpt3.GeoM.Translate(40, 250)
 			instrOpt3.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
-			text.Draw(screen, "B: Change previous", highScoreTextFace, instrOpt3)
+			text.Draw(screen, "A: Change previous", highScoreTextFace, instrOpt3)
 		}
 	} else if s.currentPosition == 3 {
 		// Show confirmation prompt
