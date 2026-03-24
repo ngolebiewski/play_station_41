@@ -135,15 +135,15 @@ func (m *FoundObjectMessage) Update() bool {
 
 // Draw draws the found message overlay
 func (m *FoundObjectMessage) Draw(screen *ebiten.Image) {
-	// Draw dark overlay
+	// Draw dark overlay (lighter since concurrent)
 	darkImg := ebiten.NewImage(sW, sH)
-	darkImg.Fill(color.RGBA{0, 0, 0, 100})
+	darkImg.Fill(color.RGBA{0, 0, 0, 50})
 	screen.DrawImage(darkImg, &ebiten.DrawImageOptions{})
 
-	// Draw message box
-	msgW := 120
-	msgH := 40
-	msgX := (sW - msgW) / 2
+	// Draw message box - smaller and to the side
+	msgW := 100
+	msgH := 30
+	msgX := sW - msgW - 20  // Position to the right side
 	msgY := (sH - msgH) / 2
 
 	msgImg := ebiten.NewImage(msgW, msgH)

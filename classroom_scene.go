@@ -243,6 +243,7 @@ func (s *ClassroomScene) Update() error {
 					img:          obj.Image,
 				}
 				s.hudLit = false
+				s.foundMessage = NewFoundObjectMessage()
 				break
 			}
 		}
@@ -255,9 +256,8 @@ func (s *ClassroomScene) Update() error {
 			s.tween.done = true
 			s.tween = nil
 			s.hudLit = true
-			// Now that tween is done, show the popup and mark as found
+			// Now that tween is done, mark as found
 			gp.ObjectFound()
-			s.foundMessage = NewFoundObjectMessage()
 		}
 	}
 
