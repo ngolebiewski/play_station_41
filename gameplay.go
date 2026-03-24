@@ -312,7 +312,7 @@ func (gs *GameplayState) Update() {
 func GetLevelTimeLimit(level int) int {
 	switch level {
 	case 1:
-		return 30 * 60 // 30 seconds - 3K, easy, no distractors
+		return 15 * 60 // 30 seconds - 3K, easy, no distractors
 	case 2:
 		return 25 * 60 // 25 seconds - Pre-K
 	case 3:

@@ -80,6 +80,7 @@ func (s *GameOverScene) Update() error {
 				gp.Points = 0
 				gp.TimerTriggered = false
 				gp.GameOver = false
+				gp.Lives = 3
 				s.game.scene = NewTitleScene(s.game)
 			}
 		} else if gp.GameOver {
@@ -114,7 +115,7 @@ func (s *GameOverScene) Draw(screen *ebiten.Image) {
 		msgOpt := &text.DrawOptions{}
 		msgOpt.GeoM.Translate(float64(sW)/2-80, float64(sH)/2)
 		msgOpt.ColorScale.ScaleWithColor(color.White)
-		text.Draw(screen, "Go to Title Scene", gameOverTextFace, msgOpt)
+		text.Draw(screen, "PLAY AGAIN?", gameOverTextFace, msgOpt)
 
 		hintOpt := &text.DrawOptions{}
 		hintOpt.GeoM.Translate(float64(sW)/2-40, float64(sH)/2+40)

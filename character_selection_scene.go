@@ -145,6 +145,8 @@ func NewCharacterSelectionScene(game *Game) *CharacterSelectionScene {
 	// 		log.Printf("Audio Error: %v", err)
 	// 	}
 	// }
+	game.gameplay.Lives = 3
+	game.gameplay.GameOver = false
 
 	chars := extractCharacterSprites(game.assets.CharactersTileset)
 
