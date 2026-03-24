@@ -340,7 +340,7 @@ func (gs *GameplayState) ObjectFound() {
 	// Only mark level complete when ALL objects are found
 	if gs.ObjectsFound >= gs.ObjectsToFind {
 		gs.HasFoundObject = true
-		gs.FoundMessageFrames = 60 // 1 second at 60fps
+		gs.FoundMessageFrames = 30 // 1 second at 60fps
 
 		// Calculate time bonus: 5 points per second remaining
 		secondsRemaining := gs.RemainingTime / 60

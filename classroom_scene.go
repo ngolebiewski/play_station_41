@@ -673,9 +673,10 @@ func (s *ClassroomScene) drawHUD(screen *ebiten.Image) {
 	// Level name
 	levelName := gp.GetLevelName()
 	levelOpt := &text.DrawOptions{}
-	levelOpt.GeoM.Translate(60, 5)
+	levelOpt.GeoM.Translate(50, 5)
 	levelOpt.ColorScale.ScaleWithColor(color.RGBA{255, 220, 60, 255})
-	text.Draw(screen, fmt.Sprintf("Lvl %d: %s", gp.Level, levelName), hudTextFace, levelOpt)
+	// text.Draw(screen, fmt.Sprintf("Lvl %d: %s", gp.Level, levelName), hudTextFace, levelOpt)
+	text.Draw(screen, fmt.Sprintf("Stage: %s", levelName), hudTextFace, levelOpt)
 
 	// Target object indicators (one slot per object to find)
 	if gp.TargetObjectImage != nil {
@@ -712,7 +713,7 @@ func (s *ClassroomScene) drawHUD(screen *ebiten.Image) {
 
 		// Draw "Found X/Y" text
 		FindOpt := &text.DrawOptions{}
-		FindOpt.GeoM.Translate(165, 5)
+		FindOpt.GeoM.Translate(140, 5)
 		text.Draw(screen, fmt.Sprintf("Find %d/%d", gp.ObjectsFound, gp.ObjectsToFind), hudTextFace, FindOpt)
 	}
 
