@@ -168,6 +168,13 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 
 	game.gameplay.PlaceObjects(targetSpawns, otherSpawns)
 
+	// Set time limit for this level (in frames)
+	game.gameplay.RemainingTime = GetLevelTimeLimit(game.gameplay.Level)
+	
+	// Reset level-specific state
+	game.gameplay.TimerTriggered = false
+	game.gameplay.HasFoundObject = false
+
 	game.gameplay.LevelComplete = false
 	game.gameplay.ShowingTargetOverlay = true
 	game.gameplay.OverlayFrames = 0
@@ -277,6 +284,53 @@ func (s *ClassroomScene) Update() error {
 		}
 	}
 
+	// ── Action button on target objects (expanded search area) ───────────────
+	// Pressing action button expands search area by 16 pixels to help with tilemap placement
+	if gpad.PressA() {
+		for _, obj := range gp.PlacedObjects {
+			if !obj.IsCollected && obj.IsTarget && s.checkPlayerObjectCollisionWithRange(obj, pw, ph, 16) {
+				s.game.audioManager.PlaySE("pickup")
+
+				// Capture screen-space position for the tween before marking collected
+				screenX := obj.X - s.camera.DrawX()
+				screenY := obj.Y - s.camera.DrawY()
+
+				obj.IsCollected = true
+				obj.CollectedFrame = 0
+				obj.PickupProgress = 0.0
+
+				// Kick off the HUD tween
+				s.tween = &objectTween{
+					startScreenX: screenX,
+					startScreenY: screenY,
+					frame:        0,
+					duration:     tweenDuration,
+					img:          obj.Image,
+				}
+				s.hudLit = false
+				s.foundMessage = NewFoundObjectMessage()
+				
+				// Mark one object found
+				gp.ObjectsFound++
+				gp.Points += 41 // Award points
+				
+				// Check if level complete
+				if gp.ObjectsFound >= gp.ObjectsToFind {
+					gp.HasFoundObject = true
+					gp.FoundMessageFrames = 60
+					secondsRemaining := gp.RemainingTime / 60
+					timeBonus := secondsRemaining * 5
+					gp.Points += timeBonus
+					gp.Score += calculateLevelScore(gp.Level, gp.RemainingTime)
+					gp.Level++
+					gp.RemainingTime = GetLevelTimeLimit(gp.Level)
+				}
+				
+				break
+			}
+		}
+	}
+
 	// ── Action button on distractor objects (dismiss them) ───────────────────
 	if gpad.PressB() {
 		for _, obj := range gp.PlacedObjects {
@@ -333,7 +387,7 @@ func (s *ClassroomScene) Update() error {
 			// If level complete, create points animation
 			if gp.LevelComplete {
 				secondsRemaining := gp.RemainingTime / 60
-				timeBonus := secondsRemaining * 10
+				timeBonus := secondsRemaining * 5
 				s.pointsAnim = &pointsAnimation{
 					points:   timeBonus,
 					x:        float64(sW) / 2,
@@ -407,6 +461,22 @@ func (s *ClassroomScene) checkPlayerObjectCollision(obj *ObjectInstance, pw, ph 
 		playerX+pw > obj.X &&
 		playerY < obj.Y+objH &&
 		playerY+ph > obj.Y
+}
+
+// checkPlayerObjectCollisionWithRange checks collision with expanded range (in pixels)
+func (s *ClassroomScene) checkPlayerObjectCollisionWithRange(obj *ObjectInstance, pw, ph float64, expandedRange float64) bool {
+	p := s.game.player
+	playerX := float64(p.x)
+	playerY := float64(p.y)
+
+	objW := float64(objectDisplaySize * scale)
+	objH := float64(objectDisplaySize * scale)
+
+	// Expand collision box by the given range
+	return playerX < obj.X+objW+expandedRange &&
+		playerX+pw > obj.X-expandedRange &&
+		playerY < obj.Y+objH+expandedRange &&
+		playerY+ph > obj.Y-expandedRange
 }
 
 func (s *ClassroomScene) getTargetSpawns() []tiled.SpawnPoint {

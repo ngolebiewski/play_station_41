@@ -78,6 +78,8 @@ func (s *GameOverScene) Update() error {
 				gp.Lives = 3
 				gp.Score = 0
 				gp.Points = 0
+				gp.TimerTriggered = false
+				gp.GameOver = false
 				s.game.scene = NewTitleScene(s.game)
 			}
 		} else if gp.GameOver {

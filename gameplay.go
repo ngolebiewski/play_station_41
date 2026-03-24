@@ -187,54 +187,20 @@ func (gs *GameplayState) PlaceObjects(targetSpawns []tiled.SpawnPoint, otherSpaw
 	}
 
 	// Place distractors on other spawn points (prioritize otherSpawns, then use unused targetSpawns)
-	// Increase distractors: 2-3 per level, up to available spawn points
-	numDistractors := max(2, gs.Level+1)
+	// SKIP distractors on Level 1 (easy mode)
+	if gs.Level > 1 {
+		// Increase distractors: 2-3 per level, up to available spawn points
+		numDistractors := max(2, gs.Level+1)
 
-	// First use otherSpawns if available
-	for i := 0; i < numDistractors && i < len(otherSpawns); i++ {
-		distractorIdx := gs.SelectRandomObject()
-		for distractorIdx == gs.TargetObjectIndex {
-			distractorIdx = gs.SelectRandomObject()
-		}
-
-		spawn := otherSpawns[i]
-		// Add small random offset to prevent perfect overlap
-		offsetX := float64(rand.IntN(8) - 4)
-		offsetY := float64(rand.IntN(8) - 4)
-		distractorObj := &ObjectInstance{
-			X:           spawn.X + offsetX,
-			Y:           spawn.Y + offsetY,
-			OrigX:       spawn.X + offsetX,
-			OrigY:       spawn.Y + offsetY,
-			ObjectIndex: distractorIdx,
-			Image:       gs.Objects[distractorIdx],
-			IsTarget:    false,
-			IsCollected: false,
-		}
-		gs.PlacedObjects = append(gs.PlacedObjects, distractorObj)
-		gs.DistractorIndices = append(gs.DistractorIndices, distractorIdx)
-		numDistractors--
-	}
-
-	// If we need more distractors, use unused targetSpawns
-	if numDistractors > 0 && len(targetSpawns) > gs.ObjectsToFind {
-		for i := 0; i < numDistractors; i++ {
-			var spawnIdx int
-			// Find an unused target spawn point
-			for {
-				spawnIdx = rand.IntN(len(targetSpawns))
-				if !usedTargetIdx[spawnIdx] {
-					usedTargetIdx[spawnIdx] = true
-					break
-				}
-			}
-
+		// First use otherSpawns if available
+		for i := 0; i < numDistractors && i < len(otherSpawns); i++ {
 			distractorIdx := gs.SelectRandomObject()
 			for distractorIdx == gs.TargetObjectIndex {
 				distractorIdx = gs.SelectRandomObject()
 			}
 
-			spawn := targetSpawns[spawnIdx]
+			spawn := otherSpawns[i]
+			// Add small random offset to prevent perfect overlap
 			offsetX := float64(rand.IntN(8) - 4)
 			offsetY := float64(rand.IntN(8) - 4)
 			distractorObj := &ObjectInstance{
@@ -248,6 +214,42 @@ func (gs *GameplayState) PlaceObjects(targetSpawns []tiled.SpawnPoint, otherSpaw
 				IsCollected: false,
 			}
 			gs.PlacedObjects = append(gs.PlacedObjects, distractorObj)
+			gs.DistractorIndices = append(gs.DistractorIndices, distractorIdx)
+			numDistractors--
+		}
+
+		// If we need more distractors, use unused targetSpawns
+		if numDistractors > 0 && len(targetSpawns) > gs.ObjectsToFind {
+			for i := 0; i < numDistractors; i++ {
+				var spawnIdx int
+				// Find an unused target spawn point
+				for {
+					spawnIdx = rand.IntN(len(targetSpawns))
+					if !usedTargetIdx[spawnIdx] {
+						usedTargetIdx[spawnIdx] = true
+						break
+					}
+				}
+
+				distractorIdx := gs.SelectRandomObject()
+				for distractorIdx == gs.TargetObjectIndex {
+					distractorIdx = gs.SelectRandomObject()
+				}
+
+				spawn := targetSpawns[spawnIdx]
+				offsetX := float64(rand.IntN(8) - 4)
+				offsetY := float64(rand.IntN(8) - 4)
+				distractorObj := &ObjectInstance{
+					X:           spawn.X + offsetX,
+					Y:           spawn.Y + offsetY,
+					OrigX:       spawn.X + offsetX,
+					OrigY:       spawn.Y + offsetY,
+					ObjectIndex: distractorIdx,
+					Image:       gs.Objects[distractorIdx],
+					IsTarget:    false,
+					IsCollected: false,
+				}
+				gs.PlacedObjects = append(gs.PlacedObjects, distractorObj)
 			gs.DistractorIndices = append(gs.DistractorIndices, distractorIdx)
 		}
 	}
@@ -295,6 +297,28 @@ func (gs *GameplayState) Update() {
 	}
 }
 
+// GetLevelTimeLimit returns the time limit in frames for the given level.
+// Configure per-level timing here:
+// - Level 1: 30 seconds, easy, no distractors
+// - Level 2: 25 seconds, medium difficulty
+// - Level 3: 10 seconds, hard
+// - Level 4+: 60 seconds, challenging with many objects
+// Default: 30 seconds (1800 frames at 60fps)
+func GetLevelTimeLimit(level int) int {
+	switch level {
+	case 1:
+		return 30 * 60 // 30 seconds
+	case 2:
+		return 25 * 60 // 25 seconds
+	case 3:
+		return 10 * 60 // 10 seconds
+	case 4:
+		return 60 * 60 // 60 seconds
+	default:
+		return 30 * 60 // 30 seconds default
+	}
+}
+
 // ObjectFound should be called when the player collects a target object
 func (gs *GameplayState) ObjectFound() {
 	gs.ObjectsFound++
@@ -305,9 +329,9 @@ func (gs *GameplayState) ObjectFound() {
 		gs.HasFoundObject = true
 		gs.FoundMessageFrames = 60 // 1 second at 60fps
 		
-		// Calculate time bonus: 10 points per second remaining
+		// Calculate time bonus: 5 points per second remaining
 		secondsRemaining := gs.RemainingTime / 60
-		timeBonus := secondsRemaining * 10
+		timeBonus := secondsRemaining * 5
 		gs.Points += timeBonus
 		
 		gs.Score += calculateLevelScore(gs.Level, gs.RemainingTime)
