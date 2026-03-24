@@ -141,7 +141,6 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 
 	game.gameplay.PlaceObjects(targetSpawns, otherSpawns)
 
-	game.gameplay.HasFoundObject = false
 	game.gameplay.LevelComplete = false
 	game.gameplay.ShowingTargetOverlay = true
 	game.gameplay.OverlayFrames = 0
@@ -221,7 +220,8 @@ func (s *ClassroomScene) Update() error {
 	}
 
 	// ── Proximity-based object collection (no button press needed) ────────────
-	if !gp.HasFoundObject {
+	// Only allow collection if not all objects are found yet
+	if gp.ObjectsFound < gp.ObjectsToFind {
 		for _, obj := range gp.PlacedObjects {
 			if !obj.IsCollected && obj.IsTarget && s.checkPlayerObjectCollision(obj, pw, ph) {
 				s.game.audioManager.PlaySE("pickup")
@@ -276,7 +276,7 @@ func (s *ClassroomScene) Update() error {
 	// Handle timer timeout (retry same level)
 	if gp.TimerTriggered && gp.Lives > 0 {
 		gp.TimerTriggered = false
-		gp.HasFoundObject = false
+		gp.ObjectsFound = 0
 		s.tween = nil
 		s.hudLit = false
 		for _, obj := range gp.PlacedObjects {
@@ -452,30 +452,31 @@ func (s *ClassroomScene) drawHUD(screen *ebiten.Image) {
 	levelOpt.ColorScale.ScaleWithColor(color.RGBA{255, 220, 60, 255})
 	text.Draw(screen, fmt.Sprintf("Lvl %d: %s", gp.Level, levelName), hudTextFace, levelOpt)
 
-	// Target object indicator
+	// Target object indicators (one slot per object to find)
 	if gp.TargetObjectImage != nil {
 		const objIndicatorSize = 1
 		const objSpace = 14
 
-		numToShow := min(1, gp.Lives)
 		startX := hudIndicatorX
 
-		for i := 0; i < numToShow; i++ {
+		// Draw slots for all objects that need to be found
+		for i := 0; i < gp.ObjectsToFind; i++ {
 			objOp := &ebiten.DrawImageOptions{}
 			objOp.GeoM.Scale(objIndicatorSize, objIndicatorSize)
 			objOp.GeoM.Translate(startX+float64(i*objSpace), hudIndicatorY)
 
-			if s.hudLit {
+			// Check if this slot has been filled (ObjectsFound > current slot index)
+			if i < gp.ObjectsFound {
 				// Full color — object was delivered to HUD
 				objOp.ColorScale.SetA(1.0)
-			} else if s.tween != nil {
-				// Tween in progress: slot stays greyscale until icon lands
+			} else if s.tween != nil && i == gp.ObjectsFound {
+				// Tween in progress on this slot: greyscale until icon lands
 				var cm ebiten.ColorM
 				cm.ChangeHSV(0, 0, 0.6)
 				objOp.ColorM = cm
 				objOp.ColorScale.SetA(0.7)
 			} else {
-				// Normal pre-collection greyscale
+				// Empty slot: greyscale
 				var cm ebiten.ColorM
 				cm.ChangeHSV(0, 0, 0.6)
 				objOp.ColorM = cm
@@ -484,9 +485,10 @@ func (s *ClassroomScene) drawHUD(screen *ebiten.Image) {
 			screen.DrawImage(gp.TargetObjectImage, objOp)
 		}
 
+		// Draw "Found X/Y" text
 		FindOpt := &text.DrawOptions{}
 		FindOpt.GeoM.Translate(165, 5)
-		text.Draw(screen, "Find", hudTextFace, FindOpt)
+		text.Draw(screen, fmt.Sprintf("Find %d/%d", gp.ObjectsFound, gp.ObjectsToFind), hudTextFace, FindOpt)
 	}
 }
 

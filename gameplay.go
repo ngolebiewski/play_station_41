@@ -62,6 +62,8 @@ type GameplayState struct {
 	TargetObjectIndex int               // Index of the object to find
 	UsedObjectIndices []int             // Track which objects have been used as targets
 	DistractorIndices []int             // Indices of distractors placed this level
+	ObjectsToFind     int               // Number of target objects to find this level
+	ObjectsFound      int               // Number of target objects already found
 
 	// Timer
 	TimePerLevel   int  // Frames available per level
@@ -92,6 +94,8 @@ func NewGameplayState(objectsImage *ebiten.Image) *GameplayState {
 		TargetObjectIndex:    0,
 		UsedObjectIndices:    make([]int, 0),
 		DistractorIndices:    make([]int, 0),
+		ObjectsToFind:        1,
+		ObjectsFound:         0,
 		TimePerLevel:         3600, // 60 seconds at 60fps
 		RemainingTime:        3600,
 		TimerTriggered:       false,
@@ -134,13 +138,36 @@ func (gs *GameplayState) PlaceObjects(targetSpawns []tiled.SpawnPoint, otherSpaw
 	gs.PlacedObjects = make([]*ObjectInstance, 0)
 	gs.DistractorIndices = make([]int, 0)
 
+	// Reset object counting
+	gs.ObjectsFound = 0
+
 	// Select target object
 	gs.TargetObjectIndex = gs.SelectRandomObject()
 	gs.TargetObjectImage = gs.Objects[gs.TargetObjectIndex]
 
-	// Place target object on a random spawn point from targetSpawns
-	if len(targetSpawns) > 0 {
-		targetSpawn := targetSpawns[rand.IntN(len(targetSpawns))]
+	// Place multiple target objects (same type) at different spawn points
+	// Level 1: 1 object, Level 2: 2 objects, Level 3+: 3 objects
+	numTargets := 1
+	if gs.Level >= 2 && gs.Level < 3 {
+		numTargets = 2
+	} else if gs.Level >= 3 {
+		numTargets = 3
+	}
+	gs.ObjectsToFind = min(numTargets, len(targetSpawns))
+
+	// Place target objects at different spawn points
+	used := make(map[int]bool)
+	for i := 0; i < gs.ObjectsToFind && len(targetSpawns) > 0; i++ {
+		var spawnIdx int
+		// Find a spawn point we haven't used yet
+		for {
+			spawnIdx = rand.IntN(len(targetSpawns))
+			if !used[spawnIdx] {
+				used[spawnIdx] = true
+				break
+			}
+		}
+		targetSpawn := targetSpawns[spawnIdx]
 		// Add small random offset to prevent perfect overlap
 		offsetX := float64(rand.IntN(8) - 4)
 		offsetY := float64(rand.IntN(8) - 4)
@@ -228,17 +255,18 @@ func (gs *GameplayState) Update() {
 	}
 }
 
-// ObjectFound should be called when the player collects the target object
+// ObjectFound should be called when the player collects a target object
 func (gs *GameplayState) ObjectFound() {
-	if gs.HasFoundObject {
-		return
-	}
+	gs.ObjectsFound++
 
-	gs.HasFoundObject = true
-	gs.FoundMessageFrames = 60 // 1 second at 60fps
-	gs.Score += calculateLevelScore(gs.Level, gs.RemainingTime)
-	gs.Level++
-	gs.RemainingTime = gs.TimePerLevel
+	// Only mark level complete when ALL objects are found
+	if gs.ObjectsFound >= gs.ObjectsToFind {
+		gs.HasFoundObject = true
+		gs.FoundMessageFrames = 60 // 1 second at 60fps
+		gs.Score += calculateLevelScore(gs.Level, gs.RemainingTime)
+		gs.Level++
+		gs.RemainingTime = gs.TimePerLevel
+	}
 }
 
 // Helper functions
