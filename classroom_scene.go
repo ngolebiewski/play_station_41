@@ -230,7 +230,6 @@ func (s *ClassroomScene) Update() error {
 				screenX := obj.X - s.camera.DrawX()
 				screenY := obj.Y - s.camera.DrawY()
 
-				gp.ObjectFound()
 				obj.IsCollected = true
 				obj.CollectedFrame = 0
 				obj.PickupProgress = 0.0
@@ -244,7 +243,6 @@ func (s *ClassroomScene) Update() error {
 					img:          obj.Image,
 				}
 				s.hudLit = false
-				s.foundMessage = NewFoundObjectMessage()
 				break
 			}
 		}
@@ -257,6 +255,9 @@ func (s *ClassroomScene) Update() error {
 			s.tween.done = true
 			s.tween = nil
 			s.hudLit = true
+			// Now that tween is done, show the popup and mark as found
+			gp.ObjectFound()
+			s.foundMessage = NewFoundObjectMessage()
 		}
 	}
 

@@ -127,7 +127,7 @@ func NewFoundObjectMessage() *FoundObjectMessage {
 // Update updates the message state
 func (m *FoundObjectMessage) Update() bool {
 	m.frames++
-	if m.frames > 120 { // 2 seconds at 60fps
+	if m.frames > 60 { // 1 second at 60fps
 		return true // Message is done
 	}
 	return false
