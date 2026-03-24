@@ -49,7 +49,7 @@ type GameplayState struct {
 	Level              int
 	Lives              int
 	Score              int
-	Points             int  // Bonus points from dismissing distractors
+git 	Points             int  // Bonus points from dismissing distractors
 	GameOver           bool
 	LevelComplete      bool
 	HasFoundObject     bool
@@ -158,14 +158,14 @@ func (gs *GameplayState) PlaceObjects(targetSpawns []tiled.SpawnPoint, otherSpaw
 	gs.ObjectsToFind = min(numTargets, len(targetSpawns))
 
 	// Place target objects at different spawn points
-	used := make(map[int]bool)
+	usedTargetIdx := make(map[int]bool)
 	for i := 0; i < gs.ObjectsToFind && len(targetSpawns) > 0; i++ {
 		var spawnIdx int
 		// Find a spawn point we haven't used yet
 		for {
 			spawnIdx = rand.IntN(len(targetSpawns))
-			if !used[spawnIdx] {
-				used[spawnIdx] = true
+			if !usedTargetIdx[spawnIdx] {
+				usedTargetIdx[spawnIdx] = true
 				break
 			}
 		}
@@ -186,10 +186,11 @@ func (gs *GameplayState) PlaceObjects(targetSpawns []tiled.SpawnPoint, otherSpaw
 		gs.PlacedObjects = append(gs.PlacedObjects, targetObj)
 	}
 
-	// Place distractors on other spawn points
+	// Place distractors on other spawn points (prioritize otherSpawns, then use unused targetSpawns)
 	// Increase distractors: 2-3 per level, up to available spawn points
-	numDistractors := min(len(otherSpawns), max(2, gs.Level+1))
+	numDistractors := max(2, gs.Level+1)
 
+	// First use otherSpawns if available
 	for i := 0; i < numDistractors && i < len(otherSpawns); i++ {
 		distractorIdx := gs.SelectRandomObject()
 		for distractorIdx == gs.TargetObjectIndex {
@@ -212,6 +213,43 @@ func (gs *GameplayState) PlaceObjects(targetSpawns []tiled.SpawnPoint, otherSpaw
 		}
 		gs.PlacedObjects = append(gs.PlacedObjects, distractorObj)
 		gs.DistractorIndices = append(gs.DistractorIndices, distractorIdx)
+		numDistractors--
+	}
+
+	// If we need more distractors, use unused targetSpawns
+	if numDistractors > 0 && len(targetSpawns) > gs.ObjectsToFind {
+		for i := 0; i < numDistractors; i++ {
+			var spawnIdx int
+			// Find an unused target spawn point
+			for {
+				spawnIdx = rand.IntN(len(targetSpawns))
+				if !usedTargetIdx[spawnIdx] {
+					usedTargetIdx[spawnIdx] = true
+					break
+				}
+			}
+
+			distractorIdx := gs.SelectRandomObject()
+			for distractorIdx == gs.TargetObjectIndex {
+				distractorIdx = gs.SelectRandomObject()
+			}
+
+			spawn := targetSpawns[spawnIdx]
+			offsetX := float64(rand.IntN(8) - 4)
+			offsetY := float64(rand.IntN(8) - 4)
+			distractorObj := &ObjectInstance{
+				X:           spawn.X + offsetX,
+				Y:           spawn.Y + offsetY,
+				OrigX:       spawn.X + offsetX,
+				OrigY:       spawn.Y + offsetY,
+				ObjectIndex: distractorIdx,
+				Image:       gs.Objects[distractorIdx],
+				IsTarget:    false,
+				IsCollected: false,
+			}
+			gs.PlacedObjects = append(gs.PlacedObjects, distractorObj)
+			gs.DistractorIndices = append(gs.DistractorIndices, distractorIdx)
+		}
 	}
 }
 
@@ -260,6 +298,7 @@ func (gs *GameplayState) Update() {
 // ObjectFound should be called when the player collects a target object
 func (gs *GameplayState) ObjectFound() {
 	gs.ObjectsFound++
+	gs.Points += 41 // Award 41 points per object found
 
 	// Only mark level complete when ALL objects are found
 	if gs.ObjectsFound >= gs.ObjectsToFind {

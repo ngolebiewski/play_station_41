@@ -505,7 +505,7 @@ func (s *ClassroomScene) drawTweenOff(screen *ebiten.Image, toff *objectTweenOff
 	op.GeoM.Translate(x, y)
 
 	// Fade out as it leaves
-	op.ColorScale.SetA(1.0 - progress)
+	op.ColorScale.SetA(float32(1.0 - progress))
 
 	screen.DrawImage(toff.img, op)
 }
