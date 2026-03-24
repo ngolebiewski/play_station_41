@@ -37,10 +37,10 @@ type ObjectInstance struct {
 	OrigY          float64 // Original Y for animation
 	ObjectIndex    int     // Index into the objects slice
 	Image          *ebiten.Image
-	IsTarget       bool       // True if this is the object to find
-	IsCollected    bool       // True if player has found this object
-	CollectedFrame int        // Frame when collected (for animation)
-	PickupProgress float64    // 0.0 to 1.0 for pickup animation
+	IsTarget       bool    // True if this is the object to find
+	IsCollected    bool    // True if player has found this object
+	CollectedFrame int     // Frame when collected (for animation)
+	PickupProgress float64 // 0.0 to 1.0 for pickup animation
 }
 
 // GameplayState tracks the object-finding game state
@@ -57,11 +57,11 @@ type GameplayState struct {
 	FoundMessageFrames int
 
 	// Objects
-	Objects               []*ebiten.Image     // All available object sprites
-	PlacedObjects         []*ObjectInstance   // Objects placed in the current level
-	TargetObjectIndex     int                 // Index of the object to find
-	UsedObjectIndices     []int               // Track which objects have been used as targets
-	DistractorIndices     []int               // Indices of distractors placed this level
+	Objects           []*ebiten.Image   // All available object sprites
+	PlacedObjects     []*ObjectInstance // Objects placed in the current level
+	TargetObjectIndex int               // Index of the object to find
+	UsedObjectIndices []int             // Track which objects have been used as targets
+	DistractorIndices []int             // Indices of distractors placed this level
 
 	// Timer
 	TimePerLevel   int  // Frames available per level
@@ -70,7 +70,7 @@ type GameplayState struct {
 
 	// Overlay
 	ShowingTargetOverlay bool
-	TargetObjectImage   *ebiten.Image
+	TargetObjectImage    *ebiten.Image
 }
 
 // NewGameplayState creates a new gameplay state
@@ -78,23 +78,23 @@ func NewGameplayState(objectsImage *ebiten.Image) *GameplayState {
 	objects := extractObjectSprites(objectsImage)
 
 	return &GameplayState{
-		Level:            1,
-		Lives:            3,
-		Score:            0,
-		GameOver:         false,
-		LevelComplete:    false,
-		HasFoundObject:   false,
-		OverlayActive:    false,
-		OverlayFrames:    0,
-		FoundMessageFrames: 0,
-		Objects:          objects,
-		PlacedObjects:    make([]*ObjectInstance, 0),
-		TargetObjectIndex: 0,
-		UsedObjectIndices: make([]int, 0),
-		DistractorIndices: make([]int, 0),
-		TimePerLevel:     3600,  // 60 seconds at 60fps
-		RemainingTime:    3600,
-		TimerTriggered:   false,
+		Level:                1,
+		Lives:                3,
+		Score:                0,
+		GameOver:             false,
+		LevelComplete:        false,
+		HasFoundObject:       false,
+		OverlayActive:        false,
+		OverlayFrames:        0,
+		FoundMessageFrames:   0,
+		Objects:              objects,
+		PlacedObjects:        make([]*ObjectInstance, 0),
+		TargetObjectIndex:    0,
+		UsedObjectIndices:    make([]int, 0),
+		DistractorIndices:    make([]int, 0),
+		TimePerLevel:         3600, // 60 seconds at 60fps
+		RemainingTime:        3600,
+		TimerTriggered:       false,
 		ShowingTargetOverlay: true,
 	}
 }
@@ -266,15 +266,15 @@ func calculateLevelScore(level int, remainingTime int) int {
 // GetLevelName returns the grade level name for the current level
 func (gs *GameplayState) GetLevelName() string {
 	levelNames := []string{
-		"",      // 0 - unused
-		"3K",    // 1
-		"Pre-K", // 2
-		"K",     // 3
-		"1st",   // 4
-		"2nd",   // 5
-		"3rd",   // 6
-		"4th",   // 7
-		"5th",   // 8
+		"",          // 0 - unused
+		"3K",        // 1
+		"Pre-K",     // 2
+		"K",         // 3
+		"1st Grade", // 4
+		"2nd Grade", // 5
+		"3rd Grade", // 6
+		"4th Grade", // 7
+		"5th Grade", // 8
 	}
 
 	if gs.Level < 1 || gs.Level >= len(levelNames) {

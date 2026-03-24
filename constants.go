@@ -10,5 +10,5 @@ const (
 	hitboxInset = 3 * scale
 
 	// Level Transition timing
-	levelTransitionDuration = 120 // 2 seconds at 60fps
+	levelTransitionDuration = 180 // 1 seconds at 60fps
 )

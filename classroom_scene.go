@@ -210,6 +210,7 @@ func (s *ClassroomScene) Update() error {
 			if !obj.IsCollected && s.checkPlayerObjectCollision(obj, pw, ph) {
 				if obj.IsTarget {
 					// Found the target object!
+					s.game.audioManager.PlaySE("pickup")
 					gp.ObjectFound()
 					obj.IsCollected = true
 					obj.CollectedFrame = 0
@@ -440,7 +441,7 @@ func (s *ClassroomScene) drawHUD(screen *ebiten.Image) {
 	levelName := gp.GetLevelName()
 	levelOpt := &text.DrawOptions{}
 	// levelOpt.GeoM.Translate(110, 5)
-	levelOpt.GeoM.Translate(80, 5)
+	levelOpt.GeoM.Translate(60, 5)
 	levelOpt.ColorScale.ScaleWithColor(color.RGBA{255, 220, 60, 255})
 	text.Draw(screen, fmt.Sprintf("Lvl %d: %s", gp.Level, levelName), hudTextFace, levelOpt)
 
