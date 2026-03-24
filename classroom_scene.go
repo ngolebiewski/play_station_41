@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"log"
+	"math/rand/v2"
 
 	"github.com/hajimehoshi/bitmapfont/v4"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -63,12 +64,24 @@ const tweenDuration = 40 // frames (~0.67s at 60fps)
 // objectTweenOff animates a distractor object flying off-screen downward.
 type objectTweenOff struct {
 	startScreenX, startScreenY float64
+	randomXOffset              float64 // Random horizontal drift
 	frame                      int
 	duration                   int
 	img                        *ebiten.Image
 }
 
-const tweenOffDuration = 30 // frames for off-screen animation
+const tweenOffDuration = 60 // frames for slower off-screen animation (~1 second at 60fps)
+
+// pointsAnimation shows floating points text during level completion
+type pointsAnimation struct {
+	points     int
+	x, y       float64
+	frame      int
+	duration   int
+	alpha      float32
+}
+
+const pointsAnimationDuration = 120 // ~2 seconds
 
 // easeOutQuad gives a snappy deceleration into the HUD slot.
 func easeOutQuad(t float64) float64 {
@@ -95,6 +108,8 @@ type ClassroomScene struct {
 	hudLit bool
 	// Active off-screen tweens for dismissed distractors
 	tweensOff []*objectTweenOff
+	// Floating points animation during level completion
+	pointsAnim *pointsAnimation
 }
 
 func NewClassroomScene(game *Game, level int) *ClassroomScene {
@@ -274,13 +289,17 @@ func (s *ClassroomScene) Update() error {
 				screenX := obj.X - s.camera.DrawX()
 				screenY := obj.Y - s.camera.DrawY()
 
+				// Randomize horizontal drift (-50 to 50 pixels)
+				randomX := float64(rand.IntN(101)-50) * 0.5
+
 				// Kick off tween to move object off-screen
 				s.tweensOff = append(s.tweensOff, &objectTweenOff{
-					startScreenX: screenX,
-					startScreenY: screenY,
-					frame:        0,
-					duration:     tweenOffDuration,
-					img:          obj.Image,
+					startScreenX:  screenX,
+					startScreenY:  screenY,
+					randomXOffset: randomX,
+					frame:         0,
+					duration:      tweenOffDuration,
+					img:           obj.Image,
 				})
 
 				// Mark as collected so it won't be drawn or checked again
@@ -310,6 +329,32 @@ func (s *ClassroomScene) Update() error {
 			s.hudLit = true
 			// Now that tween is done, mark as found
 			gp.ObjectFound()
+			
+			// If level complete, create points animation
+			if gp.LevelComplete {
+				secondsRemaining := gp.RemainingTime / 60
+				timeBonus := secondsRemaining * 10
+				s.pointsAnim = &pointsAnimation{
+					points:   timeBonus,
+					x:        float64(sW) / 2,
+					y:        float64(sH) / 2,
+					frame:    0,
+					duration: pointsAnimationDuration,
+					alpha:    1.0,
+				}
+			}
+		}
+	}
+
+	// ── Advance points animation ───────────────────────────────────────────
+	if s.pointsAnim != nil {
+		s.pointsAnim.frame++
+		// Fade out after 60 frames
+		if s.pointsAnim.frame > 60 {
+			s.pointsAnim.alpha = float32(1.0 - float64(s.pointsAnim.frame-60)/float64(s.pointsAnim.duration-60))
+		}
+		if s.pointsAnim.frame >= s.pointsAnim.duration {
+			s.pointsAnim = nil
 		}
 	}
 
@@ -325,17 +370,16 @@ func (s *ClassroomScene) Update() error {
 		return nil
 	}
 
-	// Handle timer timeout (retry same level)
-	if gp.TimerTriggered && gp.Lives > 0 {
-		gp.TimerTriggered = false
-		gp.ObjectsFound = 0
-		s.tween = nil
-		s.hudLit = false
-		s.tweensOff = make([]*objectTweenOff, 0)
-		for _, obj := range gp.PlacedObjects {
-			obj.IsCollected = false
-		}
-		s.foundMessage = nil
+	// Handle game over
+	if gp.GameOver {
+		s.game.scene = NewGameOverScene(s.game, false)
+		return nil
+	}
+
+	// Handle timer timeout - show game over menu
+	if gp.TimerTriggered && !gp.GameOver {
+		s.game.scene = NewGameOverScene(s.game, true)
+		return nil
 	}
 
 	// Update found message
@@ -449,6 +493,11 @@ func (s *ClassroomScene) Draw(screen *ebiten.Image) {
 		s.drawTweenOff(screen, toff)
 	}
 
+	// 6c. Points animation
+	if s.pointsAnim != nil {
+		s.drawPointsAnimation(screen)
+	}
+
 	// 7. Overlay / found message
 	if s.overlay != nil {
 		s.overlay.Draw(screen)
@@ -489,12 +538,12 @@ func (s *ClassroomScene) drawTween(screen *ebiten.Image) {
 	screen.DrawImage(t.img, op)
 }
 
-// drawTweenOff renders a distractor object flying off-screen downward.
+// drawTweenOff renders a distractor object flying off-screen downward with random horizontal drift.
 func (s *ClassroomScene) drawTweenOff(screen *ebiten.Image, toff *objectTweenOff) {
 	progress := easeOutQuad(float64(toff.frame) / float64(toff.duration))
 
-	// Move downward off-screen
-	x := toff.startScreenX
+	// Move downward off-screen with randomized horizontal drift
+	x := toff.startScreenX + toff.randomXOffset*progress
 	y := toff.startScreenY + progress*float64(sH+100)
 
 	// Scale: shrink as it falls
@@ -508,6 +557,22 @@ func (s *ClassroomScene) drawTweenOff(screen *ebiten.Image, toff *objectTweenOff
 	op.ColorScale.SetA(float32(1.0 - progress))
 
 	screen.DrawImage(toff.img, op)
+}
+
+// drawPointsAnimation renders floating points text during level completion.
+func (s *ClassroomScene) drawPointsAnimation(screen *ebiten.Image) {
+	pa := s.pointsAnim
+	if pa == nil {
+		return
+	}
+
+	// Gentle upward movement
+	y := pa.y - float64(pa.frame)*0.5
+
+	opts := &text.DrawOptions{}
+	opts.GeoM.Translate(pa.x, y)
+	opts.ColorScale.ScaleWithColor(color.RGBA{255, 255, 100, uint8(pa.alpha * 255)})
+	text.Draw(screen, fmt.Sprintf("+%d pts", pa.points), hudTextFace, opts)
 }
 
 // drawHUD draws the heads-up display with timer, lives, and level
