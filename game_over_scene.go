@@ -19,9 +19,9 @@ const (
 )
 
 type GameOverScene struct {
-	game          *Game
-	framecounter  int
-	isTimeUp      bool
+	game           *Game
+	framecounter   int
+	isTimeUp       bool
 	selectedOption int // 0 = Try Again, 1 = Start Over (when not GameOver)
 }
 
@@ -29,7 +29,7 @@ func NewGameOverScene(game *Game, isTimeUp bool) *GameOverScene {
 	/////////////////////////////////////////////////////
 	// Start the music!
 	if game.audioManager != nil {
-		err := game.audioManager.ChangeSong("scenechange")
+		err := game.audioManager.ChangeSong("running")
 		if err != nil {
 			log.Printf("Audio Error: %v", err)
 		}

@@ -49,7 +49,7 @@ type GameplayState struct {
 	Level              int
 	Lives              int
 	Score              int
-	Points             int  // Bonus points from dismissing distractors
+	Points             int // Bonus points from dismissing distractors
 	GameOver           bool
 	LevelComplete      bool
 	HasFoundObject     bool
@@ -250,7 +250,8 @@ func (gs *GameplayState) PlaceObjects(targetSpawns []tiled.SpawnPoint, otherSpaw
 					IsCollected: false,
 				}
 				gs.PlacedObjects = append(gs.PlacedObjects, distractorObj)
-			gs.DistractorIndices = append(gs.DistractorIndices, distractorIdx)
+				gs.DistractorIndices = append(gs.DistractorIndices, distractorIdx)
+			}
 		}
 	}
 }
@@ -328,12 +329,12 @@ func (gs *GameplayState) ObjectFound() {
 	if gs.ObjectsFound >= gs.ObjectsToFind {
 		gs.HasFoundObject = true
 		gs.FoundMessageFrames = 60 // 1 second at 60fps
-		
+
 		// Calculate time bonus: 5 points per second remaining
 		secondsRemaining := gs.RemainingTime / 60
 		timeBonus := secondsRemaining * 5
 		gs.Points += timeBonus
-		
+
 		gs.Score += calculateLevelScore(gs.Level, gs.RemainingTime)
 		gs.Level++
 		gs.RemainingTime = gs.TimePerLevel
