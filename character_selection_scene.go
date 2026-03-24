@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"log"
 	"math/rand/v2"
 
 	"github.com/hajimehoshi/bitmapfont/v4"
@@ -138,6 +139,15 @@ type CharacterSelectionScene struct {
 }
 
 func NewCharacterSelectionScene(game *Game) *CharacterSelectionScene {
+	// Start the music!
+	// This will trigger the fade-in automatically.
+	if game.audioManager != nil {
+		err := game.audioManager.ChangeSong("classroom_beat")
+		if err != nil {
+			log.Printf("Audio Error: %v", err)
+		}
+	}
+
 	chars := extractCharacterSprites(game.assets.CharactersTileset)
 
 	// Build the display order — shuffled or fixed depending on shufflePlayers.

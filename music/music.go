@@ -18,6 +18,12 @@ var classroom0 []byte
 //go:embed assets/songs/scene_change_riff.mp3
 var scene_change_riff []byte
 
+//go:embed assets/songs/running-up-that-staircase.mp3
+var running_song []byte
+
+//go:embed assets/songs/drums-n-chords.mp3
+var classroom_beat []byte
+
 // Add others: //go:embed assets/battle.mp3 ...
 
 // --- SFX Embeds ---
@@ -100,8 +106,8 @@ func NewAudioManager(ctx *audio.Context) *AudioManager {
 		Context:   ctx,
 		MaxVolume: 0.5,
 		SFXVolume: 0.2,
-		// FadeSpeed: 0.005,
-		FadeSpeed: 0.05,
+		// FadeSpeed: 0.005, // longer fade out in
+		FadeSpeed: 0.5,
 	}
 }
 
@@ -146,6 +152,10 @@ func (m *AudioManager) ChangeSong(name string) error {
 		data = classroom0
 	case "scenechange":
 		data = scene_change_riff
+	case "running":
+		data = running_song
+	case "classroom_beat":
+		data = classroom_beat
 	default:
 		return nil
 	}
