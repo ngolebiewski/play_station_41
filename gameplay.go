@@ -235,7 +235,7 @@ func (gs *GameplayState) ObjectFound() {
 	}
 
 	gs.HasFoundObject = true
-	gs.FoundMessageFrames = 120 // 2 seconds at 60fps
+	gs.FoundMessageFrames = 60 // 2 seconds at 60fps
 	gs.Score += calculateLevelScore(gs.Level, gs.RemainingTime)
 	gs.Level++
 	gs.RemainingTime = gs.TimePerLevel

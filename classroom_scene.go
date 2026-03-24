@@ -33,10 +33,37 @@ import (
 //
 // 4. Load new image assets in embed.go LoadAssets()
 //    - Add loading code for new tileset images
-//    - Store in Assets struct if persistent, or load on demand
+//    - Store in Assets struct if needed, or load on demand
 
 // Create text face for classroom HUD
 var hudTextFace = text.NewGoXFace(bitmapfont.Face)
+
+// hudIndicatorX/Y is where the object icon sits in the HUD — tween target.
+const (
+	hudIndicatorX = 190.0
+	hudIndicatorY = 2.0
+)
+
+// objectTween animates a collected object flying from its world position
+// to the HUD indicator slot.
+type objectTween struct {
+	// world-space start (adjusted for camera at collection time)
+	startScreenX, startScreenY float64
+	// progress 0→1 over tweenDuration frames
+	frame    int
+	duration int
+	// the image to draw during the tween
+	img *ebiten.Image
+	// set true once the tween reaches the HUD
+	done bool
+}
+
+const tweenDuration = 40 // frames (~0.67s at 60fps)
+
+// easeOutQuad gives a snappy deceleration into the HUD slot.
+func easeOutQuad(t float64) float64 {
+	return 1 - (1-t)*(1-t)
+}
 
 type ClassroomScene struct {
 	game            *Game
@@ -51,6 +78,11 @@ type ClassroomScene struct {
 	levelHasStarted bool
 	playerSpawnX    float64
 	playerSpawnY    float64
+
+	// Active tween (nil when idle)
+	tween *objectTween
+	// True once tween finishes — HUD icon draws full-color from this point
+	hudLit bool
 }
 
 func NewClassroomScene(game *Game, level int) *ClassroomScene {
@@ -80,7 +112,6 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 
 	/////////////////////////////////////////////////////
 	// Start the music!
-	// This will trigger the fade-in automatically.
 	if game.audioManager != nil {
 		err := game.audioManager.ChangeSong("classroom")
 		if err != nil {
@@ -89,10 +120,8 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 	}
 	/////////////////////////////////////////////////////
 
-	// Get all spawn points from the map
 	spawns := tiled.GetSpawns(m)
 
-	// Separate spawns by type
 	var targetSpawns []tiled.SpawnPoint
 	var otherSpawns []tiled.SpawnPoint
 	var playerSpawnX, playerSpawnY float64
@@ -105,22 +134,18 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 		case "object":
 			otherSpawns = append(otherSpawns, sp)
 		case "student":
-			// Use student spawn for player position
 			playerSpawnX = spawn.X
 			playerSpawnY = spawn.Y
 		}
 	}
 
-	// Place objects on the map
 	game.gameplay.PlaceObjects(targetSpawns, otherSpawns)
 
-	// Reset level-specific state for new level
 	game.gameplay.HasFoundObject = false
 	game.gameplay.LevelComplete = false
 	game.gameplay.ShowingTargetOverlay = true
 	game.gameplay.OverlayFrames = 0
 
-	// Set player spawn position
 	if playerSpawnX > 0 || playerSpawnY > 0 {
 		game.player.x = float32(playerSpawnX)
 		game.player.y = float32(playerSpawnY)
@@ -148,7 +173,6 @@ func (s *ClassroomScene) Update() error {
 	cg := s.collisionGrid
 	gp := s.game.gameplay
 
-	// Player bounding box size (one tile at render scale)
 	pw := float64(tileSize * scale)
 	ph := float64(tileSize * scale)
 
@@ -160,21 +184,13 @@ func (s *ClassroomScene) Update() error {
 		}
 	}
 
-	// If overlay is showing, don't allow player movement yet
 	if s.overlay != nil {
-		s.camera.Update(
-			float64(p.x), float64(p.y),
-			pw, ph,
-			s.mapPixelW, s.mapPixelH,
-		)
+		s.camera.Update(float64(p.x), float64(p.y), pw, ph, s.mapPixelW, s.mapPixelH)
 		return nil
 	}
 
-	// Update gameplay state (timer, messages)
 	gp.Update()
 
-	// Try each axis independently so the player slides along walls
-	// rather than stopping dead on diagonal collisions.
 	gpad.UpdateTouch()
 
 	if gpad.MoveUp() {
@@ -204,40 +220,47 @@ func (s *ClassroomScene) Update() error {
 		p.directionRight = true
 	}
 
-	// Check for object interaction
-	if (gpad.PressB() || gpad.PressA()) && !gp.HasFoundObject {
+	// ── Proximity-based object collection (no button press needed) ────────────
+	if !gp.HasFoundObject {
 		for _, obj := range gp.PlacedObjects {
-			if !obj.IsCollected && s.checkPlayerObjectCollision(obj, pw, ph) {
-				if obj.IsTarget {
-					// Found the target object!
-					s.game.audioManager.PlaySE("pickup")
-					gp.ObjectFound()
-					obj.IsCollected = true
-					obj.CollectedFrame = 0
-					obj.PickupProgress = 0.0
-					s.foundMessage = NewFoundObjectMessage()
+			if !obj.IsCollected && obj.IsTarget && s.checkPlayerObjectCollision(obj, pw, ph) {
+				s.game.audioManager.PlaySE("pickup")
+
+				// Capture screen-space position for the tween before marking collected
+				screenX := obj.X - s.camera.DrawX()
+				screenY := obj.Y - s.camera.DrawY()
+
+				gp.ObjectFound()
+				obj.IsCollected = true
+				obj.CollectedFrame = 0
+				obj.PickupProgress = 0.0
+
+				// Kick off the HUD tween
+				s.tween = &objectTween{
+					startScreenX: screenX,
+					startScreenY: screenY,
+					frame:        0,
+					duration:     tweenDuration,
+					img:          obj.Image,
 				}
+				s.hudLit = false
+				s.foundMessage = NewFoundObjectMessage()
+				break
 			}
 		}
 	}
 
-	// Update collected object animations (move toward player)
-	for _, obj := range gp.PlacedObjects {
-		if obj.IsCollected {
-			obj.CollectedFrame++
-			// Animate over 30 frames (0.5 seconds at 60fps)
-			if obj.CollectedFrame < 30 {
-				obj.PickupProgress = float64(obj.CollectedFrame) / 30.0
-				// Move toward player center
-				playerCenterX := float64(p.x) + pw/2
-				playerCenterY := float64(p.y) + ph/2
-				obj.X = obj.OrigX + (playerCenterX-obj.OrigX)*obj.PickupProgress
-				obj.Y = obj.OrigY + (playerCenterY-obj.OrigY)*obj.PickupProgress
-			}
+	// ── Advance tween ─────────────────────────────────────────────────────────
+	if s.tween != nil {
+		s.tween.frame++
+		if s.tween.frame >= s.tween.duration {
+			s.tween.done = true
+			s.tween = nil
+			s.hudLit = true
 		}
 	}
 
-	// Debug shake
+	// Debug shake (keep for dev convenience)
 	if gpad.PressB() && s.game.debug {
 		s.game.audioManager.PlaySE("zoing")
 		s.camera.Shake(20, 3.0)
@@ -245,7 +268,6 @@ func (s *ClassroomScene) Update() error {
 
 	// Handle level progression
 	if gp.LevelComplete && !gp.GameOver {
-		// Transition to the level transition scene
 		s.game.scene = NewLevelTransitionScene(s.game)
 		return nil
 	}
@@ -254,11 +276,11 @@ func (s *ClassroomScene) Update() error {
 	if gp.TimerTriggered && gp.Lives > 0 {
 		gp.TimerTriggered = false
 		gp.HasFoundObject = false
-		// Reset collected flags on objects for retry
+		s.tween = nil
+		s.hudLit = false
 		for _, obj := range gp.PlacedObjects {
 			obj.IsCollected = false
 		}
-		// Do NOT reset PlacedObjects - same layout repeats
 		s.foundMessage = nil
 	}
 
@@ -269,11 +291,7 @@ func (s *ClassroomScene) Update() error {
 		}
 	}
 
-	s.camera.Update(
-		float64(p.x), float64(p.y),
-		pw, ph,
-		s.mapPixelW, s.mapPixelH,
-	)
+	s.camera.Update(float64(p.x), float64(p.y), pw, ph, s.mapPixelW, s.mapPixelH)
 
 	return nil
 }
@@ -281,11 +299,9 @@ func (s *ClassroomScene) Update() error {
 // checkPlayerObjectCollision checks if player is touching an object
 func (s *ClassroomScene) checkPlayerObjectCollision(obj *ObjectInstance, pw, ph float64) bool {
 	p := s.game.player
-
 	playerX := float64(p.x)
 	playerY := float64(p.y)
 
-	// Simple AABB collision
 	objW := float64(objectDisplaySize * scale)
 	objH := float64(objectDisplaySize * scale)
 
@@ -295,41 +311,27 @@ func (s *ClassroomScene) checkPlayerObjectCollision(obj *ObjectInstance, pw, ph 
 		playerY+ph > obj.Y
 }
 
-// getTargetSpawns returns all spawn points marked as "find"
 func (s *ClassroomScene) getTargetSpawns() []tiled.SpawnPoint {
 	var spawns []tiled.SpawnPoint
 	for _, spawn := range s.spawns {
 		if spawn.Type == "find" {
-			spawns = append(spawns, tiled.SpawnPoint{
-				X:    spawn.X,
-				Y:    spawn.Y,
-				Type: spawn.Type,
-			})
+			spawns = append(spawns, tiled.SpawnPoint{X: spawn.X, Y: spawn.Y, Type: spawn.Type})
 		}
 	}
 	return spawns
 }
 
-// getOtherSpawns returns all spawn points marked as "object"
 func (s *ClassroomScene) getOtherSpawns() []tiled.SpawnPoint {
 	var spawns []tiled.SpawnPoint
 	for _, spawn := range s.spawns {
 		if spawn.Type == "object" {
-			spawns = append(spawns, tiled.SpawnPoint{
-				X:    spawn.X,
-				Y:    spawn.Y,
-				Type: spawn.Type,
-			})
+			spawns = append(spawns, tiled.SpawnPoint{X: spawn.X, Y: spawn.Y, Type: spawn.Type})
 		}
 	}
 	return spawns
 }
 
-// collidesWithGrid checks all 4 corners of the player's bounding box
-// against the collision grid. Using corners means the player can't clip
-// through a tile by moving fast enough to skip over the center check.
 func collidesWithGrid(cg *tiled.CollisionGrid, x, y, w, h float64) bool {
-	// Inset corners by 1px to allow tight squeezing through 1-tile-wide gaps
 	const inset = hitboxInset
 	return cg.IsSolid(x+inset, y+inset) ||
 		cg.IsSolid(x+w-inset, y+inset) ||
@@ -341,12 +343,12 @@ func (s *ClassroomScene) Draw(screen *ebiten.Image) {
 	// 1. Draw map
 	s.renderer.Draw(screen, s.camera.DrawX(), s.camera.DrawY())
 
-	// 2. Debug: red overlay on collision tiles
+	// 2. Debug: collision overlay
 	if s.game.debug {
 		s.collisionGrid.DrawDebug(screen, s.camera.DrawX(), s.camera.DrawY(), scale)
 	}
 
-	// 3. Draw placed objects
+	// 3. Draw placed objects (skip collected ones — they fly via tween)
 	gp := s.game.gameplay
 	for _, obj := range gp.PlacedObjects {
 		if obj.Image != nil && !obj.IsCollected {
@@ -357,15 +359,10 @@ func (s *ClassroomScene) Draw(screen *ebiten.Image) {
 			op.GeoM.Translate(screenX, screenY)
 			screen.DrawImage(obj.Image, op)
 
-			// Debug: highlight target object
 			if s.game.debug && obj.IsTarget {
-				// Draw a red outline
 				w := float32(objectDisplaySize * scale)
 				h := float32(objectDisplaySize * scale)
-				sx := float32(screenX)
-				sy := float32(screenY)
-				// Manually draw outline by drawing 4 lines
-				ebitenutil.DrawRect(screen, float64(sx)-2, float64(sy)-2, float64(w)+4, float64(h)+4, color.RGBA{255, 0, 0, 100})
+				ebitenutil.DrawRect(screen, screenX-2, screenY-2, float64(w)+4, float64(h)+4, color.RGBA{255, 0, 0, 100})
 			}
 		}
 	}
@@ -385,106 +382,114 @@ func (s *ClassroomScene) Draw(screen *ebiten.Image) {
 		screen.DrawImage(p.image, op)
 	}
 
-	// 5. Draw HUD (timer, lives, level)
+	// 5. HUD
 	s.drawHUD(screen)
 
-	// 6. Draw overlay if active
+	// 6. Flying tween — drawn on top of HUD so it lands visibly
+	if s.tween != nil {
+		s.drawTween(screen)
+	}
+
+	// 7. Overlay / found message
 	if s.overlay != nil {
 		s.overlay.Draw(screen)
 	}
-
-	// 7. Draw found message if active
 	if s.foundMessage != nil {
 		s.foundMessage.Draw(screen)
 	}
 
-	// Debug info
 	if s.game.debug {
 		ebitenutil.DebugPrint(screen, fmt.Sprintf("3rd Grade Classroom\nLevel: %d | Lives: %d", gp.Level, gp.Lives))
 	}
+}
+
+// drawTween renders the object icon flying from world→HUD.
+func (s *ClassroomScene) drawTween(screen *ebiten.Image) {
+	t := s.tween
+	progress := easeOutQuad(float64(t.frame) / float64(t.duration))
+
+	// Interpolate position
+	x := t.startScreenX + (hudIndicatorX-t.startScreenX)*progress
+	y := t.startScreenY + (hudIndicatorY-t.startScreenY)*progress
+
+	// Scale: shrink from scale→1 as it flies into the HUD
+	spriteScale := scale - (scale-1)*progress
+
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(spriteScale, spriteScale)
+	op.GeoM.Translate(x, y)
+
+	// Fade from greyscale → full color as it approaches the HUD
+	if progress < 0.5 {
+		var cm ebiten.ColorM
+		cm.ChangeHSV(0, progress*2, 0.8) // saturation ramps up
+		op.ColorM = cm
+	}
+	// progress >= 0.5: full color, no ColorM needed
+
+	screen.DrawImage(t.img, op)
 }
 
 // drawHUD draws the heads-up display with timer, lives, and level
 func (s *ClassroomScene) drawHUD(screen *ebiten.Image) {
 	gp := s.game.gameplay
 
-	// Draw semi-transparent background for HUD (90% alpha = 230 alpha value)
 	hudBg := ebiten.NewImage(sW, 20)
 	hudBg.Fill(color.RGBA{0, 0, 0, 240})
 	screen.DrawImage(hudBg, &ebiten.DrawImageOptions{})
 
-	// Draw timer: just "T:" + seconds
+	// Timer
 	secondsRemaining := gp.RemainingTime / 60
 	timerOpt := &text.DrawOptions{}
 	timerOpt.GeoM.Translate(5, 5)
 	text.Draw(screen, fmt.Sprintf("Time:%d", secondsRemaining), hudTextFace, timerOpt)
 
-	// Removing Lives for now. Was not in original Super Mario brothers. on hud. Just shows when you lose a life?
-	// // Draw lives: player image x count
-	// if s.game.player.image != nil {
-	// 	// Draw small player image
-	// 	livesOp := &ebiten.DrawImageOptions{}
-	// 	// livesOp.GeoM.Scale(0.5, 0.5)
-	// 	livesOp.GeoM.Translate(50, 4)
-	// 	livesOp.ColorScale.SetR(1.5)
-	// 	livesOp.ColorScale.SetG(1.5)
-	// 	livesOp.ColorScale.SetB(1.5)
-	// 	screen.DrawImage(s.game.player.image, livesOp)
-
-	// 	// Draw "x" count
-	// 	livesTextOpt := &text.DrawOptions{}
-	// 	livesTextOpt.GeoM.Translate(65, 5)
-	// 	text.Draw(screen, fmt.Sprintf("x%d", gp.Lives), hudTextFace, livesTextOpt)
-	// }
-
-	// Draw level: "Lvl" + grade name
+	// Level name
 	levelName := gp.GetLevelName()
 	levelOpt := &text.DrawOptions{}
-	// levelOpt.GeoM.Translate(110, 5)
 	levelOpt.GeoM.Translate(60, 5)
 	levelOpt.ColorScale.ScaleWithColor(color.RGBA{255, 220, 60, 255})
 	text.Draw(screen, fmt.Sprintf("Lvl %d: %s", gp.Level, levelName), hudTextFace, levelOpt)
 
-	// Draw target object indicator(s)
-	// Show 1-3 small grayscale/colored objects depending on level
+	// Target object indicator
 	if gp.TargetObjectImage != nil {
 		const objIndicatorSize = 1
-		const objSpace = 14 // Space between each object display
+		const objSpace = 14
 
-		// Determine how many to show based on level
-		// was 3 before
 		numToShow := min(1, gp.Lives)
-
-		startX := 190.0
+		startX := hudIndicatorX
 
 		for i := 0; i < numToShow; i++ {
 			objOp := &ebiten.DrawImageOptions{}
 			objOp.GeoM.Scale(objIndicatorSize, objIndicatorSize)
-			objOp.GeoM.Translate(startX+float64(i*objSpace), 2)
+			objOp.GeoM.Translate(startX+float64(i*objSpace), hudIndicatorY)
 
-			if gp.HasFoundObject {
-				// Use full color when found
+			if s.hudLit {
+				// Full color — object was delivered to HUD
 				objOp.ColorScale.SetA(1.0)
-			} else {
-				// True greyscale via luminance matrix
+			} else if s.tween != nil {
+				// Tween in progress: slot stays greyscale until icon lands
 				var cm ebiten.ColorM
-				cm.ChangeHSV(0, 0, 0.6) // saturation=0 kills all color, value=0.6 for brightness
+				cm.ChangeHSV(0, 0, 0.6)
+				objOp.ColorM = cm
+				objOp.ColorScale.SetA(0.7)
+			} else {
+				// Normal pre-collection greyscale
+				var cm ebiten.ColorM
+				cm.ChangeHSV(0, 0, 0.6)
 				objOp.ColorM = cm
 				objOp.ColorScale.SetA(0.7)
 			}
 			screen.DrawImage(gp.TargetObjectImage, objOp)
 		}
+
 		FindOpt := &text.DrawOptions{}
-		// levelOpt.GeoM.Translate(110, 5)
 		FindOpt.GeoM.Translate(165, 5)
 		text.Draw(screen, "Find", hudTextFace, FindOpt)
 	}
 }
 
 // getTilemapPath returns the path to the tilemap file for the given level.
-// Level 1: classroom_1.tmx (default)
-// Level 2: classroom_2.tmx
-// Level 3+: classroom_1.tmx (default)
 func getTilemapPath(level int) string {
 	switch level {
 	case 2:
@@ -495,9 +500,6 @@ func getTilemapPath(level int) string {
 }
 
 // getTileset returns the appropriate tileset image for the given level.
-// Level 1: ClassroomTileset_1 (CLASSROOM.png)
-// Level 2: ClassroomTileset_2 (CLASSROOM_MAX.png)
-// Level 3+: ClassroomTileset_1 (CLASSROOM.png)
 func getTileset(game *Game, level int) *ebiten.Image {
 	switch level {
 	case 2:
