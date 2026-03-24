@@ -7,6 +7,7 @@
     "expandedProjectPaths": [
     ],
     "exportAsImage.useCurrentScale": true,
+    "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
         "CLASSROOM.tsx": {
             "scaleInDock": 3,
@@ -29,10 +30,10 @@
                 4
             ],
             "scale": 1.5,
-            "selectedLayer": 2,
+            "selectedLayer": 1,
             "viewCenter": {
-                "x": 219.33333333333331,
-                "y": 219
+                "x": 163.33333333333331,
+                "y": 242.99999999999997
             }
         }
     },

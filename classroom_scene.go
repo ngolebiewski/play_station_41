@@ -676,7 +676,7 @@ func (s *ClassroomScene) drawHUD(screen *ebiten.Image) {
 	levelOpt.GeoM.Translate(50, 5)
 	levelOpt.ColorScale.ScaleWithColor(color.RGBA{255, 220, 60, 255})
 	// text.Draw(screen, fmt.Sprintf("Lvl %d: %s", gp.Level, levelName), hudTextFace, levelOpt)
-	text.Draw(screen, fmt.Sprintf("Stage: %s", levelName), hudTextFace, levelOpt)
+	text.Draw(screen, fmt.Sprintf("%s", levelName), hudTextFace, levelOpt)
 
 	// Target object indicators (one slot per object to find)
 	if gp.TargetObjectImage != nil {
