@@ -13,6 +13,28 @@ import (
 	"github.com/ngolebiewski/play_station_41/tiled"
 )
 
+// How to switch tilemaps on each level:
+//
+// Each level can have its own tilemap and tileset by modifying:
+//
+// 1. getTilemapPath(level) function - maps level numbers to .tmx files
+//    - Add a new case for your level and return the path
+//    - Default (case default) is "tiled_files/classroom_1.tmx"
+//    - Example: case 2: return "tiled_files/classroom_2.tmx"
+//
+// 2. getTileset(game, level) function - maps level numbers to image assets
+//    - Add a new case for your level and return the tileset image
+//    - Default (case default) is game.assets.ClassroomTileset_1
+//    - Example: case 2: return game.assets.ClassroomTileset_2
+//
+// 3. Embed new tilemap files in embed.go
+//    - Add //go:embed directives for new .tmx and .tsx files needed
+//    - Also embed the referenced tileset PNG files if using new artwork
+//
+// 4. Load new image assets in embed.go LoadAssets()
+//    - Add loading code for new tileset images
+//    - Store in Assets struct if persistent, or load on demand
+
 // Create text face for classroom HUD
 var hudTextFace = text.NewGoXFace(bitmapfont.Face)
 
@@ -31,11 +53,14 @@ type ClassroomScene struct {
 	playerSpawnY    float64
 }
 
-func NewClassroomScene(game *Game) *ClassroomScene {
-	m, err := tiled.LoadMapFS(embeddedAssets, "tiled_files/classroom_1.tmx")
+func NewClassroomScene(game *Game, level int) *ClassroomScene {
+	tilemapPath := getTilemapPath(level)
+	m, err := tiled.LoadMapFS(embeddedAssets, tilemapPath)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	tileset := getTileset(game, level)
 
 	if game.debug {
 		log.Printf("Map size: %dx%d tiles, tile size: %dx%d px",
@@ -89,6 +114,12 @@ func NewClassroomScene(game *Game) *ClassroomScene {
 	// Place objects on the map
 	game.gameplay.PlaceObjects(targetSpawns, otherSpawns)
 
+	// Reset level-specific state for new level
+	game.gameplay.HasFoundObject = false
+	game.gameplay.LevelComplete = false
+	game.gameplay.ShowingTargetOverlay = true
+	game.gameplay.OverlayFrames = 0
+
 	// Set player spawn position
 	if playerSpawnX > 0 || playerSpawnY > 0 {
 		game.player.x = float32(playerSpawnX)
@@ -97,7 +128,7 @@ func NewClassroomScene(game *Game) *ClassroomScene {
 
 	scene := &ClassroomScene{
 		game:            game,
-		renderer:        tiled.NewRenderer(m, game.assets.ClassroomTileset_1, scale),
+		renderer:        tiled.NewRenderer(m, tileset, scale),
 		mapPixelW:       mapPixelW,
 		mapPixelH:       mapPixelH,
 		collisionGrid:   tiled.BuildCollisionGrid(m),
@@ -179,6 +210,7 @@ func (s *ClassroomScene) Update() error {
 			if !obj.IsCollected && s.checkPlayerObjectCollision(obj, pw, ph) {
 				if obj.IsTarget {
 					// Found the target object!
+					s.game.audioManager.PlaySE("pickup")
 					gp.ObjectFound()
 					obj.IsCollected = true
 					obj.CollectedFrame = 0
@@ -213,16 +245,9 @@ func (s *ClassroomScene) Update() error {
 
 	// Handle level progression
 	if gp.LevelComplete && !gp.GameOver {
-		// Reset for next level
-		targetSpawns := s.getTargetSpawns()
-		otherSpawns := s.getOtherSpawns()
-		gp.PlaceObjects(targetSpawns, otherSpawns)
-		gp.HasFoundObject = false
-		gp.LevelComplete = false
-		gp.ShowingTargetOverlay = true
-		gp.OverlayFrames = 0
-		s.overlay = NewObjectFindOverlay(gp)
-		s.foundMessage = nil
+		// Transition to the level transition scene
+		s.game.scene = NewLevelTransitionScene(s.game)
+		return nil
 	}
 
 	// Handle timer timeout (retry same level)
@@ -416,7 +441,7 @@ func (s *ClassroomScene) drawHUD(screen *ebiten.Image) {
 	levelName := gp.GetLevelName()
 	levelOpt := &text.DrawOptions{}
 	// levelOpt.GeoM.Translate(110, 5)
-	levelOpt.GeoM.Translate(80, 5)
+	levelOpt.GeoM.Translate(60, 5)
 	levelOpt.ColorScale.ScaleWithColor(color.RGBA{255, 220, 60, 255})
 	text.Draw(screen, fmt.Sprintf("Lvl %d: %s", gp.Level, levelName), hudTextFace, levelOpt)
 
@@ -453,5 +478,31 @@ func (s *ClassroomScene) drawHUD(screen *ebiten.Image) {
 		// levelOpt.GeoM.Translate(110, 5)
 		FindOpt.GeoM.Translate(165, 5)
 		text.Draw(screen, "Find", hudTextFace, FindOpt)
+	}
+}
+
+// getTilemapPath returns the path to the tilemap file for the given level.
+// Level 1: classroom_1.tmx (default)
+// Level 2: classroom_2.tmx
+// Level 3+: classroom_1.tmx (default)
+func getTilemapPath(level int) string {
+	switch level {
+	case 2:
+		return "tiled_files/classroom_2.tmx"
+	default:
+		return "tiled_files/classroom_1.tmx"
+	}
+}
+
+// getTileset returns the appropriate tileset image for the given level.
+// Level 1: ClassroomTileset_1 (CLASSROOM.png)
+// Level 2: ClassroomTileset_2 (CLASSROOM_MAX.png)
+// Level 3+: ClassroomTileset_1 (CLASSROOM.png)
+func getTileset(game *Game, level int) *ebiten.Image {
+	switch level {
+	case 2:
+		return game.assets.ClassroomTileset_2
+	default:
+		return game.assets.ClassroomTileset_1
 	}
 }

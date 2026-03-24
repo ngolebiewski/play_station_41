@@ -15,6 +15,15 @@ import (
 //go:embed assets/songs/classroom_0_song.mp3
 var classroom0 []byte
 
+//go:embed assets/songs/scene_change_riff.mp3
+var scene_change_riff []byte
+
+//go:embed assets/songs/running-up-that-staircase.mp3
+var running_song []byte
+
+//go:embed assets/songs/drums-n-chords.mp3
+var classroom_beat []byte
+
 // Add others: //go:embed assets/battle.mp3 ...
 
 // --- SFX Embeds ---
@@ -27,6 +36,9 @@ var bloopWav []byte
 
 //go:embed assets/sfx/blip463.wav
 var blipWav []byte
+
+//go:embed assets/sfx/pickup496.wav
+var pickupWav []byte
 
 // sfxPool stores pre-decoded raw audio data
 var sfxPool = make(map[string][]byte)
@@ -56,6 +68,9 @@ func PreloadSFX(ctx *audio.Context) error {
 		return err
 	}
 	if err := load("blip", blipWav); err != nil {
+		return err
+	}
+	if err := load("pickup", pickupWav); err != nil {
 		return err
 	}
 
@@ -91,7 +106,8 @@ func NewAudioManager(ctx *audio.Context) *AudioManager {
 		Context:   ctx,
 		MaxVolume: 0.5,
 		SFXVolume: 0.2,
-		FadeSpeed: 0.005,
+		// FadeSpeed: 0.005, // longer fade out in
+		FadeSpeed: 0.5,
 	}
 }
 
@@ -134,6 +150,12 @@ func (m *AudioManager) ChangeSong(name string) error {
 	switch name {
 	case "classroom":
 		data = classroom0
+	case "scenechange":
+		data = scene_change_riff
+	case "running":
+		data = running_song
+	case "classroom_beat":
+		data = classroom_beat
 	default:
 		return nil
 	}
