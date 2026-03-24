@@ -420,7 +420,14 @@ func (s *ClassroomScene) Update() error {
 
 	// Handle level progression
 	if gp.LevelComplete && !gp.GameOver {
-		s.game.scene = NewLevelTransitionScene(s.game)
+		// Check if player just completed Level 8 (5th Grade) - graduation!
+		if gp.Level == 9 {
+			// Show high score scene after graduation
+			s.game.scene = NewHighScoreScene(s.game, gp.Score)
+		} else {
+			// Otherwise show level transition scene
+			s.game.scene = NewLevelTransitionScene(s.game)
+		}
 		return nil
 	}
 

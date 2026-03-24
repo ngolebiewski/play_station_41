@@ -300,21 +300,33 @@ func (gs *GameplayState) Update() {
 
 // GetLevelTimeLimit returns the time limit in frames for the given level.
 // Configure per-level timing here:
-// - Level 1: 30 seconds, easy, no distractors
-// - Level 2: 25 seconds, medium difficulty
-// - Level 3: 10 seconds, hard
-// - Level 4+: 60 seconds, challenging with many objects
+// - Level 1 (3K): 30 seconds, easy, no distractors
+// - Level 2 (Pre-K): 25 seconds, medium difficulty
+// - Level 3 (K): 10 seconds, hard
+// - Level 4 (1st Grade): 60 seconds, challenging with many objects
+// - Level 5 (2nd Grade): 20 seconds, increasingly difficult
+// - Level 6 (3rd Grade): 15 seconds, very challenging
+// - Level 7 (4th Grade): 25 seconds, medium pace
+// - Level 8 (5th Grade): 30 seconds, final level before graduation
 // Default: 30 seconds (1800 frames at 60fps)
 func GetLevelTimeLimit(level int) int {
 	switch level {
 	case 1:
-		return 30 * 60 // 30 seconds
+		return 30 * 60 // 30 seconds - 3K, easy, no distractors
 	case 2:
-		return 25 * 60 // 25 seconds
+		return 25 * 60 // 25 seconds - Pre-K
 	case 3:
-		return 10 * 60 // 10 seconds
+		return 10 * 60 // 10 seconds - K, hard
 	case 4:
-		return 60 * 60 // 60 seconds
+		return 60 * 60 // 60 seconds - 1st Grade
+	case 5:
+		return 20 * 60 // 20 seconds - 2nd Grade
+	case 6:
+		return 15 * 60 // 15 seconds - 3rd Grade
+	case 7:
+		return 25 * 60 // 25 seconds - 4th Grade
+	case 8:
+		return 30 * 60 // 30 seconds - 5th Grade (final level)
 	default:
 		return 30 * 60 // 30 seconds default
 	}
