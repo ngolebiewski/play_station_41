@@ -57,3 +57,7 @@ Sound effects ZZFX: https://killedbyapixel.github.io/ZzFX/
 - `cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" .`
 - `GOOS=js GOARCH=wasm go build -o play_station_41.wasm .`
 - View in 'Live Server'
+
+### Songs
+
+3. https://www.beepbox.co/#9n31s7k4l00e00t2ma7g0cj07r1i0o432T0v1u13f10o5q00d03w5h1E0T0v1u11f0qg01d04w1h0E0T7v1u20f51562jb0s22nb2l3q0x20p41402d08H_SRJ5JIBxAAAAkh8IcE3c01c16c16T2v1u15f10w4qw02d03w0E0b400000000g0000000100000000400000000p224FBO11mkFHY1cK3vjlAVk1liCFMhlznZuKzMm5qCLO10Olhvn0QkQvy1wbqWXGWWqHWldjRUUz1uQuLSm8WXGOdPhV3EllknMu24t4QhMRUpo00FEPx714td597ihQQkQgp60
