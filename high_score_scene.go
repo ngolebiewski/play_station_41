@@ -17,30 +17,30 @@ const availableLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 var highScoreTextFace = text.NewGoXFace(bitmapfont.Face)
 
 type HighScoreScene struct {
-	game              *Game
-	highScoreManager  *HighScoreManager
-	scores            []HighScore
-	framecounter      int
-	currentScore      int
-	
+	game             *Game
+	highScoreManager *HighScoreManager
+	scores           []HighScore
+	framecounter     int
+	currentScore     int
+
 	// Initials entry state
-	entryMode         bool // true = entering initials, false = showing results
-	initials          [3]int // indices into availableLetters
-	currentPosition   int // 0, 1, 2 for which letter being edited (or 3 = confirm prompt)
-	showNESMessage    bool
-	nesMessageFrame   int
-	confirmed         bool
-	
+	entryMode       bool   // true = entering initials, false = showing results
+	initials        [3]int // indices into availableLetters
+	currentPosition int    // 0, 1, 2 for which letter being edited (or 3 = confirm prompt)
+	showNESMessage  bool
+	nesMessageFrame int
+	confirmed       bool
+
 	// Input debouncing
-	lastInputFrame    int // Track last frame input was processed
-	inputDebounceMs   int  // Milliseconds between inputs (10ms at 60fps = ~0.6 frames, use 10 frames for safety)
+	lastInputFrame  int // Track last frame input was processed
+	inputDebounceMs int // Milliseconds between inputs (10ms at 60fps = ~0.6 frames, use 10 frames for safety)
 }
 
 func NewHighScoreScene(game *Game, currentScore int) *HighScoreScene {
 	/////////////////////////////////////////////////////
 	// Start the music!
 	if game.audioManager != nil {
-		err := game.audioManager.ChangeSong("scenechange")
+		err := game.audioManager.ChangeSong("running")
 		if err != nil {
 			log.Printf("Audio Error: %v", err)
 		}
@@ -74,13 +74,13 @@ func (s *HighScoreScene) Update() error {
 
 	if s.entryMode && !s.confirmed {
 		// Initials entry mode - sequential single-letter entry
-		
+
 		// Check if enough frames have passed for next input (debounce)
 		canInput := (s.framecounter - s.lastInputFrame) >= s.inputDebounceMs
-		
+
 		if s.currentPosition < 3 {
 			// Editing one of the three letters
-			
+
 			// ─── Up/Down: Scroll through available letters ──────────────
 			if canInput && (gpad.MoveUp() || gpad.MoveDown()) {
 				if gpad.MoveUp() {
@@ -96,14 +96,14 @@ func (s *HighScoreScene) Update() error {
 				}
 				s.lastInputFrame = s.framecounter
 			}
-			
+
 			// ─── A/Action button: Confirm letter and move to next ─────────────
 			if gpad.PressA() || gpad.PressStart() {
 				s.game.audioManager.PlaySE("pickup") // Visual feedback
-				s.currentPosition++ // Move to next letter or confirmation prompt
+				s.currentPosition++                  // Move to next letter or confirmation prompt
 				s.lastInputFrame = s.framecounter
 			}
-			
+
 			// ─── B button: Go back to previous letter (if not first) ────
 			if gpad.PressB() && s.currentPosition > 0 {
 				s.game.audioManager.PlaySE("blip") // Feedback
@@ -112,7 +112,7 @@ func (s *HighScoreScene) Update() error {
 			}
 		} else if s.currentPosition == 3 {
 			// Confirmation prompt ("OK?")
-			
+
 			// ─── A/Action: Confirm and save ──────────────────────────────────
 			if gpad.PressA() || gpad.PressStart() {
 				initialsStr := string([]rune{
@@ -135,7 +135,7 @@ func (s *HighScoreScene) Update() error {
 				s.entryMode = false
 				s.lastInputFrame = s.framecounter
 			}
-			
+
 			// ─── B: Go back to edit third letter ──────────────────────
 			if gpad.PressB() {
 				s.currentPosition = 2
@@ -214,7 +214,7 @@ func (s *HighScoreScene) drawInitialsEntry(screen *ebiten.Image) {
 
 	if s.currentPosition < 3 {
 		// Show single letter entry mode
-		
+
 		// Current letter number (1, 2, or 3)
 		letterNumOpt := &text.DrawOptions{}
 		letterNumOpt.GeoM.Translate(80, 105)
@@ -263,7 +263,7 @@ func (s *HighScoreScene) drawInitialsEntry(screen *ebiten.Image) {
 		}
 	} else if s.currentPosition == 3 {
 		// Show confirmation prompt
-		
+
 		// All three letters
 		initString := string([]rune{
 			rune(availableLetters[s.initials[0]]),

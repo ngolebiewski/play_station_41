@@ -74,11 +74,11 @@ const tweenOffDuration = 60 // frames for slower off-screen animation (~1 second
 
 // pointsAnimation shows floating points text during level completion
 type pointsAnimation struct {
-	points     int
-	x, y       float64
-	frame      int
-	duration   int
-	alpha      float32
+	points   int
+	x, y     float64
+	frame    int
+	duration int
+	alpha    float32
 }
 
 const pointsAnimationDuration = 120 // ~2 seconds
@@ -170,7 +170,7 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 
 	// Set time limit for this level (in frames)
 	game.gameplay.RemainingTime = GetLevelTimeLimit(game.gameplay.Level)
-	
+
 	// Reset level-specific state
 	game.gameplay.TimerTriggered = false
 	game.gameplay.HasFoundObject = false
@@ -203,6 +203,10 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 }
 
 func (s *ClassroomScene) Update() error {
+	if s.game.debug && gpad.PressP() {
+		s.game.scene = NewHighScoreScene(s.game, 8999)
+	}
+
 	p := s.game.player
 	cg := s.collisionGrid
 	gp := s.game.gameplay
@@ -309,11 +313,11 @@ func (s *ClassroomScene) Update() error {
 				}
 				s.hudLit = false
 				s.foundMessage = NewFoundObjectMessage()
-				
+
 				// Mark one object found
 				gp.ObjectsFound++
 				gp.Points += 41 // Award points
-				
+
 				// Check if level complete
 				if gp.ObjectsFound >= gp.ObjectsToFind {
 					gp.HasFoundObject = true
@@ -325,7 +329,7 @@ func (s *ClassroomScene) Update() error {
 					gp.Level++
 					gp.RemainingTime = GetLevelTimeLimit(gp.Level)
 				}
-				
+
 				break
 			}
 		}
@@ -383,7 +387,7 @@ func (s *ClassroomScene) Update() error {
 			s.hudLit = true
 			// Now that tween is done, mark as found
 			gp.ObjectFound()
-			
+
 			// If level complete, create points animation
 			if gp.LevelComplete {
 				secondsRemaining := gp.RemainingTime / 60

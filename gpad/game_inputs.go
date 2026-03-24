@@ -234,6 +234,10 @@ func PressDebug() bool {
 	return inpututil.IsKeyJustPressed(ebiten.KeyH)
 }
 
+func PressP() bool {
+	return inpututil.IsKeyJustPressed(ebiten.KeyP)
+}
+
 func TestInputs() {
 	if MoveUp() {
 		fmt.Println("Up")
@@ -267,5 +271,8 @@ func TestInputs() {
 	}
 	if PressDebug() {
 		fmt.Println("H for Debug")
+	}
+	if PressP() {
+		fmt.Println("P for skip to game over")
 	}
 }
