@@ -26,10 +26,14 @@ type HighScoreScene struct {
 	// Initials entry state
 	entryMode         bool // true = entering initials, false = showing results
 	initials          [3]int // indices into availableLetters
-	currentPosition   int // 0, 1, 2 for which letter being edited
+	currentPosition   int // 0, 1, 2 for which letter being edited (or 3 = confirm prompt)
 	showNESMessage    bool
 	nesMessageFrame   int
 	confirmed         bool
+	
+	// Input debouncing
+	lastInputFrame    int // Track last frame input was processed
+	inputDebounceMs   int  // Milliseconds between inputs (10ms at 60fps = ~0.6 frames, use 10 frames for safety)
 }
 
 func NewHighScoreScene(game *Game, currentScore int) *HighScoreScene {
@@ -58,6 +62,8 @@ func NewHighScoreScene(game *Game, currentScore int) *HighScoreScene {
 		showNESMessage:   false,
 		nesMessageFrame:  0,
 		confirmed:        false,
+		lastInputFrame:   -100, // Ensure first input is accepted
+		inputDebounceMs:  10,   // 10 frames at 60fps ~= 166ms
 	}
 }
 
@@ -67,57 +73,74 @@ func (s *HighScoreScene) Update() error {
 	gpad.UpdateTouch()
 
 	if s.entryMode && !s.confirmed {
-		// Initials entry mode
-		// ─── Up/Down: Change current letter ────────────────────────────
-		if gpad.MoveUp() {
-			s.initials[s.currentPosition]--
-			if s.initials[s.currentPosition] < 0 {
-				s.initials[s.currentPosition] = len(availableLetters) - 1
+		// Initials entry mode - sequential single-letter entry
+		
+		// Check if enough frames have passed for next input (debounce)
+		canInput := (s.framecounter - s.lastInputFrame) >= s.inputDebounceMs
+		
+		if s.currentPosition < 3 {
+			// Editing one of the three letters
+			
+			// ─── Up/Down: Scroll through available letters ──────────────
+			if canInput && (gpad.MoveUp() || gpad.MoveDown()) {
+				if gpad.MoveUp() {
+					s.initials[s.currentPosition]--
+					if s.initials[s.currentPosition] < 0 {
+						s.initials[s.currentPosition] = len(availableLetters) - 1
+					}
+				} else {
+					s.initials[s.currentPosition]++
+					if s.initials[s.currentPosition] >= len(availableLetters) {
+						s.initials[s.currentPosition] = 0
+					}
+				}
+				s.lastInputFrame = s.framecounter
 			}
-		}
-		if gpad.MoveDown() {
-			s.initials[s.currentPosition]++
-			if s.initials[s.currentPosition] >= len(availableLetters) {
-				s.initials[s.currentPosition] = 0
+			
+			// ─── A button: Confirm letter and move to next ─────────────
+			if gpad.PressA() {
+				s.currentPosition++ // Move to next letter or confirmation prompt
+				s.lastInputFrame = s.framecounter
 			}
-		}
+			
+			// ─── B button: Go back to previous letter (if not first) ────
+			if gpad.PressB() && s.currentPosition > 0 {
+				s.currentPosition--
+				s.lastInputFrame = s.framecounter
+			}
+		} else if s.currentPosition == 3 {
+			// Confirmation prompt ("OK?")
+			
+			// ─── A: Confirm and save ──────────────────────────────────
+			if gpad.PressA() {
+				initialsStr := string([]rune{
+					rune(availableLetters[s.initials[0]]),
+					rune(availableLetters[s.initials[1]]),
+					rune(availableLetters[s.initials[2]]),
+				})
 
-		// ─── Left/Right: Move between positions ────────────────────────
-		if gpad.MoveLeft() {
-			s.currentPosition--
-			if s.currentPosition < 0 {
+				// Check for NES easter egg
+				if initialsStr == "NES" {
+					s.showNESMessage = true
+					s.nesMessageFrame = 180 // Show for 3 seconds at 60fps
+				}
+
+				// Save the high score
+				s.highScoreManager.SaveHighScore(initialsStr, s.currentScore)
+				s.scores, _ = s.highScoreManager.LoadHighScores()
+
+				s.confirmed = true
+				s.entryMode = false
+				s.lastInputFrame = s.framecounter
+			}
+			
+			// ─── B: Go back to edit third letter ──────────────────────
+			if gpad.PressB() {
 				s.currentPosition = 2
+				s.lastInputFrame = s.framecounter
 			}
 		}
-		if gpad.MoveRight() {
-			s.currentPosition++
-			if s.currentPosition > 2 {
-				s.currentPosition = 0
-			}
-		}
-
-		// ─── A/Start: Confirm initials ────────────────────────────────
-		if gpad.PressA() || gpad.PressStart() {
-			initialsStr := string([]rune{
-				rune(availableLetters[s.initials[0]]),
-				rune(availableLetters[s.initials[1]]),
-				rune(availableLetters[s.initials[2]]),
-			})
-
-			// Check for NES easter egg
-			if initialsStr == "NES" {
-				s.showNESMessage = true
-				s.nesMessageFrame = 180 // Show for 3 seconds at 60fps
-			}
-
-			// Save the high score
-			s.highScoreManager.SaveHighScore(initialsStr, s.currentScore)
-			s.scores, _ = s.highScoreManager.LoadHighScores()
-
-			s.confirmed = true
-			s.entryMode = false
-		}
-	} else {
+	} else if s.confirmed {
 		// Show results mode with "Press any button to continue"
 		if gpad.PressA() || gpad.PressB() || gpad.PressStart() || gpad.PressSelect() {
 			// Return to title scene
@@ -181,39 +204,87 @@ func (s *HighScoreScene) drawInitialsEntry(screen *ebiten.Image) {
 	scoreOpt.ColorScale.ScaleWithColor(color.RGBA{255, 150, 100, 255})
 	text.Draw(screen, fmt.Sprintf("SCORE: %d", s.currentScore), highScoreTextFace, scoreOpt)
 
-	// "Enter Initials" prompt
-	promptOpt := &text.DrawOptions{}
-	promptOpt.GeoM.Translate(45, 120)
-	promptOpt.ColorScale.ScaleWithColor(color.White)
-	text.Draw(screen, "Enter Initials:", highScoreTextFace, promptOpt)
+	if s.currentPosition < 3 {
+		// Show single letter entry mode
+		
+		// Current letter number (1, 2, or 3)
+		letterNumOpt := &text.DrawOptions{}
+		letterNumOpt.GeoM.Translate(80, 120)
+		letterNumOpt.ColorScale.ScaleWithColor(color.RGBA{200, 200, 200, 255})
+		text.Draw(screen, fmt.Sprintf("Letter %d of 3:", s.currentPosition+1), highScoreTextFace, letterNumOpt)
 
-	// Initials with current position highlighted
-	initialsX := 100.0
-	initialsY := 140.0
-	for i := 0; i < 3; i++ {
-		ch := string(availableLetters[s.initials[i]])
-		optColor := color.RGBA{200, 200, 200, 255}
+		// Display entered letters so far (greyed out)
+		displayX := 50.0
+		displayY := 150.0
+		for i := 0; i < 3; i++ {
+			ch := string(availableLetters[s.initials[i]])
+			optColor := color.RGBA{100, 100, 100, 255}
+			if i < s.currentPosition {
+				optColor = color.RGBA{200, 200, 200, 255}
+			}
 
-		if i == s.currentPosition {
-			optColor = color.RGBA{255, 255, 100, 255}
+			opt := &text.DrawOptions{}
+			opt.GeoM.Translate(displayX+float64(i)*30, displayY)
+			opt.ColorScale.ScaleWithColor(optColor)
+			text.Draw(screen, ch, highScoreTextFace, opt)
 		}
 
-		opt := &text.DrawOptions{}
-		opt.GeoM.Translate(float64(initialsX+float64(i)*30), initialsY)
-		opt.ColorScale.ScaleWithColor(optColor)
-		text.Draw(screen, ch, highScoreTextFace, opt)
+		// Large display of current letter being edited
+		currentLetterOpt := &text.DrawOptions{}
+		currentLetterOpt.GeoM.Translate(100, 200)
+		currentLetterOpt.ColorScale.ScaleWithColor(color.RGBA{255, 255, 100, 255})
+		ch := string(availableLetters[s.initials[s.currentPosition]])
+		text.Draw(screen, ch, highScoreTextFace, currentLetterOpt)
+
+		// Instructions
+		instrOpt := &text.DrawOptions{}
+		instrOpt.GeoM.Translate(30, 250)
+		instrOpt.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
+		text.Draw(screen, "UP/DOWN: Scroll letter", highScoreTextFace, instrOpt)
+
+		instrOpt2 := &text.DrawOptions{}
+		instrOpt2.GeoM.Translate(40, 265)
+		instrOpt2.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
+		text.Draw(screen, "A: Confirm", highScoreTextFace, instrOpt2)
+
+		if s.currentPosition > 0 {
+			instrOpt3 := &text.DrawOptions{}
+			instrOpt3.GeoM.Translate(40, 280)
+			instrOpt3.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
+			text.Draw(screen, "B: Change previous", highScoreTextFace, instrOpt3)
+		}
+	} else if s.currentPosition == 3 {
+		// Show confirmation prompt
+		
+		// All three letters
+		initString := string([]rune{
+			rune(availableLetters[s.initials[0]]),
+			rune(availableLetters[s.initials[1]]),
+			rune(availableLetters[s.initials[2]]),
+		})
+
+		initialsOpt := &text.DrawOptions{}
+		initialsOpt.GeoM.Translate(90, 150)
+		initialsOpt.ColorScale.ScaleWithColor(color.RGBA{200, 200, 200, 255})
+		text.Draw(screen, initString, highScoreTextFace, initialsOpt)
+
+		// OK prompt
+		promptOpt := &text.DrawOptions{}
+		promptOpt.GeoM.Translate(100, 200)
+		promptOpt.ColorScale.ScaleWithColor(color.RGBA{255, 255, 100, 255})
+		text.Draw(screen, "OK?", highScoreTextFace, promptOpt)
+
+		// Instructions
+		instrOpt := &text.DrawOptions{}
+		instrOpt.GeoM.Translate(50, 250)
+		instrOpt.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
+		text.Draw(screen, "A: Confirm and save", highScoreTextFace, instrOpt)
+
+		instrOpt2 := &text.DrawOptions{}
+		instrOpt2.GeoM.Translate(50, 265)
+		instrOpt2.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
+		text.Draw(screen, "B: Edit last letter", highScoreTextFace, instrOpt2)
 	}
-
-	// Instructions
-	instrOpt := &text.DrawOptions{}
-	instrOpt.GeoM.Translate(30, 180)
-	instrOpt.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
-	text.Draw(screen, "UP/DOWN: Change  LEFT/RIGHT: Move", highScoreTextFace, instrOpt)
-
-	instrOpt2 := &text.DrawOptions{}
-	instrOpt2.GeoM.Translate(60, 195)
-	instrOpt2.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
-	text.Draw(screen, "A/START: Confirm", highScoreTextFace, instrOpt2)
 }
 
 func (s *HighScoreScene) drawResults(screen *ebiten.Image) {

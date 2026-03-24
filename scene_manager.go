@@ -21,7 +21,6 @@ const (
 	Classroom // game lives here
 	HUD // to overlay UI, does this make sense
 	GameOver
-	HighScore // inititals.
 	LevelCutScene
 )
 
