@@ -39,6 +39,7 @@ type ObjectInstance struct {
 	Image          *ebiten.Image
 	IsTarget       bool    // True if this is the object to find
 	IsCollected    bool    // True if player has found this object
+	CountedAsFound bool    // True if this object has been registered in ObjectsFound count
 	CollectedFrame int     // Frame when collected (for animation)
 	PickupProgress float64 // 0.0 to 1.0 for pickup animation
 }
@@ -349,7 +350,7 @@ func (gs *GameplayState) ObjectFound() {
 
 		gs.Score += calculateLevelScore(gs.Level, gs.RemainingTime)
 		gs.Level++
-		gs.RemainingTime = gs.TimePerLevel
+		gs.RemainingTime = GetLevelTimeLimit(gs.Level)
 	}
 }
 

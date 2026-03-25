@@ -273,6 +273,12 @@ func (s *ClassroomScene) Update() error {
 				obj.CollectedFrame = 0
 				obj.PickupProgress = 0.0
 
+				// Register this object as found immediately to prevent race conditions
+				if !obj.CountedAsFound {
+					obj.CountedAsFound = true
+					gp.ObjectFound()
+				}
+
 				// Kick off the HUD tween
 				s.tween = &objectTween{
 					startScreenX: screenX,
@@ -303,6 +309,12 @@ func (s *ClassroomScene) Update() error {
 				obj.CollectedFrame = 0
 				obj.PickupProgress = 0.0
 
+				// Register this object as found immediately to prevent race conditions
+				if !obj.CountedAsFound {
+					obj.CountedAsFound = true
+					gp.ObjectFound()
+				}
+
 				// Kick off the HUD tween
 				s.tween = &objectTween{
 					startScreenX: screenX,
@@ -313,22 +325,6 @@ func (s *ClassroomScene) Update() error {
 				}
 				s.hudLit = false
 				s.foundMessage = NewFoundObjectMessage()
-
-				// Mark one object found
-				gp.ObjectsFound++
-				gp.Points += 41 // Award points
-
-				// Check if level complete
-				if gp.ObjectsFound >= gp.ObjectsToFind {
-					gp.HasFoundObject = true
-					gp.FoundMessageFrames = 60
-					secondsRemaining := gp.RemainingTime / 60
-					timeBonus := secondsRemaining * 5
-					gp.Points += timeBonus
-					gp.Score += calculateLevelScore(gp.Level, gp.RemainingTime)
-					gp.Level++
-					gp.RemainingTime = GetLevelTimeLimit(gp.Level)
-				}
 
 				break
 			}
@@ -385,8 +381,6 @@ func (s *ClassroomScene) Update() error {
 			s.tween.done = true
 			s.tween = nil
 			s.hudLit = true
-			// Now that tween is done, mark as found
-			gp.ObjectFound()
 
 			// If level complete, create points animation
 			if gp.LevelComplete {
