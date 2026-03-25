@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "classroom_2.tmx",
+    "activeFile": "classroom_maze.tmx",
     "expandedProjectPaths": [
     ],
     "exportAsImage.useCurrentScale": true,
@@ -43,11 +43,11 @@
             "expandedObjectLayers": [
                 4
             ],
-            "scale": 1.5,
+            "scale": 3,
             "selectedLayer": 3,
             "viewCenter": {
-                "x": 226,
-                "y": 337.66666666666663
+                "x": 479.66666666666663,
+                "y": 132.5
             }
         }
     },
@@ -60,14 +60,16 @@
     "map.tileWidth": 16,
     "map.width": 12,
     "openFiles": [
-        "classroom_2.tmx"
+        "classroom_maze.tmx",
+        "classroom_1.tmx"
     ],
     "project": "classroom_0.tiled-project",
     "recentFiles": [
+        "classroom_1.tmx",
+        "classroom_maze.tmx",
         "classroom_2.tmx",
         "CLASSROOM.tsx",
-        "CLASSROOM_MAX.tsx",
-        "classroom_1.tmx"
+        "CLASSROOM_MAX.tsx"
     ],
     "tileset.lastUsedFilter": "Tiled tileset files (*.tsx *.xml)",
     "tileset.lastUsedFormat": "tsx",
