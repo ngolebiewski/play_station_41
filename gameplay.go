@@ -320,7 +320,7 @@ func GetLevelTimeLimit(level int) int {
 	case 4:
 		return 60 * 60 // 60 seconds - 1st Grade
 	case 5:
-		return 20 * 60 // 20 seconds - 2nd Grade
+		return 100 * 60 // 100 seconds - 2nd Grade
 	case 6:
 		return 15 * 60 // 15 seconds - 3rd Grade
 	case 7:

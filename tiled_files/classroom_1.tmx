@@ -117,25 +117,25 @@
 </data>
  </layer>
  <objectgroup id="4" name="spawn">
-  <object id="3" name="find" x="137" y="201">
+  <object id="3" name="find" x="121.929" y="204.588">
    <point/>
   </object>
-  <object id="5" name="find" x="152" y="184">
+  <object id="5" name="find" x="152" y="178.618">
    <point/>
   </object>
-  <object id="7" name="find" x="151.333" y="152.333">
+  <object id="7" name="find" x="151.692" y="148.027">
    <point/>
   </object>
-  <object id="8" name="find" x="135" y="150.667">
+  <object id="8" name="find" x="135" y="147.079">
    <point/>
   </object>
-  <object id="10" name="find" x="88" y="151.333">
+  <object id="10" name="find" x="86.2059" y="148.104">
    <point/>
   </object>
-  <object id="11" name="find" x="102.667" y="150.333">
+  <object id="11" name="find" x="103.026" y="148.18">
    <point/>
   </object>
-  <object id="12" name="find" x="90.6667" y="246.333">
+  <object id="12" name="find" x="89.2314" y="253.151">
    <point/>
   </object>
   <object id="13" name="find" x="83" y="303.667">
@@ -150,10 +150,10 @@
   <object id="16" name="find" x="97.8333" y="331.833" rotation="-180">
    <point/>
   </object>
-  <object id="17" name="find" x="152" y="52.5833">
+  <object id="17" name="find" x="151.641" y="61.9127">
    <point/>
   </object>
-  <object id="18" name="find" x="66.4167" y="54.2917">
+  <object id="18" name="find" x="66.4167" y="61.4681">
    <point/>
   </object>
   <object id="19" name="student" x="137" y="101.667">
@@ -171,13 +171,13 @@
   <object id="23" name="find" x="170.583" y="324.958" rotation="90">
    <point/>
   </object>
-  <object id="24" name="find" x="104.25" y="246.25">
+  <object id="24" name="find" x="102.097" y="255.579">
    <point/>
   </object>
-  <object id="25" name="find" x="135.625" y="225.25">
+  <object id="25" name="find" x="135.625" y="223.097">
    <point/>
   </object>
-  <object id="26" name="find" x="154" y="225.125">
+  <object id="26" name="find" x="153.641" y="223.331">
    <point/>
   </object>
   <object id="27" name="find" x="42.75" y="183.25">

@@ -18,11 +18,14 @@
             "scaleInEditor": 1
         },
         "classroom_1.tmx": {
-            "scale": 4,
-            "selectedLayer": 4,
+            "expandedObjectLayers": [
+                4
+            ],
+            "scale": 2.7869,
+            "selectedLayer": 0,
             "viewCenter": {
-                "x": 44,
-                "y": 268.875
+                "x": 94.72891025871039,
+                "y": 213.31945889698227
             }
         },
         "classroom_2.tmx": {
@@ -34,6 +37,17 @@
             "viewCenter": {
                 "x": 163.33333333333331,
                 "y": 242.99999999999997
+            }
+        },
+        "classroom_maze.tmx": {
+            "expandedObjectLayers": [
+                4
+            ],
+            "scale": 1.5,
+            "selectedLayer": 3,
+            "viewCenter": {
+                "x": 226,
+                "y": 337.66666666666663
             }
         }
     },

@@ -238,6 +238,16 @@ func PressP() bool {
 	return inpututil.IsKeyJustPressed(ebiten.KeyP)
 }
 
+func PressDigits() int {
+	for i := 0; i <= 9; i++ {
+		key := ebiten.KeyDigit0 + ebiten.Key(i)
+		if inpututil.IsKeyJustPressed(key) {
+			return i
+		}
+	}
+	return -1
+}
+
 func TestInputs() {
 	if MoveUp() {
 		fmt.Println("Up")
@@ -274,5 +284,9 @@ func TestInputs() {
 	}
 	if PressP() {
 		fmt.Println("P for skip to game over")
+	}
+	p := PressDigits()
+	if p != -1 {
+		fmt.Println("Press Digit: ", p)
 	}
 }
