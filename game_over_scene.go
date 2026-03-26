@@ -68,7 +68,8 @@ func (s *GameOverScene) Update() error {
 		if s.isTimeUp && gp.Lives > 0 {
 			// Try Again or Start Over options
 			if s.selectedOption == 0 {
-				// Try Again - retry same level
+				// Try Again - retry same level with same layout
+				gp.IsRetryingLevel = true
 				gp.TimerTriggered = false
 				gp.ObjectsFound = 0
 				s.game.scene = NewClassroomScene(s.game, gp.Level)

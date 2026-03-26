@@ -166,7 +166,35 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 		}
 	}
 
-	game.gameplay.PlaceObjects(targetSpawns, otherSpawns)
+	isRetrying := game.gameplay.IsRetryingLevel
+	if game.gameplay.IsRetryingLevel {
+		// Use stored objects for retry
+		game.gameplay.PlacedObjects = make([]*ObjectInstance, len(game.gameplay.StoredPlacedObjects))
+		for i, obj := range game.gameplay.StoredPlacedObjects {
+			// Deep copy the stored object
+			newObj := &ObjectInstance{
+				X:              obj.X,
+				Y:              obj.Y,
+				OrigX:          obj.OrigX,
+				OrigY:          obj.OrigY,
+				ObjectIndex:    obj.ObjectIndex,
+				Image:          obj.Image,
+				IsTarget:       obj.IsTarget,
+				IsCollected:    false,
+				CountedAsFound: false,
+				CollectedFrame: 0,
+				PickupProgress: 0.0,
+			}
+			game.gameplay.PlacedObjects[i] = newObj
+		}
+		game.gameplay.TargetObjectIndex = game.gameplay.StoredTargetObjectIndex
+		game.gameplay.TargetObjectImage = game.gameplay.Objects[game.gameplay.TargetObjectIndex]
+		game.gameplay.ObjectsToFind = game.gameplay.StoredObjectsToFind
+		game.gameplay.ObjectsFound = 0
+		game.gameplay.IsRetryingLevel = false // Reset flag
+	} else {
+		game.gameplay.PlaceObjects(targetSpawns, otherSpawns)
+	}
 
 	// Set time limit for this level (in frames)
 	game.gameplay.RemainingTime = GetLevelTimeLimit(game.gameplay.Level)
@@ -176,7 +204,7 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 	game.gameplay.HasFoundObject = false
 
 	game.gameplay.LevelComplete = false
-	game.gameplay.ShowingTargetOverlay = true
+	game.gameplay.ShowingTargetOverlay = !isRetrying
 	game.gameplay.OverlayFrames = 0
 
 	if playerSpawnX > 0 || playerSpawnY > 0 {
