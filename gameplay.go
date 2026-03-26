@@ -75,6 +75,12 @@ type GameplayState struct {
 	// Overlay
 	ShowingTargetOverlay bool
 	TargetObjectImage    *ebiten.Image
+
+	// Retry state
+	IsRetryingLevel       bool
+	StoredPlacedObjects   []*ObjectInstance
+	StoredTargetObjectIndex int
+	StoredObjectsToFind   int
 }
 
 // NewGameplayState creates a new gameplay state
@@ -103,6 +109,10 @@ func NewGameplayState(objectsImage *ebiten.Image) *GameplayState {
 		RemainingTime:        3600,
 		TimerTriggered:       false,
 		ShowingTargetOverlay: true,
+		IsRetryingLevel:      false,
+		StoredPlacedObjects:  make([]*ObjectInstance, 0),
+		StoredTargetObjectIndex: 0,
+		StoredObjectsToFind:  0,
 	}
 }
 
@@ -282,10 +292,30 @@ func (gs *GameplayState) Update() {
 			if gs.Lives <= 0 {
 				gs.GameOver = true
 			}
-			// Lives > 0: Reset timer for retry, level stays the same
+			// Lives > 0: Store current layout for retry, reset timer
 			if gs.Lives > 0 {
+				// Store the current object layout
+				gs.StoredPlacedObjects = make([]*ObjectInstance, len(gs.PlacedObjects))
+				for i, obj := range gs.PlacedObjects {
+					// Deep copy the object
+					storedObj := &ObjectInstance{
+						X:              obj.X,
+						Y:              obj.Y,
+						OrigX:          obj.OrigX,
+						OrigY:          obj.OrigY,
+						ObjectIndex:    obj.ObjectIndex,
+						Image:          obj.Image,
+						IsTarget:       obj.IsTarget,
+						IsCollected:    false, // Will reset when retrying
+						CountedAsFound: false,
+						CollectedFrame: 0,
+						PickupProgress: 0.0,
+					}
+					gs.StoredPlacedObjects[i] = storedObj
+				}
+				gs.StoredTargetObjectIndex = gs.TargetObjectIndex
+				gs.StoredObjectsToFind = gs.ObjectsToFind
 				gs.RemainingTime = gs.TimePerLevel
-				// Do NOT call PlaceObjects - same layout repeats
 			}
 		}
 	}
