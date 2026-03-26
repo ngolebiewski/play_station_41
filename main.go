@@ -11,12 +11,12 @@ import (
 )
 
 type Game struct {
-	scene         Scene
-	assets        *Assets
-	player        *Player
-	debug         bool
-	audioManager  *music.AudioManager
-	gameplay      *GameplayState
+	scene        Scene
+	assets       *Assets
+	player       *Player
+	debug        bool
+	audioManager *music.AudioManager
+	gameplay     *GameplayState
 }
 
 func NewGame() *Game {
@@ -67,6 +67,7 @@ func (g *Game) Update() error {
 	}
 	if g.debug {
 		gpad.TestInputs()
+		DebugJumpToLevel(g)
 	}
 
 	return nil

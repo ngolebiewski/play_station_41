@@ -53,6 +53,9 @@ Sound effects ZZFX: https://killedbyapixel.github.io/ZzFX/
 2. Install Go
 3. `go mod tidy`
 
+## Build binary on your computer
+- `go build -o ~/Desktop/playstation41_dev`
+
 ## Build WASM for web version
 - `cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" .`
 - `GOOS=js GOARCH=wasm go build -o play_station_41.wasm .`

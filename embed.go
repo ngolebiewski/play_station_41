@@ -28,6 +28,8 @@ import (
 //go:embed tiled_files/classroom_2.tmx
 //go:embed tiled_files/CLASSROOM_MAX.tsx
 
+//go:embed tiled_files/classroom_maze.tmx
+
 // could embed the entire directory with 'art/**' but there are files I don't want in there to keep the build small.
 // For example. ASEPRITE files with layers, and unused artworks or test files.
 
