@@ -166,6 +166,7 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 		}
 	}
 
+	isRetrying := game.gameplay.IsRetryingLevel
 	if game.gameplay.IsRetryingLevel {
 		// Use stored objects for retry
 		game.gameplay.PlacedObjects = make([]*ObjectInstance, len(game.gameplay.StoredPlacedObjects))
@@ -203,7 +204,7 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 	game.gameplay.HasFoundObject = false
 
 	game.gameplay.LevelComplete = false
-	game.gameplay.ShowingTargetOverlay = true
+	game.gameplay.ShowingTargetOverlay = !isRetrying
 	game.gameplay.OverlayFrames = 0
 
 	if playerSpawnX > 0 || playerSpawnY > 0 {
