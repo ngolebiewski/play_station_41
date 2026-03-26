@@ -322,7 +322,7 @@ func (s *ClassroomScene) Update() error {
 					obj.CountedAsFound = true
 					gp.ObjectFound()
 					// Show floating text for points earned
-					s.addFloatingText("+41", obj.X, obj.Y-10, color.RGBA{255, 255, 0, 255}, true)
+					s.addFloatingText("+41", obj.X-5, obj.Y-10, color.RGBA{255, 255, 0, 255}, true)
 				}
 
 				// Kick off the HUD tween
@@ -751,8 +751,8 @@ func (s *ClassroomScene) drawFloatingTexts(screen *ebiten.Image) {
 		if ft.shake {
 			// Random shake offset, decreasing over time
 			shakeIntensity := 1.0 - float64(ft.frame)/float64(ft.duration)
-			x += (rand.Float64() - 0.5) * 4 * shakeIntensity
-			y += (rand.Float64() - 0.5) * 4 * shakeIntensity
+			x += (rand.Float64() - 0.5) * .5 * shakeIntensity
+			y += (rand.Float64() - 0.5) * .5 * shakeIntensity
 		}
 
 		// Gentle upward movement
