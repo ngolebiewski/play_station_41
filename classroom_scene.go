@@ -74,6 +74,7 @@ const tweenOffDuration = 60 // frames for slower off-screen animation (~1 second
 
 // pointsAnimation shows floating points text during level completion
 type pointsAnimation struct {
+	text     string
 	points   int
 	x, y     float64
 	frame    int
@@ -82,6 +83,18 @@ type pointsAnimation struct {
 }
 
 const pointsAnimationDuration = 120 // ~2 seconds
+
+// floatingText shows temporary text messages at specific screen positions
+type floatingText struct {
+	text     string
+	x, y     float64
+	color    color.RGBA
+	frame    int
+	duration int
+	shake    bool // If true, add random shake offset
+}
+
+const floatingTextDuration = 60 // ~1 second
 
 // easeOutQuad gives a snappy deceleration into the HUD slot.
 func easeOutQuad(t float64) float64 {
@@ -110,6 +123,8 @@ type ClassroomScene struct {
 	tweensOff []*objectTweenOff
 	// Floating points animation during level completion
 	pointsAnim *pointsAnimation
+	// Floating text messages for point awards
+	floatingTexts []*floatingText
 }
 
 func NewClassroomScene(game *Game, level int) *ClassroomScene {
@@ -225,6 +240,7 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 		playerSpawnX:    playerSpawnX,
 		playerSpawnY:    playerSpawnY,
 		tweensOff:       make([]*objectTweenOff, 0),
+		floatingTexts:   make([]*floatingText, 0),
 	}
 
 	return scene
@@ -305,6 +321,8 @@ func (s *ClassroomScene) Update() error {
 				if !obj.CountedAsFound {
 					obj.CountedAsFound = true
 					gp.ObjectFound()
+					// Show floating text for points earned
+					s.addFloatingText("+41", obj.X-5, obj.Y-10, color.RGBA{255, 255, 0, 255}, true)
 				}
 
 				// Kick off the HUD tween
@@ -341,6 +359,8 @@ func (s *ClassroomScene) Update() error {
 				if !obj.CountedAsFound {
 					obj.CountedAsFound = true
 					gp.ObjectFound()
+					// Show floating text for points earned
+					s.addFloatingText("+41", obj.X, obj.Y-10, color.RGBA{255, 255, 0, 255}, true)
 				}
 
 				// Kick off the HUD tween
@@ -366,6 +386,9 @@ func (s *ClassroomScene) Update() error {
 				s.game.audioManager.PlaySE("blip")
 				s.camera.Shake(15, 2.0)
 				gp.Points++ // Award 1 point
+
+				// Show floating text for points earned
+				s.addFloatingText("+1", obj.X, obj.Y-10, color.RGBA{255, 255, 255, 255}, true)
 
 				// Capture screen-space position for off-screen tween
 				screenX := obj.X - s.camera.DrawX()
@@ -414,7 +437,9 @@ func (s *ClassroomScene) Update() error {
 			if gp.LevelComplete {
 				secondsRemaining := gp.RemainingTime / 60
 				timeBonus := secondsRemaining * 5
+				timeBonusText := fmt.Sprintf("Time bonus %d sec x 5 points!", secondsRemaining)
 				s.pointsAnim = &pointsAnimation{
+					text:     timeBonusText,
 					points:   timeBonus,
 					x:        float64(sW) / 2,
 					y:        float64(sH) / 2,
@@ -435,6 +460,17 @@ func (s *ClassroomScene) Update() error {
 		}
 		if s.pointsAnim.frame >= s.pointsAnim.duration {
 			s.pointsAnim = nil
+		}
+	}
+
+	// ── Update floating texts ─────────────────────────────────────────────
+	for i := 0; i < len(s.floatingTexts); i++ {
+		ft := s.floatingTexts[i]
+		ft.frame++
+		if ft.frame >= ft.duration {
+			// Remove this floating text
+			s.floatingTexts = append(s.floatingTexts[:i], s.floatingTexts[i+1:]...)
+			i--
 		}
 	}
 
@@ -532,6 +568,24 @@ func (s *ClassroomScene) getOtherSpawns() []tiled.SpawnPoint {
 	return spawns
 }
 
+// addFloatingText adds a temporary text message at the specified world position
+func (s *ClassroomScene) addFloatingText(text string, worldX, worldY float64, textColor color.RGBA, shake bool) {
+	// Convert world position to screen position
+	screenX := worldX - s.camera.DrawX()
+	screenY := worldY - s.camera.DrawY()
+
+	ft := &floatingText{
+		text:     text,
+		x:        screenX,
+		y:        screenY,
+		color:    textColor,
+		frame:    0,
+		duration: floatingTextDuration,
+		shake:    shake,
+	}
+	s.floatingTexts = append(s.floatingTexts, ft)
+}
+
 func collidesWithGrid(cg *tiled.CollisionGrid, x, y, w, h float64) bool {
 	const inset = hitboxInset
 	return cg.IsSolid(x+inset, y+inset) ||
@@ -600,6 +654,9 @@ func (s *ClassroomScene) Draw(screen *ebiten.Image) {
 	if s.pointsAnim != nil {
 		s.drawPointsAnimation(screen)
 	}
+
+	// 6d. Floating texts
+	s.drawFloatingTexts(screen)
 
 	// 7. Overlay / found message
 	if s.overlay != nil {
@@ -675,7 +732,38 @@ func (s *ClassroomScene) drawPointsAnimation(screen *ebiten.Image) {
 	opts := &text.DrawOptions{}
 	opts.GeoM.Translate(pa.x, y)
 	opts.ColorScale.ScaleWithColor(color.RGBA{255, 255, 100, uint8(pa.alpha * 255)})
-	text.Draw(screen, fmt.Sprintf("+%d pts", pa.points), hudTextFace, opts)
+	text.Draw(screen, pa.text, hudTextFace, opts)
+}
+
+// drawFloatingTexts renders all active floating text messages
+func (s *ClassroomScene) drawFloatingTexts(screen *ebiten.Image) {
+	for _, ft := range s.floatingTexts {
+		// Calculate alpha for fade out in last 20 frames
+		alpha := uint8(255)
+		if ft.frame > ft.duration-20 {
+			fadeProgress := float64(ft.frame-(ft.duration-20)) / 20.0
+			alpha = uint8((1.0 - fadeProgress) * 255)
+		}
+
+		// Apply shake if enabled
+		x := ft.x
+		y := ft.y
+		if ft.shake {
+			// Random shake offset, decreasing over time
+			shakeIntensity := 1.0 - float64(ft.frame)/float64(ft.duration)
+			x += (rand.Float64() - 0.5) * .5 * shakeIntensity
+			y += (rand.Float64() - 0.5) * .5 * shakeIntensity
+		}
+
+		// Gentle upward movement
+		y -= float64(ft.frame) * 0.3
+
+		opts := &text.DrawOptions{}
+		opts.GeoM.Translate(x, y)
+		ft.color.A = alpha
+		opts.ColorScale.ScaleWithColor(ft.color)
+		text.Draw(screen, ft.text, hudTextFace, opts)
+	}
 }
 
 // drawHUD draws the heads-up display with timer, lives, and level
