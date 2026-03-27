@@ -303,10 +303,13 @@ func (s *ClassroomScene) Update() error {
 	}
 
 	// ── Proximity-based object collection (no button press needed) ────────────
+	// Use larger hitbox for object collection (more forgiving)
+	getHitboxDim := float64(getHitboxSize * scale)
+	
 	// Only allow collection if not all objects are found yet
 	if gp.ObjectsFound < gp.ObjectsToFind {
 		for _, obj := range gp.PlacedObjects {
-			if !obj.IsCollected && obj.IsTarget && s.checkPlayerObjectCollision(obj, pw, ph) {
+			if !obj.IsCollected && obj.IsTarget && s.checkPlayerObjectCollision(obj, getHitboxDim, getHitboxDim) {
 				s.game.audioManager.PlaySE("pickup")
 
 				// Capture screen-space position for the tween before marking collected
@@ -344,7 +347,7 @@ func (s *ClassroomScene) Update() error {
 	// Pressing action button expands search area by 16 pixels to help with tilemap placement
 	if gpad.PressA() {
 		for _, obj := range gp.PlacedObjects {
-			if !obj.IsCollected && obj.IsTarget && s.checkPlayerObjectCollisionWithRange(obj, pw, ph, 16) {
+			if !obj.IsCollected && obj.IsTarget && s.checkPlayerObjectCollisionWithRange(obj, getHitboxDim, getHitboxDim, 16) {
 				s.game.audioManager.PlaySE("pickup")
 
 				// Capture screen-space position for the tween before marking collected
@@ -382,7 +385,7 @@ func (s *ClassroomScene) Update() error {
 	// ── Action button on distractor objects (dismiss them) ───────────────────
 	if gpad.PressB() {
 		for _, obj := range gp.PlacedObjects {
-			if !obj.IsCollected && !obj.IsTarget && s.checkPlayerObjectCollision(obj, pw, ph) {
+			if !obj.IsCollected && !obj.IsTarget && s.checkPlayerObjectCollision(obj, getHitboxDim, getHitboxDim) {
 				s.game.audioManager.PlaySE("blip")
 				s.camera.Shake(15, 2.0)
 				gp.Points++ // Award 1 point
