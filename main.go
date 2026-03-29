@@ -6,6 +6,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/ngolebiewski/play_station_41/gpad"
 	"github.com/ngolebiewski/play_station_41/music"
 )
@@ -50,6 +51,7 @@ func NewGame() *Game {
 }
 
 func (g *Game) Update() error {
+	// drawCounter++
 	if g.audioManager != nil {
 		g.audioManager.Update()
 	}
@@ -73,16 +75,19 @@ func (g *Game) Update() error {
 	return nil
 }
 
-var drawCounter int
+// var drawCounter int
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	// ebitenutil.DebugPrint(screen, "Play Station 41\nAKA PS41")
+
 	// Only draw every 3rd frame (effectively 20 FPS)
 	// but Update() still runs 60 times a second.
-	if drawCounter%3 != 0 {
-		return
-	}
+	// fmt.Println(drawCounter)
+	// if drawCounter%7 != 0 {
+	// 	fmt.Println(ebiten.ActualTPS())
+	// 	return
+	// }
 	g.scene.Draw(screen)
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -91,8 +96,9 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	ebiten.SetWindowSize(sW*sX, sH*sX)
+	ebiten.SetTPS(20)
 	ebiten.SetVsyncEnabled(false)
-	ebiten.SetTPS(60) // Keep your math happy
+
 	gpad.Init(sW, sH)
 	ebiten.SetWindowTitle("Play Station 41")
 	game := NewGame()
