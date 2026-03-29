@@ -1,42 +1,52 @@
-.PHONY: all local windows pi wasm clean bump release
+.PHONY: all local windows pi pi32 wasm clean bump release
 
 # --- Variables ---
 BINARY_NAME=playstation41
 BUILD_DIR=build
-
-# 1. Versioning: Get latest tag (v0.1.2) or default to v0.0.0
 VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || echo v0.0.0)
-# 2. Timestamp for local dev builds
 TIMESTAMP := $(shell date +"%-m-%-d-%y_%-I:%M%p")
-
-# Check for Go 1.24+ wasm_exec location
 WASM_EXEC_PATH=$(shell go env GOROOT)/$(shell if [ -d "$(shell go env GOROOT)/lib/wasm" ]; then echo "lib/wasm"; else echo "misc/wasm"; fi)/wasm_exec.js
 
-all: local windows pi wasm
+# Added pi32 to the 'all' target
+all: local windows pi pi32 wasm
 
 # --- Build Targets ---
 
 local:
 	@echo "Building $(VERSION) for macOS..."
 	@mkdir -p $(BUILD_DIR)/macos
-	# Build with timestamp for your personal use
-	go build -o $(BUILD_DIR)/macos/$(BINARY_NAME)_$(TIMESTAMP) .
-	# Build a clean name for the GitHub distribution
 	go build -o $(BUILD_DIR)/macos/$(BINARY_NAME)_macos .
-	@echo "Done: $(BUILD_DIR)/macos/$(BINARY_NAME)_macos"
 
 windows:
 	@echo "Building $(VERSION) for Windows..."
 	@mkdir -p $(BUILD_DIR)/windows
 	GOOS=windows GOARCH=amd64 go build -o $(BUILD_DIR)/windows/$(BINARY_NAME).exe .
 
+# 64-bit ARM (Pi 4/5/Zero 2W on 64-bit OS)
 pi:
-	@echo "Building $(VERSION) for Raspberry Pi (64-bit ARM) via Docker..."
+	@echo "Building $(VERSION) for Raspberry Pi (64-bit ARM)..."
 	@mkdir -p $(BUILD_DIR)/pi
-	docker build --platform linux/arm64 -t $(BINARY_NAME)-pi-builder .
-	@docker create --name temp-builder $(BINARY_NAME)-pi-builder
-	@docker cp temp-builder:/app/$(BINARY_NAME)_pi $(BUILD_DIR)/pi/$(BINARY_NAME)_pi
-	@docker rm temp-builder
+	docker build --platform linux/arm64 \
+		--build-arg BUILD_PLATFORM=linux/arm64 \
+		--build-arg TARGET_ARCH=arm64 \
+		--build-arg BINARY_OUT=$(BINARY_NAME)_pi64 \
+		-t $(BINARY_NAME)-pi64-builder .
+	@docker create --name temp-pi64 $(BINARY_NAME)-pi64-builder
+	@docker cp temp-pi64:/app/$(BINARY_NAME)_pi64 $(BUILD_DIR)/pi/$(BINARY_NAME)_pi64
+	@docker rm temp-pi64
+
+# 32-bit ARM (Pi 3/4/Zero on 32-bit OS)
+pi32:
+	@echo "Building $(VERSION) for Raspberry Pi (32-bit ARM)..."
+	@mkdir -p $(BUILD_DIR)/pi
+	docker build --platform linux/arm/v7 \
+		--build-arg BUILD_PLATFORM=linux/arm/v7 \
+		--build-arg TARGET_ARCH=arm \
+		--build-arg BINARY_OUT=$(BINARY_NAME)_pi32 \
+		-t $(BINARY_NAME)-pi32-builder .
+	@docker create --name temp-pi32 $(BINARY_NAME)-pi32-builder
+	@docker cp temp-pi32:/app/$(BINARY_NAME)_pi32 $(BUILD_DIR)/pi/$(BINARY_NAME)_pi32
+	@docker rm temp-pi32
 
 wasm:
 	@echo "Building $(VERSION) for Web (WASM)..."
@@ -47,22 +57,14 @@ wasm:
 
 # --- Utility Targets ---
 
-# Increments the PATCH version (e.g., v0.1.1 -> v0.1.2)
-bump:
-	@echo "Current version: $(VERSION)"
-	@NEXT_VERSION=$$(echo $(VERSION) | awk -F. '{print $$1"."$$2"."$$3+1}'); \
-	echo "Bumping to $$NEXT_VERSION..."; \
-	git tag $$NEXT_VERSION
-	@echo "New tag $$NEXT_VERSION created locally."
-	@echo "Run 'git push --tags' to sync with GitHub."
-
-# Creates a GitHub Release and uploads all 3 binaries
 release: all
 	@echo "Creating GitHub Release for $(VERSION)..."
 	gh release create $(VERSION) \
 		$(BUILD_DIR)/macos/$(BINARY_NAME)_macos \
-		$(BUILD_DIR)/pi/$(BINARY_NAME)_pi \
+		$(BUILD_DIR)/pi/$(BINARY_NAME)_pi64 \
+		$(BUILD_DIR)/pi/$(BINARY_NAME)_pi32 \
 		$(BUILD_DIR)/windows/$(BINARY_NAME).exe \
+		$(BUILD_DIR)/wasm/$(BINARY_NAME).wasm \
 		--title "Release $(VERSION)" \
 		--notes "Automated multi-platform build for $(VERSION)"
 

@@ -4,7 +4,7 @@
 - Game wide constants should be put in constants.go to make game design more flexible and easy to find
 - Be extremely concise. 
 - Do not explain code unless explicitly asked "Why?".
-- Skip the "Plan" phase text; proceed directly to file edits.
+<!-- - Skip the "Plan" phase text; proceed directly to file edits. -->
 - Use "Done" or a single-sentence summary when finished.
 - Prioritize Go and Ebitengine best practices.
 - Keep credit use to a minimum

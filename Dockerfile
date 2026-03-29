@@ -1,8 +1,8 @@
-# Use the official Golang image
-FROM --platform=linux/arm64 golang:1.25.1
+# Use an argument to toggle platforms (default to arm64)
+ARG BUILD_PLATFORM=linux/arm64
+FROM --platform=${BUILD_PLATFORM} golang:1.25.1
 
 # Install Ebitengine Linux dependencies
-# These are cached and won't re-run unless this block changes
 RUN apt-get update && apt-get install -y \
     libgl1-mesa-dev \
     xorg-dev \
@@ -12,16 +12,13 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# 1. Copy only the dependency files first
 COPY go.mod go.sum ./
-
-# 2. Download dependencies
-# This layer is cached unless go.mod or go.sum changes
 RUN go mod download
 
-# 3. Now copy the rest of the source code
 COPY . .
 
-# 4. Build the binary
-# This is the only part that will run frequently
-RUN GOOS=linux GOARCH=arm64 go build -o playstation41_pi .
+# Use ARG to define the output name and architecture
+ARG TARGET_ARCH=arm64
+ARG BINARY_OUT=playstation41_pi64
+
+RUN GOOS=linux GOARCH=${TARGET_ARCH} go build -o ${BINARY_OUT} .
