@@ -73,8 +73,15 @@ func (g *Game) Update() error {
 	return nil
 }
 
+var drawCounter int
+
 func (g *Game) Draw(screen *ebiten.Image) {
 	// ebitenutil.DebugPrint(screen, "Play Station 41\nAKA PS41")
+	// Only draw every 3rd frame (effectively 20 FPS)
+	// but Update() still runs 60 times a second.
+	if drawCounter%3 != 0 {
+		return
+	}
 	g.scene.Draw(screen)
 }
 
@@ -84,6 +91,8 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	ebiten.SetWindowSize(sW*sX, sH*sX)
+	ebiten.SetVsyncEnabled(false)
+	ebiten.SetTPS(60) // Keep your math happy
 	gpad.Init(sW, sH)
 	ebiten.SetWindowTitle("Play Station 41")
 	game := NewGame()
