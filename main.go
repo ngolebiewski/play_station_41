@@ -96,7 +96,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	ebiten.SetWindowSize(sW*sX, sH*sX)
-	ebiten.SetTPS(20)
+	ebiten.SetTPS(10)
 	ebiten.SetVsyncEnabled(false)
 
 	gpad.Init(sW, sH)
