@@ -305,7 +305,7 @@ func (s *ClassroomScene) Update() error {
 	// ── Proximity-based object collection (no button press needed) ────────────
 	// Use larger hitbox for object collection (more forgiving)
 	getHitboxDim := float64(getHitboxSize * scale)
-	
+
 	// Only allow collection if not all objects are found yet
 	if gp.ObjectsFound < gp.ObjectsToFind {
 		for _, obj := range gp.PlacedObjects {
@@ -849,6 +849,8 @@ func getTilemapPath(level int) string {
 		return "tiled_files/classroom_2.tmx"
 	case 5:
 		return "tiled_files/classroom_maze.tmx"
+	case 7:
+		return "tiled_files/CLASSROOM_busy.tmx"
 	default:
 		return "tiled_files/classroom_1.tmx"
 	}
@@ -860,6 +862,8 @@ func getTileset(game *Game, level int) *ebiten.Image {
 	case 2:
 		return game.assets.ClassroomTileset_2
 	case 5:
+		return game.assets.ClassroomTileset_2
+	case 6:
 		return game.assets.ClassroomTileset_2
 	default:
 		return game.assets.ClassroomTileset_1

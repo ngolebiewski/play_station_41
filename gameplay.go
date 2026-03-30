@@ -77,10 +77,10 @@ type GameplayState struct {
 	TargetObjectImage    *ebiten.Image
 
 	// Retry state
-	IsRetryingLevel       bool
-	StoredPlacedObjects   []*ObjectInstance
+	IsRetryingLevel         bool
+	StoredPlacedObjects     []*ObjectInstance
 	StoredTargetObjectIndex int
-	StoredObjectsToFind   int
+	StoredObjectsToFind     int
 }
 
 // NewGameplayState creates a new gameplay state
@@ -88,31 +88,31 @@ func NewGameplayState(objectsImage *ebiten.Image) *GameplayState {
 	objects := extractObjectSprites(objectsImage)
 
 	return &GameplayState{
-		Level:                1,
-		Lives:                3,
-		Score:                0,
-		Points:               0,
-		GameOver:             false,
-		LevelComplete:        false,
-		HasFoundObject:       false,
-		OverlayActive:        false,
-		OverlayFrames:        0,
-		FoundMessageFrames:   0,
-		Objects:              objects,
-		PlacedObjects:        make([]*ObjectInstance, 0),
-		TargetObjectIndex:    0,
-		UsedObjectIndices:    make([]int, 0),
-		DistractorIndices:    make([]int, 0),
-		ObjectsToFind:        1,
-		ObjectsFound:         0,
-		TimePerLevel:         3600, // 60 seconds at 60fps
-		RemainingTime:        3600,
-		TimerTriggered:       false,
-		ShowingTargetOverlay: true,
-		IsRetryingLevel:      false,
-		StoredPlacedObjects:  make([]*ObjectInstance, 0),
+		Level:                   1,
+		Lives:                   3,
+		Score:                   0,
+		Points:                  0,
+		GameOver:                false,
+		LevelComplete:           false,
+		HasFoundObject:          false,
+		OverlayActive:           false,
+		OverlayFrames:           0,
+		FoundMessageFrames:      0,
+		Objects:                 objects,
+		PlacedObjects:           make([]*ObjectInstance, 0),
+		TargetObjectIndex:       0,
+		UsedObjectIndices:       make([]int, 0),
+		DistractorIndices:       make([]int, 0),
+		ObjectsToFind:           1,
+		ObjectsFound:            0,
+		TimePerLevel:            3600, // 60 seconds at 60fps
+		RemainingTime:           3600,
+		TimerTriggered:          false,
+		ShowingTargetOverlay:    true,
+		IsRetryingLevel:         false,
+		StoredPlacedObjects:     make([]*ObjectInstance, 0),
 		StoredTargetObjectIndex: 0,
-		StoredObjectsToFind:  0,
+		StoredObjectsToFind:     0,
 	}
 }
 
@@ -357,7 +357,7 @@ func GetLevelTimeLimit(level int) int {
 	case 7:
 		return 25 * 60 // 25 seconds - 4th Grade
 	case 8:
-		return 30 * 60 // 30 seconds - 5th Grade (final level)
+		return 20 * 60 // 30 seconds - 5th Grade (final level)
 	default:
 		return 30 * 60 // 30 seconds default
 	}
