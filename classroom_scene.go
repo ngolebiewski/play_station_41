@@ -854,7 +854,7 @@ func getTilemapPath(level int) string {
 	// case 5:
 	// 	return "tiled_files/classroom_maze.tmx"
 	case 7:
-		return "tiled_files/CLASSROOM_busy2.tmx"
+		return "tiled_files/classroom_busy2.tmx"
 	case 8:
 		return "tiled_files/classroom_final.tmx"
 	default:
