@@ -851,8 +851,8 @@ func getTilemapPath(level int) string {
 	switch level {
 	case 2:
 		return "tiled_files/classroom_2.tmx"
-	// case 5:
-	// 	return "tiled_files/classroom_maze.tmx"
+	case 5:
+		return "tiled_files/classroom_maze.tmx"
 	case 7:
 		return "tiled_files/classroom_busy2.tmx"
 	case 8:
@@ -865,7 +865,6 @@ func getTilemapPath(level int) string {
 // getTileset returns the appropriate tileset image for the given level.
 func getTileset(game *Game, level int) *ebiten.Image {
 	switch level {
-	// case 2, 5, 7:
 	case 2, 5, 7:
 		return game.assets.ClassroomTileset_2
 	default:

@@ -61,15 +61,26 @@
                 "y": 131.83333333333331
             }
         },
+        "classroom_final.tmx": {
+            "expandedObjectLayers": [
+                4
+            ],
+            "scale": 4,
+            "selectedLayer": 3,
+            "viewCenter": {
+                "x": 122.875,
+                "y": 187.875
+            }
+        },
         "classroom_maze.tmx": {
             "expandedObjectLayers": [
                 4
             ],
-            "scale": 3,
-            "selectedLayer": 3,
+            "scale": 0.75,
+            "selectedLayer": 0,
             "viewCenter": {
-                "x": 319.8333333333333,
-                "y": 317.83333333333337
+                "x": 339.33333333333337,
+                "y": 328.66666666666663
             }
         }
     },
