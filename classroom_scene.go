@@ -387,7 +387,11 @@ func (s *ClassroomScene) Update() error {
 		for _, obj := range gp.PlacedObjects {
 			if !obj.IsCollected && !obj.IsTarget && s.checkPlayerObjectCollision(obj, getHitboxDim, getHitboxDim) {
 				s.game.audioManager.PlaySE("blip")
-				s.camera.Shake(15, 2.0)
+				if s.game.gameplay.Level == 7 || s.game.gameplay.Level == 8 {
+					// s.camera.Shake(5, 0.1)
+				} else {
+					s.camera.Shake(15, 2.0)
+				} // too aggressive makes me motion sick on the busy levels
 				gp.Points++ // Award 1 point
 
 				// Show floating text for points earned
