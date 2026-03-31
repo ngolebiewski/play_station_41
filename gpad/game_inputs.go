@@ -45,7 +45,7 @@ type touchInfo struct {
 
 var activeTouches = map[ebiten.TouchID]*touchInfo{}
 
-// ── double-tap / double-click detection ──────────────────────────────────────
+// ── double-tap detection ─────────────────────────────────────────────────────
 
 type tapRecord struct {
 	x, y    int
@@ -61,26 +61,15 @@ var (
 // ticksToMs converts our frame counter delta to milliseconds (assumes 60 fps).
 func ticksToMs(delta int) int { return delta * 1000 / 60 }
 
-// ── mouse / trackpad tracking ────────────────────────────────────────────────
-
-type mouseInfo struct {
-	startX, startY int
-	locked         bool // became a drag, not a click
-}
-
-var (
-	mouse            *mouseInfo // non-nil while left button is held
-	lastMouseClick   *tapRecord
-	mouseDoubleClick bool
-)
-
 // ── computed state (set once per frame by UpdateTouch) ───────────────────────
 
 var dpadTouch struct{ up, down, left, right bool }
-var bButtonTouch bool // double-tap / double-click fired this frame
+var bButtonTouch bool // double-tap fired this frame
+var aButtonMouse bool // right-click fired this frame
 
 // UpdateTouch must be called once per game tick.
-// Touch/mouse drag = D-pad direction; double-tap / double-click = B button.
+// Full screen drag = D-pad direction; double-tap anywhere = B button.
+// Mouse: left-click = B, right-click = A. No movement mapping.
 func UpdateTouch() {
 	// Reset frame state
 	dpadTouch.up = false
@@ -88,63 +77,20 @@ func UpdateTouch() {
 	dpadTouch.left = false
 	dpadTouch.right = false
 	doubleTapFired = false
-	mouseDoubleClick = false
+	bButtonTouch = false
+	aButtonMouse = false
 
 	frameCounter++
 
-	// ── mouse / trackpad ─────────────────────────────────────────────────────
+	// ── mouse clicks ─────────────────────────────────────────────────────────
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		mx, my := ebiten.CursorPosition()
-		mouse = &mouseInfo{startX: mx, startY: my}
+		bButtonTouch = true
+	}
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		aButtonMouse = true
 	}
 
-	if mouse != nil {
-		mx, my := ebiten.CursorPosition()
-		dx := mx - mouse.startX
-		dy := my - mouse.startY
-		dist2 := dx*dx + dy*dy
-
-		if dist2 >= dragThreshold*dragThreshold {
-			mouse.locked = true
-			if abs(dx) >= abs(dy) {
-				if dx > 0 {
-					dpadTouch.right = true
-				} else {
-					dpadTouch.left = true
-				}
-			} else {
-				if dy > 0 {
-					dpadTouch.down = true
-				} else {
-					dpadTouch.up = true
-				}
-			}
-		}
-	}
-
-	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) && mouse != nil {
-		if !mouse.locked {
-			// Was a clean click — check for double-click
-			mx, my := ebiten.CursorPosition()
-			if lastMouseClick != nil &&
-				ticksToMs(frameCounter-lastMouseClick.ticksAt) <= doubleTapMs {
-				mouseDoubleClick = true
-				lastMouseClick = nil
-			} else {
-				lastMouseClick = &tapRecord{x: mx, y: my, ticksAt: frameCounter}
-			}
-		}
-		mouse = nil
-	}
-
-	// Expire stale last-click record
-	if lastMouseClick != nil && ticksToMs(frameCounter-lastMouseClick.ticksAt) > doubleTapMs {
-		lastMouseClick = nil
-	}
-
-	// Touch input runs below; if no touch, wire up mouse result and bail early.
 	if !touchEnabled {
-		bButtonTouch = mouseDoubleClick
 		return
 	}
 
@@ -215,7 +161,7 @@ func UpdateTouch() {
 		}
 	}
 
-	bButtonTouch = doubleTapFired || mouseDoubleClick
+	bButtonTouch = bButtonTouch || doubleTapFired
 }
 
 func abs(n int) int {
@@ -282,7 +228,8 @@ func PressB() bool {
 }
 
 func PressA() bool {
-	return inpututil.IsKeyJustPressed(ebiten.KeyZ) ||
+	return aButtonMouse ||
+		inpututil.IsKeyJustPressed(ebiten.KeyZ) ||
 		inpututil.IsKeyJustPressed(ebiten.KeyDelete) ||
 		inpututil.IsStandardGamepadButtonJustPressed(0, ebiten.StandardGamepadButtonRightRight) ||
 		inpututil.IsStandardGamepadButtonJustPressed(0, 1)
