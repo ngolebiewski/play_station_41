@@ -1,0 +1,856 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="15" height="24" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="272">
+ <editorsettings>
+  <export format="json"/>
+ </editorsettings>
+ <tileset firstgid="1" source="CLASSROOM.tsx"/>
+ <layer id="1" name="Tile Layer 1" width="15" height="24">
+  <data encoding="csv">
+4,4,4,4,4,4,4,4,4,4,4,4,4,4,44,
+43,4,4,4,4,4,4,4,4,4,4,4,4,44,4,
+4,43,4,4,4,4,4,4,4,4,4,4,44,4,4,
+4,4,43,4,4,4,4,4,4,4,4,44,4,4,4,
+4,4,4,3,3,3,3,3,3,3,3,4,4,4,4,
+4,4,4,3,2,2,2,2,2,2,3,4,4,4,4,
+4,4,4,3,3221225496,3221225495,3221225494,2,2,2,3,4,4,4,4,
+4,4,4,3,3221225493,3221225492,3221225491,2,2,2,3,4,4,4,4,
+4,4,4,3,2,2,2,2,2,2,3,4,4,4,4,
+4,4,4,3,2,2,2,2,2,2,3,4,4,4,4,
+4,4,4,3,2,2,2,2,2,2,3,4,4,4,4,
+4,4,4,3,2,2,2,2,2,2,3,4,4,4,4,
+4,4,4,3,2,2,2,2,2,2,3,4,4,4,4,
+4,4,4,3,2,2,2,2,2,2,3,4,4,4,4,
+4,4,4,3,2,2,2,2,2,2,3,4,4,4,4,
+4,4,4,3,2,2,2,2,2,2,3,4,4,4,4,
+4,4,4,3,2,2,2,2,2,2,3,4,4,4,4,
+4,4,4,3,19,20,21,2,2,2,3,4,4,4,4,
+4,4,4,3,22,23,24,2,2,2,3,4,4,4,4,
+4,4,4,3,2,2,2,2,2,2,3,4,4,4,4,
+4,4,4,3,3,3,3,3,3,3,3,4,4,4,4,
+4,4,44,4,4,4,4,4,4,4,4,43,4,4,4,
+4,44,4,4,4,4,4,4,4,4,4,4,43,4,4,
+44,4,4,4,4,4,4,4,4,4,4,4,4,43,4
+</data>
+ </layer>
+ <layer id="2" name="collide" width="15" height="24">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,17,15,28,29,33,0,0,0,0,0,0,
+0,0,0,0,18,16,30,31,50,49,0,0,0,0,0,
+1610612742,1610612745,0,13,12,39,39,39,13,12,39,0,0,0,0,
+1610612742,1610612745,1610612748,0,0,0,0,0,0,0,0,40,0,0,0,
+1610612741,1610612745,1610612749,0,0,0,0,0,0,0,0,2684354596,2684354595,2684354598,0,
+1610612741,1610612745,1610612748,0,0,0,0,0,0,0,0,40,0,0,0,
+1610612743,1610612746,1610612749,0,0,0,0,0,0,0,0,2684354596,2684354619,2684354618,0,
+1610612742,1610612745,1610612748,0,0,0,0,0,0,0,0,2684354596,2684354619,2684354618,0,
+1610612741,1610612745,1610612749,0,0,0,0,0,0,0,0,2684354596,2684354619,2684354618,0,
+1610612769,0,42,0,0,0,0,0,0,0,0,2684354596,2684354619,2684354618,0,
+1610612741,1610612745,1610612748,0,0,0,0,0,0,0,0,2684354596,2684354619,2684354618,0,
+1610612741,1610612745,1610612749,0,0,0,0,0,0,0,0,2684354596,2684354619,2684354618,0,
+1610612744,1610612747,1610612762,0,0,0,0,0,0,0,0,40,2684354578,2684354577,0,
+1610612743,1610612746,1610612763,0,0,0,0,0,0,0,0,40,2684354576,2684354575,0,
+1610612743,1610612746,1610612762,0,0,0,0,0,0,0,0,40,2684354578,2684354577,0,
+1610612743,1610612746,1610612763,0,0,0,0,0,0,0,0,40,2684354576,2684354575,0,
+1610612742,1610612745,1610612748,0,0,0,0,0,0,0,0,40,2684354578,2684354577,0,
+1610612741,1610612745,1610612749,0,0,0,0,0,0,0,0,40,2684354576,2684354575,0,
+1610612741,1610612745,1610612748,0,0,0,0,0,0,0,0,40,0,2684354593,0,
+1610612741,1610612745,1610612749,0,0,0,0,0,0,0,0,40,0,0,0,
+1610612741,1610612745,0,3221225484,3221225485,3221225484,3221225485,3221225484,3221225485,3221225484,3221225485,0,0,0,0,
+0,0,0,3221225522,3221225521,3221225522,3221225521,3221225522,3221225521,3221225522,3221225521,0,0,0,0,
+0,3221225488,3221225490,3221225488,3221225490,3221225488,3221225490,3221225488,3221225490,3221225488,3221225490,3221225488,3221225490,0,0
+</data>
+ </layer>
+ <layer id="5" name="moveable" width="15" height="24">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,25,25,0,25,25,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,25,25,0,25,25,0,0,0,0,0,
+0,0,0,0,0,25,25,0,25,25,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,52,53,0,25,25,0,0,0,0,0,
+0,0,0,0,0,51,54,0,25,25,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="3" name="decoration" width="15" height="24">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,45,46,0,0,0,0,0,0,0,0,0,0,0,
+0,0,47,48,0,0,0,0,14,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,34,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,32,0,0,0,0,0,
+0,0,1610612770,32,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1610612770,0,0,0,0,0,3221225496,3221225495,3221225494,0,0,0,0,
+0,0,1610612770,0,0,0,0,0,3221225493,3221225492,3221225491,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,2684354607,2684354605,0,
+0,0,0,0,0,32,32,0,32,32,0,0,2684354608,2684354606,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1610612770,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,32,32,0,32,32,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,32,32,0,32,32,0,0,0,0,0,
+0,0,1610612770,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,536870946,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1610612770,0,0,0,0,0,0,0,0,0,2684354607,2684354605,0,
+0,0,0,0,0,0,0,0,0,0,0,0,2684354608,2684354606,0,
+0,0,0,0,0,0,0,0,3221225486,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="4" name="spawn" visible="0">
+  <object id="3" name="find" x="121.929" y="204.588">
+   <point/>
+  </object>
+  <object id="5" name="find" x="152" y="178.618">
+   <point/>
+  </object>
+  <object id="7" name="find" x="151.692" y="148.027">
+   <point/>
+  </object>
+  <object id="8" name="find" x="135" y="147.079">
+   <point/>
+  </object>
+  <object id="10" name="find" x="86.2059" y="148.104">
+   <point/>
+  </object>
+  <object id="11" name="find" x="103.026" y="148.18">
+   <point/>
+  </object>
+  <object id="12" name="find" x="89.2314" y="253.151">
+   <point/>
+  </object>
+  <object id="13" name="find" x="83" y="303.667">
+   <point/>
+  </object>
+  <object id="14" name="find" x="40.7083" y="289.208" rotation="-90">
+   <point/>
+  </object>
+  <object id="15" name="find" x="40.2917" y="314.375" rotation="-90">
+   <point/>
+  </object>
+  <object id="16" name="find" x="97.8333" y="331.833" rotation="-180">
+   <point/>
+  </object>
+  <object id="17" name="find" x="151.641" y="61.9127">
+   <point/>
+  </object>
+  <object id="18" name="find" x="66.4167" y="61.4681">
+   <point/>
+  </object>
+  <object id="19" name="student" x="137" y="101.667">
+   <point/>
+  </object>
+  <object id="20" name="student" x="145.333" y="305">
+   <point/>
+  </object>
+  <object id="21" name="student" x="76.3333" y="114.667">
+   <point/>
+  </object>
+  <object id="22" name="teacher" x="108.667" y="76.3333">
+   <point/>
+  </object>
+  <object id="23" name="find" x="170.583" y="324.958" rotation="90">
+   <point/>
+  </object>
+  <object id="24" name="find" x="102.097" y="255.579">
+   <point/>
+  </object>
+  <object id="25" name="find" x="135.625" y="223.097">
+   <point/>
+  </object>
+  <object id="26" name="find" x="153.641" y="223.331">
+   <point/>
+  </object>
+  <object id="27" name="find" x="42.75" y="183.25">
+   <point/>
+  </object>
+  <object id="49" name="find" x="150.75" y="123.5">
+   <point/>
+  </object>
+  <object id="50" name="find" x="138.5" y="124.5">
+   <point/>
+  </object>
+  <object id="51" name="find" x="123.5" y="132">
+   <point/>
+  </object>
+  <object id="52" name="find" x="104.75" y="129.75">
+   <point/>
+  </object>
+  <object id="53" name="find" x="96.75" y="127">
+   <point/>
+  </object>
+  <object id="54" name="find" x="77" y="130.25">
+   <point/>
+  </object>
+  <object id="55" name="find" x="69.75" y="139">
+   <point/>
+  </object>
+  <object id="56" name="find" x="65.75" y="151">
+   <point/>
+  </object>
+  <object id="57" name="find" x="56.75" y="140.5">
+   <point/>
+  </object>
+  <object id="58" name="find" x="56.75" y="125.5">
+   <point/>
+  </object>
+  <object id="59" name="find" x="59" y="118.75">
+   <point/>
+  </object>
+  <object id="60" name="find" x="57" y="91.25">
+   <point/>
+  </object>
+  <object id="61" name="find" x="59.5" y="78.5">
+   <point/>
+  </object>
+  <object id="62" name="find" x="87.75" y="76">
+   <point/>
+  </object>
+  <object id="63" name="find" x="94.5" y="83.5">
+   <point/>
+  </object>
+  <object id="64" name="find" x="80.25" y="95.75">
+   <point/>
+  </object>
+  <object id="65" name="find" x="67.25" y="92.75">
+   <point/>
+  </object>
+  <object id="66" name="find" x="86" y="96">
+   <point/>
+  </object>
+  <object id="67" name="find" x="132.75" y="100.5">
+   <point/>
+  </object>
+  <object id="68" name="find" x="130.25" y="81">
+   <point/>
+  </object>
+  <object id="69" name="find" x="115" y="88.25">
+   <point/>
+  </object>
+  <object id="70" name="find" x="115.25" y="117.5">
+   <point/>
+  </object>
+  <object id="71" name="find" x="115.5" y="126">
+   <point/>
+  </object>
+  <object id="72" name="find" x="89" y="104.5">
+   <point/>
+  </object>
+  <object id="73" name="find" x="96" y="90.25">
+   <point/>
+  </object>
+  <object id="74" name="find" x="109.25" y="98">
+   <point/>
+  </object>
+  <object id="75" name="find" x="96.25" y="112.75">
+   <point/>
+  </object>
+  <object id="76" name="find" x="89.5" y="113.75">
+   <point/>
+  </object>
+  <object id="77" name="find" x="101" y="105.75">
+   <point/>
+  </object>
+  <object id="78" name="find" x="126.25" y="121">
+   <point/>
+  </object>
+  <object id="79" name="find" x="123.5" y="135.75">
+   <point/>
+  </object>
+  <object id="80" name="find" x="121.5" y="138.5">
+   <point/>
+  </object>
+  <object id="81" name="find" x="125" y="159.5">
+   <point/>
+  </object>
+  <object id="82" name="find" x="125.75" y="166.75">
+   <point/>
+  </object>
+  <object id="83" name="find" x="122.5" y="175">
+   <point/>
+  </object>
+  <object id="84" name="find" x="116.25" y="190">
+   <point/>
+  </object>
+  <object id="85" name="find" x="116.25" y="227.5">
+   <point/>
+  </object>
+  <object id="86" name="find" x="116.5" y="236">
+   <point/>
+  </object>
+  <object id="87" name="find" x="117.75" y="207">
+   <point/>
+  </object>
+  <object id="88" name="find" x="119.5" y="210">
+   <point/>
+  </object>
+  <object id="89" name="find" x="120.5" y="234">
+   <point/>
+  </object>
+  <object id="90" name="find" x="120.25" y="241.25">
+   <point/>
+  </object>
+  <object id="91" name="find" x="121" y="247.25">
+   <point/>
+  </object>
+  <object id="92" name="find" x="120.5" y="250.75">
+   <point/>
+  </object>
+  <object id="93" name="find" x="122.25" y="268.25">
+   <point/>
+  </object>
+  <object id="94" name="find" x="107.5" y="269.75">
+   <point/>
+  </object>
+  <object id="95" name="find" x="94.5" y="274">
+   <point/>
+  </object>
+  <object id="96" name="find" x="83.75" y="272.25">
+   <point/>
+  </object>
+  <object id="97" name="find" x="76.75" y="264.25">
+   <point/>
+  </object>
+  <object id="98" name="find" x="69.25" y="262.25">
+   <point/>
+  </object>
+  <object id="99" name="find" x="58" y="274">
+   <point/>
+  </object>
+  <object id="100" name="find" x="57.25" y="281.75">
+   <point/>
+  </object>
+  <object id="101" name="find" x="81.5" y="295.25">
+   <point/>
+  </object>
+  <object id="102" name="find" x="92" y="291.5">
+   <point/>
+  </object>
+  <object id="103" name="find" x="111.25" y="282.75">
+   <point/>
+  </object>
+  <object id="104" name="find" x="126.75" y="278.25">
+   <point/>
+  </object>
+  <object id="105" name="find" x="140.5" y="279.75">
+   <point/>
+  </object>
+  <object id="106" name="find" x="146.25" y="285.75">
+   <point/>
+  </object>
+  <object id="107" name="find" x="151" y="282.75">
+   <point/>
+  </object>
+  <object id="108" name="find" x="166.25" y="262.25">
+   <point/>
+  </object>
+  <object id="109" name="find" x="152.75" y="261">
+   <point/>
+  </object>
+  <object id="110" name="find" x="153.75" y="271">
+   <point/>
+  </object>
+  <object id="111" name="find" x="174" y="258.75">
+   <point/>
+  </object>
+  <object id="112" name="find" x="170.5" y="241.5">
+   <point/>
+  </object>
+  <object id="113" name="find" x="170.25" y="234">
+   <point/>
+  </object>
+  <object id="114" name="find" x="167.5" y="200.75">
+   <point/>
+  </object>
+  <object id="115" name="find" x="167.5" y="200.75">
+   <point/>
+  </object>
+  <object id="116" name="find" x="167.75" y="173.25">
+   <point/>
+  </object>
+  <object id="117" name="find" x="167.75" y="173">
+   <point/>
+  </object>
+  <object id="118" name="find" x="168.5" y="144.75">
+   <point/>
+  </object>
+  <object id="119" name="find" x="168.5" y="146">
+   <point/>
+  </object>
+  <object id="120" name="find" x="168.5" y="129.5">
+   <point/>
+  </object>
+  <object id="121" name="find" x="167.5" y="126.5">
+   <point/>
+  </object>
+  <object id="122" name="find" x="168.25" y="116.75">
+   <point/>
+  </object>
+  <object id="123" name="find" x="168.75" y="109">
+   <point/>
+  </object>
+  <object id="124" name="find" x="140.25" y="129.5">
+   <point/>
+  </object>
+  <object id="125" name="find" x="125.25" y="129.25">
+   <point/>
+  </object>
+  <object id="126" name="find" x="101.75" y="132.75">
+   <point/>
+  </object>
+  <object id="127" name="find" x="76" y="133.5">
+   <point/>
+  </object>
+  <object id="128" name="find" x="70.5" y="133">
+   <point/>
+  </object>
+  <object id="129" name="find" x="63.75" y="159.5">
+   <point/>
+  </object>
+  <object id="130" name="find" x="62.25" y="170.5">
+   <point/>
+  </object>
+  <object id="131" name="find" x="58.25" y="172.75">
+   <point/>
+  </object>
+  <object id="132" name="find" x="61.75" y="181.5">
+   <point/>
+  </object>
+  <object id="133" name="find" x="67.5" y="172.75">
+   <point/>
+  </object>
+  <object id="134" name="find" x="70.75" y="162.75">
+   <point/>
+  </object>
+  <object id="135" name="find" x="69.5" y="182.75">
+   <point/>
+  </object>
+  <object id="136" name="find" x="68.25" y="201.25">
+   <point/>
+  </object>
+  <object id="137" name="find" x="60.75" y="203">
+   <point/>
+  </object>
+  <object id="138" name="find" x="57.25" y="195.75">
+   <point/>
+  </object>
+  <object id="139" name="find" x="57.25" y="212.75">
+   <point/>
+  </object>
+  <object id="140" name="find" x="63.75" y="223.25">
+   <point/>
+  </object>
+  <object id="141" name="find" x="70.25" y="217.5">
+   <point/>
+  </object>
+  <object id="142" name="find" x="64.5" y="232.5">
+   <point/>
+  </object>
+  <object id="143" name="find" x="58" y="237.25">
+   <point/>
+  </object>
+  <object id="144" name="find" x="47.25" y="225.25">
+   <point/>
+  </object>
+  <object id="145" name="find" x="49" y="242">
+   <point/>
+  </object>
+  <object id="146" name="find" x="74" y="257.25">
+   <point/>
+  </object>
+  <object id="147" name="find" x="73.25" y="242.5">
+   <point/>
+  </object>
+  <object id="148" name="find" x="74.5" y="232">
+   <point/>
+  </object>
+  <object id="149" name="find" x="73.75" y="219.75">
+   <point/>
+  </object>
+  <object id="150" name="find" x="63.5" y="255.25">
+   <point/>
+  </object>
+  <object id="151" name="find" x="61.25" y="253.25">
+   <point/>
+  </object>
+  <object id="152" name="find" x="64.75" y="247">
+   <point/>
+  </object>
+  <object id="153" name="find" x="57.5" y="253">
+   <point/>
+  </object>
+  <object id="154" name="find" x="65.75" y="264.75">
+   <point/>
+  </object>
+  <object id="155" name="find" x="79.75" y="271.25">
+   <point/>
+  </object>
+  <object id="156" name="find" x="66.5" y="282.75">
+   <point/>
+  </object>
+  <object id="157" name="find" x="58.5" y="289.5">
+   <point/>
+  </object>
+  <object id="158" name="find" x="56.25" y="296.5">
+   <point/>
+  </object>
+  <object id="159" name="find" x="57.5" y="305.25">
+   <point/>
+  </object>
+  <object id="160" name="find" x="71.75" y="315">
+   <point/>
+  </object>
+  <object id="161" name="find" x="82" y="315.75">
+   <point/>
+  </object>
+  <object id="162" name="find" x="76.75" y="303">
+   <point/>
+  </object>
+  <object id="163" name="find" x="72.25" y="304.25">
+   <point/>
+  </object>
+  <object id="164" name="find" x="68.25" y="316.75">
+   <point/>
+  </object>
+  <object id="165" name="find" x="56" y="327.25">
+   <point/>
+  </object>
+  <object id="166" name="find" x="64" y="330.25">
+   <point/>
+  </object>
+  <object id="167" name="find" x="78.75" y="331.75">
+   <point/>
+  </object>
+  <object id="168" name="find" x="87.5" y="331.75">
+   <point/>
+  </object>
+  <object id="169" name="find" x="98.75" y="331.5">
+   <point/>
+  </object>
+  <object id="170" name="find" x="100" y="331.5">
+   <point/>
+  </object>
+  <object id="171" name="find" x="127.5" y="332.5">
+   <point/>
+  </object>
+  <object id="172" name="find" x="137.25" y="333.5">
+   <point/>
+  </object>
+  <object id="173" name="find" x="148.5" y="333.5">
+   <point/>
+  </object>
+  <object id="174" name="find" x="155" y="331.75">
+   <point/>
+  </object>
+  <object id="175" name="find" x="157.25" y="328">
+   <point/>
+  </object>
+  <object id="176" name="find" x="154.75" y="318.75">
+   <point/>
+  </object>
+  <object id="177" name="find" x="145" y="318.25">
+   <point/>
+  </object>
+  <object id="178" name="find" x="133.25" y="317.5">
+   <point/>
+  </object>
+  <object id="179" name="find" x="110.25" y="317.5">
+   <point/>
+  </object>
+  <object id="180" name="find" x="101" y="317">
+   <point/>
+  </object>
+  <object id="181" name="find" x="95.75" y="301">
+   <point/>
+  </object>
+  <object id="182" name="find" x="106.25" y="298">
+   <point/>
+  </object>
+  <object id="183" name="find" x="117.75" y="299.75">
+   <point/>
+  </object>
+  <object id="184" name="find" x="128.25" y="316">
+   <point/>
+  </object>
+  <object id="185" name="find" x="140.5" y="302.5">
+   <point/>
+  </object>
+  <object id="186" name="find" x="130" y="292.5">
+   <point/>
+  </object>
+  <object id="187" name="find" x="119.5" y="291.5">
+   <point/>
+  </object>
+  <object id="188" name="find" x="107.25" y="309.75">
+   <point/>
+  </object>
+  <object id="189" name="find" x="101" y="317.75">
+   <point/>
+  </object>
+  <object id="190" name="find" x="83.5" y="312.25">
+   <point/>
+  </object>
+  <object id="191" name="find" x="96.75" y="309.75">
+   <point/>
+  </object>
+  <object id="192" name="find" x="114.25" y="317.5">
+   <point/>
+  </object>
+  <object id="193" name="find" x="126.5" y="318">
+   <point/>
+  </object>
+  <object id="194" name="find" x="143" y="308.75">
+   <point/>
+  </object>
+  <object id="195" name="find" x="155" y="296.75">
+   <point/>
+  </object>
+  <object id="196" name="find" x="162.25" y="289.25">
+   <point/>
+  </object>
+  <object id="197" name="find" x="169.75" y="279.5">
+   <point/>
+  </object>
+  <object id="198" name="find" x="174.25" y="277">
+   <point/>
+  </object>
+  <object id="199" name="find" x="169.25" y="296.75">
+   <point/>
+  </object>
+  <object id="200" name="find" x="165.5" y="307.75">
+   <point/>
+  </object>
+  <object id="201" name="find" x="152.5" y="309.25">
+   <point/>
+  </object>
+  <object id="202" name="find" x="116" y="305">
+   <point/>
+  </object>
+  <object id="203" name="find" x="124" y="290.5">
+   <point/>
+  </object>
+  <object id="204" name="find" x="143.5" y="300.25">
+   <point/>
+  </object>
+  <object id="205" name="find" x="137.5" y="300.75">
+   <point/>
+  </object>
+  <object id="206" name="find" x="133" y="297.5">
+   <point/>
+  </object>
+  <object id="207" name="find" x="123.75" y="298.75">
+   <point/>
+  </object>
+  <object id="208" name="find" x="120.25" y="302">
+   <point/>
+  </object>
+  <object id="209" name="find" x="136.5" y="305.25">
+   <point/>
+  </object>
+  <object id="210" name="find" x="169" y="320.5">
+   <point/>
+  </object>
+  <object id="211" name="find" x="174.75" y="312.25">
+   <point/>
+  </object>
+  <object id="212" name="find" x="174.5" y="295.75">
+   <point/>
+  </object>
+  <object id="213" name="find" x="174.5" y="284.5">
+   <point/>
+  </object>
+  <object id="214" name="find" x="174.5" y="275">
+   <point/>
+  </object>
+  <object id="215" name="find" x="181" y="238.5">
+   <point/>
+  </object>
+  <object id="216" name="find" x="171.5" y="222">
+   <point/>
+  </object>
+  <object id="217" name="find" x="169" y="221">
+   <point/>
+  </object>
+  <object id="218" name="find" x="153.75" y="219.75">
+   <point/>
+  </object>
+  <object id="219" name="find" x="141.25" y="220.75">
+   <point/>
+  </object>
+  <object id="220" name="find" x="170" y="210.25">
+   <point/>
+  </object>
+  <object id="221" name="find" x="170.5" y="202">
+   <point/>
+  </object>
+  <object id="222" name="find" x="169.5" y="181.75">
+   <point/>
+  </object>
+  <object id="223" name="find" x="168" y="181">
+   <point/>
+  </object>
+  <object id="224" name="find" x="167" y="168">
+   <point/>
+  </object>
+  <object id="225" name="find" x="164.75" y="168.25">
+   <point/>
+  </object>
+  <object id="226" name="find" x="149.25" y="170.75">
+   <point/>
+  </object>
+  <object id="227" name="find" x="141.25" y="171.25">
+   <point/>
+  </object>
+  <object id="228" name="find" x="135.5" y="171.25">
+   <point/>
+  </object>
+  <object id="229" name="find" x="130.25" y="173.5">
+   <point/>
+  </object>
+  <object id="230" name="find" x="111.75" y="169.25">
+   <point/>
+  </object>
+  <object id="231" name="find" x="101" y="170.5">
+   <point/>
+  </object>
+  <object id="232" name="find" x="94.5" y="170.75">
+   <point/>
+  </object>
+  <object id="233" name="find" x="89.25" y="171.25">
+   <point/>
+  </object>
+  <object id="234" name="find" x="85.75" y="172">
+   <point/>
+  </object>
+  <object id="235" name="find" x="83.75" y="173.5">
+   <point/>
+  </object>
+  <object id="236" name="find" x="74.25" y="187.5">
+   <point/>
+  </object>
+  <object id="237" name="find" x="74.25" y="187.5">
+   <point/>
+  </object>
+  <object id="238" name="find" x="73" y="169">
+   <point/>
+  </object>
+  <object id="239" name="find" x="73" y="169">
+   <point/>
+  </object>
+  <object id="240" name="find" x="73" y="169">
+   <point/>
+  </object>
+  <object id="241" name="find" x="68.75" y="187.5">
+   <point/>
+  </object>
+  <object id="242" name="find" x="67.25" y="219.25">
+   <point/>
+  </object>
+  <object id="243" name="find" x="69.25" y="230.5">
+   <point/>
+  </object>
+  <object id="244" name="find" x="70.75" y="244.25">
+   <point/>
+  </object>
+  <object id="245" name="find" x="70.75" y="254.25">
+   <point/>
+  </object>
+  <object id="246" name="find" x="70.75" y="254.25">
+   <point/>
+  </object>
+  <object id="247" name="find" x="70" y="286.75">
+   <point/>
+  </object>
+  <object id="248" name="find" x="72.25" y="290">
+   <point/>
+  </object>
+  <object id="249" name="find" x="89.25" y="286.75">
+   <point/>
+  </object>
+  <object id="250" name="find" x="104.5" y="285.5">
+   <point/>
+  </object>
+  <object id="251" name="find" x="105" y="285.25">
+   <point/>
+  </object>
+  <object id="252" name="find" x="134.25" y="294">
+   <point/>
+  </object>
+  <object id="253" name="find" x="151.25" y="304.5">
+   <point/>
+  </object>
+  <object id="254" name="find" x="159.25" y="304.75">
+   <point/>
+  </object>
+  <object id="255" name="find" x="140.25" y="320.5">
+   <point/>
+  </object>
+  <object id="256" name="find" x="110.75" y="299">
+   <point/>
+  </object>
+  <object id="257" name="find" x="125.75" y="280.5">
+   <point/>
+  </object>
+  <object id="258" name="find" x="148.75" y="291.25">
+   <point/>
+  </object>
+  <object id="259" name="find" x="149.75" y="300.5">
+   <point/>
+  </object>
+  <object id="260" name="find" x="120.25" y="295">
+   <point/>
+  </object>
+  <object id="261" name="find" x="155.25" y="287">
+   <point/>
+  </object>
+  <object id="262" name="find" x="161.75" y="277">
+   <point/>
+  </object>
+  <object id="263" name="find" x="162.5" y="274.75">
+   <point/>
+  </object>
+  <object id="264" name="find" x="165.75" y="252">
+   <point/>
+  </object>
+  <object id="265" name="find" x="110.75" y="126.75">
+   <point/>
+  </object>
+  <object id="266" name="find" x="103.5" y="132.25">
+   <point/>
+  </object>
+  <object id="267" name="find" x="128" y="137.25">
+   <point/>
+  </object>
+  <object id="268" name="find" x="152.25" y="115.75">
+   <point/>
+  </object>
+  <object id="269" name="find" x="155" y="108.25">
+   <point/>
+  </object>
+  <object id="270" name="find" x="128.25" y="105.75">
+   <point/>
+  </object>
+  <object id="271" name="find" x="127" y="106.5">
+   <point/>
+  </object>
+ </objectgroup>
+</map>

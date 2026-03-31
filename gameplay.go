@@ -198,20 +198,43 @@ func (gs *GameplayState) PlaceObjects(targetSpawns []tiled.SpawnPoint, otherSpaw
 	}
 
 	// Place distractors on other spawn points (prioritize otherSpawns, then use unused targetSpawns)
-	// SKIP distractors on Level 1 (easy mode)
+	// Level 1: no distractors — let the player understand the game
 	if gs.Level > 1 {
-		// Increase distractors: 2-3 per level, up to available spawn points
-		numDistractors := max(2, gs.Level+1)
+		// Distractor counts scale aggressively toward Waldo-level chaos.
+		// Level 8 fills every available spawn point.
+		distractorsByLevel := []int{0, 7, 10, 16, 24, 35, 59, 999, 100, 150, 999}
+		levelIdx := gs.Level
+		if levelIdx >= len(distractorsByLevel) {
+			levelIdx = len(distractorsByLevel) - 1
+		}
+		wantDistractors := distractorsByLevel[levelIdx]
 
-		// First use otherSpawns if available
-		for i := 0; i < numDistractors && i < len(otherSpawns); i++ {
-			distractorIdx := gs.SelectRandomObject()
+		// Collect all available spawn points (otherSpawns first, then unused targetSpawns)
+		allSpawns := make([]tiled.SpawnPoint, 0, len(otherSpawns)+len(targetSpawns))
+		allSpawns = append(allSpawns, otherSpawns...)
+		for i, sp := range targetSpawns {
+			if !usedTargetIdx[i] {
+				allSpawns = append(allSpawns, sp)
+			}
+		}
+
+		// Shuffle so we don't always use the same spawns
+		rand.Shuffle(len(allSpawns), func(i, j int) {
+			allSpawns[i], allSpawns[j] = allSpawns[j], allSpawns[i]
+		})
+
+		// Cap to available spawns (999 = fill everything)
+		numDistractors := min(wantDistractors, len(allSpawns))
+
+		for i := 0; i < numDistractors; i++ {
+			// Pick any sprite that isn't the current target.
+			// Reuse is fine — that's what makes later levels chaotic.
+			distractorIdx := rand.IntN(len(gs.Objects))
 			for distractorIdx == gs.TargetObjectIndex {
-				distractorIdx = gs.SelectRandomObject()
+				distractorIdx = rand.IntN(len(gs.Objects))
 			}
 
-			spawn := otherSpawns[i]
-			// Add small random offset to prevent perfect overlap
+			spawn := allSpawns[i]
 			offsetX := float64(rand.IntN(8) - 4)
 			offsetY := float64(rand.IntN(8) - 4)
 			distractorObj := &ObjectInstance{
@@ -226,43 +249,6 @@ func (gs *GameplayState) PlaceObjects(targetSpawns []tiled.SpawnPoint, otherSpaw
 			}
 			gs.PlacedObjects = append(gs.PlacedObjects, distractorObj)
 			gs.DistractorIndices = append(gs.DistractorIndices, distractorIdx)
-			numDistractors--
-		}
-
-		// If we need more distractors, use unused targetSpawns
-		if numDistractors > 0 && len(targetSpawns) > gs.ObjectsToFind {
-			for i := 0; i < numDistractors; i++ {
-				var spawnIdx int
-				// Find an unused target spawn point
-				for {
-					spawnIdx = rand.IntN(len(targetSpawns))
-					if !usedTargetIdx[spawnIdx] {
-						usedTargetIdx[spawnIdx] = true
-						break
-					}
-				}
-
-				distractorIdx := gs.SelectRandomObject()
-				for distractorIdx == gs.TargetObjectIndex {
-					distractorIdx = gs.SelectRandomObject()
-				}
-
-				spawn := targetSpawns[spawnIdx]
-				offsetX := float64(rand.IntN(8) - 4)
-				offsetY := float64(rand.IntN(8) - 4)
-				distractorObj := &ObjectInstance{
-					X:           spawn.X + offsetX,
-					Y:           spawn.Y + offsetY,
-					OrigX:       spawn.X + offsetX,
-					OrigY:       spawn.Y + offsetY,
-					ObjectIndex: distractorIdx,
-					Image:       gs.Objects[distractorIdx],
-					IsTarget:    false,
-					IsCollected: false,
-				}
-				gs.PlacedObjects = append(gs.PlacedObjects, distractorObj)
-				gs.DistractorIndices = append(gs.DistractorIndices, distractorIdx)
-			}
 		}
 	}
 }
@@ -349,9 +335,9 @@ func GetLevelTimeLimit(level int) int {
 	case 3:
 		return 10 * 60 // 10 seconds - K, hard
 	case 4:
-		return 60 * 60 // 60 seconds - 1st Grade
+		return 30 * 60 // 60 seconds - 1st Grade
 	case 5:
-		return 100 * 60 // 100 seconds - 2nd Grade
+		return 100 * 60 // 100 seconds - 2nd Grade / Maze Level
 	case 6:
 		return 15 * 60 // 15 seconds - 3rd Grade
 	case 7:

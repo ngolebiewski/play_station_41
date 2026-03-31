@@ -50,6 +50,17 @@
                 "y": 207.75
             }
         },
+        "classroom_busy2.tmx": {
+            "expandedObjectLayers": [
+                4
+            ],
+            "scale": 3,
+            "selectedLayer": 3,
+            "viewCenter": {
+                "x": 175.83333333333334,
+                "y": 131.83333333333331
+            }
+        },
         "classroom_maze.tmx": {
             "expandedObjectLayers": [
                 4
