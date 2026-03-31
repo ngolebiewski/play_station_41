@@ -28,7 +28,7 @@ import (
 //go:embed tiled_files/classroom_2.tmx
 //go:embed tiled_files/CLASSROOM_MAX.tsx
 
-//go:embed tiled_files/CLASSROOM_busy.tmx
+//go:embed tiled_files/CLASSROOM_busy2.tmx
 
 //go:embed tiled_files/classroom_maze.tmx
 

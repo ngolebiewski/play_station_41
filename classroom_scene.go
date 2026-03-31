@@ -850,7 +850,7 @@ func getTilemapPath(level int) string {
 	case 5:
 		return "tiled_files/classroom_maze.tmx"
 	case 7:
-		return "tiled_files/CLASSROOM_busy.tmx"
+		return "tiled_files/CLASSROOM_busy2.tmx"
 	default:
 		return "tiled_files/classroom_1.tmx"
 	}
@@ -863,7 +863,7 @@ func getTileset(game *Game, level int) *ebiten.Image {
 		return game.assets.ClassroomTileset_2
 	case 5:
 		return game.assets.ClassroomTileset_2
-	case 6:
+	case 7:
 		return game.assets.ClassroomTileset_2
 	default:
 		return game.assets.ClassroomTileset_1
