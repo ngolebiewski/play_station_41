@@ -116,7 +116,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="4" name="spawn" visible="0">
+ <objectgroup id="4" name="spawn">
   <object id="3" name="find" x="121.929" y="204.588">
    <point/>
   </object>
@@ -679,9 +679,6 @@
    <point/>
   </object>
   <object id="214" name="find" x="174.5" y="275">
-   <point/>
-  </object>
-  <object id="215" name="find" x="181" y="238.5">
    <point/>
   </object>
   <object id="216" name="find" x="171.5" y="222">
