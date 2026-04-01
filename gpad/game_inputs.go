@@ -65,9 +65,11 @@ func ticksToMs(delta int) int { return delta * 1000 / 60 }
 
 var dpadTouch struct{ up, down, left, right bool }
 var bButtonTouch bool // double-tap fired this frame
+var aButtonMouse bool // right-click fired this frame
 
 // UpdateTouch must be called once per game tick.
 // Full screen drag = D-pad direction; double-tap anywhere = B button.
+// Mouse: left-click = B, right-click = A. No movement mapping.
 func UpdateTouch() {
 	// Reset frame state
 	dpadTouch.up = false
@@ -75,8 +77,18 @@ func UpdateTouch() {
 	dpadTouch.left = false
 	dpadTouch.right = false
 	doubleTapFired = false
+	bButtonTouch = false
+	aButtonMouse = false
 
 	frameCounter++
+
+	// ── mouse clicks ─────────────────────────────────────────────────────────
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		bButtonTouch = true
+	}
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		aButtonMouse = true
+	}
 
 	if !touchEnabled {
 		return
@@ -149,7 +161,7 @@ func UpdateTouch() {
 		}
 	}
 
-	bButtonTouch = doubleTapFired
+	bButtonTouch = bButtonTouch || doubleTapFired
 }
 
 func abs(n int) int {
@@ -216,7 +228,8 @@ func PressB() bool {
 }
 
 func PressA() bool {
-	return inpututil.IsKeyJustPressed(ebiten.KeyZ) ||
+	return aButtonMouse ||
+		inpututil.IsKeyJustPressed(ebiten.KeyZ) ||
 		inpututil.IsKeyJustPressed(ebiten.KeyDelete) ||
 		inpututil.IsStandardGamepadButtonJustPressed(0, ebiten.StandardGamepadButtonRightRight) ||
 		inpututil.IsStandardGamepadButtonJustPressed(0, 1)
