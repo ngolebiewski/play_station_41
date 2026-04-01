@@ -47,54 +47,69 @@ func NewGameOverScene(game *Game, isTimeUp bool) *GameOverScene {
 func (s *GameOverScene) Update() error {
 	s.framecounter++
 
-	gpad.UpdateTouch()
+	if s.framecounter > 20 {
+		gpad.UpdateTouch()
 
-	gp := s.game.gameplay
+		gp := s.game.gameplay
 
-	// Menu navigation
-	if gpad.MoveUp() {
-		s.selectedOption = 0
-	}
-	if gpad.MoveDown() {
-		if gp.GameOver {
+		// Menu navigation
+		if gpad.MoveUp() {
 			s.selectedOption = 0
-		} else {
-			s.selectedOption = 1
 		}
-	}
+		if gpad.MoveDown() {
+			if gp.GameOver {
+				s.selectedOption = 0
+			} else {
+				s.selectedOption = 1
+			}
+		}
 
-	// Select option
-	if gpad.PressB() || gpad.PressStart() {
-		if s.isTimeUp && gp.Lives > 0 {
-			// Try Again or Start Over options
-			if s.selectedOption == 0 {
-				// Try Again - retry same level with same layout
-				gp.IsRetryingLevel = true
-				gp.TimerTriggered = false
-				gp.ObjectsFound = 0
-				s.game.scene = NewClassroomScene(s.game, gp.Level)
-			} else if s.selectedOption == 1 {
-				// Start Over - go to title
+		// Select option
+		if gpad.PressB() || gpad.PressStart() {
+			if s.isTimeUp && gp.Lives > 0 {
+				// Try Again or Start Over options
+				if s.selectedOption == 0 {
+					// Try Again - retry same level with same layout
+					gp.IsRetryingLevel = true
+					gp.TimerTriggered = false
+					gp.ObjectsFound = 0
+					s.game.scene = NewClassroomScene(s.game, gp.Level)
+				} else if s.selectedOption == 1 {
+					// Start Over - go to title
+					gp.Level = 1
+					gp.Lives = 3
+					gp.Score = 0
+					gp.Points = 0
+					gp.TimerTriggered = false
+					gp.GameOver = false
+					gp.Lives = 3
+					s.game.scene = NewTitleScene(s.game)
+				}
+			} else if gp.GameOver {
+				// Game Over - only option is to go to title
+				// TODO: In the future, this will link to high score scene
 				gp.Level = 1
 				gp.Lives = 3
 				gp.Score = 0
 				gp.Points = 0
-				gp.TimerTriggered = false
-				gp.GameOver = false
-				gp.Lives = 3
 				s.game.scene = NewTitleScene(s.game)
 			}
-		} else if gp.GameOver {
-			// Game Over - only option is to go to title
-			// TODO: In the future, this will link to high score scene
-			gp.Level = 1
-			gp.Lives = 3
-			gp.Score = 0
-			gp.Points = 0
-			s.game.scene = NewTitleScene(s.game)
 		}
 	}
 
+	// Timeout, auto restart the game after 10 seconds
+	if s.framecounter > 600 {
+		gp := s.game.gameplay
+		// Start Over - go to title
+		gp.Level = 1
+		gp.Lives = 3
+		gp.Score = 0
+		gp.Points = 0
+		gp.TimerTriggered = false
+		gp.GameOver = false
+		gp.Lives = 3
+		s.game.scene = NewTitleScene(s.game)
+	}
 	return nil
 }
 
