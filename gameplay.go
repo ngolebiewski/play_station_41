@@ -337,7 +337,7 @@ func GetLevelTimeLimit(level int) int {
 	case 4:
 		return 30 * 60 // 60 seconds - 1st Grade
 	case 5:
-		return 100 * 60 // 100 seconds - 2nd Grade / Maze Level
+		return 99 * 60 // 100 seconds - 2nd Grade / Maze Level
 	case 6:
 		return 15 * 60 // 15 seconds - 3rd Grade
 	case 7:

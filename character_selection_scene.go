@@ -522,13 +522,14 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 	}
 
 	// Touch START button
+	// -10 'magic number' here so text doesn't overflow bottom border and to pull the button in from the right a bit
 	vector.DrawFilledRect(screen,
 		float32(startBtnX), float32(startBtnY),
-		float32(startBtnW), float32(startBtnH),
+		float32(startBtnW-10), float32(startBtnH+5),
 		color.RGBA{0, 120, 200, 255}, false)
 	vector.StrokeRect(screen,
 		float32(startBtnX), float32(startBtnY),
-		float32(startBtnW), float32(startBtnH),
+		float32(startBtnW-10), float32(startBtnH+5),
 		1, color.RGBA{0, 220, 255, 255}, false)
 	startTxtOpts := &text.DrawOptions{}
 	startTxtOpts.GeoM.Translate(float64(startBtnX+20), float64(startBtnY+1))
