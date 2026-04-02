@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"log"
+	"math"
 
 	"github.com/hajimehoshi/bitmapfont/v4"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -15,7 +16,7 @@ import (
 var gameOverTextFace = text.NewGoXFace(bitmapfont.Face)
 
 const (
-	gameOverDuration = 300 // frames before auto-transitioning
+	gameOverDuration = 600 // frames before auto-transitioning
 )
 
 type GameOverScene struct {
@@ -98,7 +99,7 @@ func (s *GameOverScene) Update() error {
 	}
 
 	// Timeout, auto restart the game after 10 seconds
-	if s.framecounter > 600 {
+	if s.framecounter > gameOverDuration {
 		gp := s.game.gameplay
 		// Start Over - go to title
 		gp.Level = 1
@@ -164,14 +165,27 @@ func (s *GameOverScene) Draw(screen *ebiten.Image) {
 		tryOpt.ColorScale.ScaleWithColor(tryAgainColor)
 		text.Draw(screen, "> Try Again", gameOverTextFace, tryOpt)
 
+		// // STATIC START OVER
+		// startOpt := &text.DrawOptions{}
+		// startOpt.GeoM.Translate(float64(sW)/2-40, float64(sH)/2+50)
+		// startOpt.ColorScale.ScaleWithColor(startOverColor)
+		// text.Draw(screen, "> Start Over", gameOverTextFace, startOpt)
+
+		// Calculate the remaining seconds and show in the START OVER text
+		// gameOverDuration should be your counter in frames
+		remainingSecs := int(math.Ceil(float64(gameOverDuration)/60 - float64(s.framecounter)/60))
+		// Create the display string
+		startOverStr := fmt.Sprintf("> Start Over %d", remainingSecs)
 		startOpt := &text.DrawOptions{}
+		// Keep your existing positioning
 		startOpt.GeoM.Translate(float64(sW)/2-40, float64(sH)/2+50)
 		startOpt.ColorScale.ScaleWithColor(startOverColor)
-		text.Draw(screen, "> Start Over", gameOverTextFace, startOpt)
+		// Draw the updated string
+		text.Draw(screen, startOverStr, gameOverTextFace, startOpt)
 
-		hintOpt := &text.DrawOptions{}
-		hintOpt.GeoM.Translate(float64(sW)/2-60, float64(sH)/2+90)
-		hintOpt.ColorScale.ScaleWithColor(color.RGBA{200, 200, 200, 255})
-		text.Draw(screen, "UP/DOWN to select", gameOverTextFace, hintOpt)
+		// hintOpt := &text.DrawOptions{}
+		// hintOpt.GeoM.Translate(float64(sW)/2-60, float64(sH)-20)
+		// hintOpt.ColorScale.ScaleWithColor(color.RGBA{200, 200, 200, 255})
+		// text.Draw(screen, "UP/DOWN to select", gameOverTextFace, hintOpt)
 	}
 }

@@ -111,7 +111,7 @@ func (s *HighScoreScene) Update() error {
 				s.lastInputFrame = s.framecounter
 			}
 		} else if s.currentPosition == 3 {
-			// Confirmation prompt ("OK?")
+			// Confirmation prompt ("ENTER")
 
 			// ─── A/Action: Confirm and save ──────────────────────────────────
 			if gpad.PressB() || gpad.PressStart() {
@@ -188,108 +188,111 @@ func (s *HighScoreScene) Draw(screen *ebiten.Image) {
 }
 
 func (s *HighScoreScene) drawInitialsEntry(screen *ebiten.Image) {
-	// Title
+	// Bitmap font is ~6px wide per char. Screen is 240px wide.
+	// Center formula: x = (240 - charCount*6) / 2
+
+	// "CONGRATULATIONS!" = 16 chars = 96px → x=72
 	titleOpt := &text.DrawOptions{}
-	titleOpt.GeoM.Translate(20, 15)
+	titleOpt.GeoM.Translate(72, 10)
 	titleOpt.ColorScale.ScaleWithColor(color.RGBA{255, 220, 60, 255})
 	text.Draw(screen, "CONGRATULATIONS!", highScoreTextFace, titleOpt)
 
-	// HIGH SCORE! banner
+	// "HIGH SCORE!" = 11 chars = 66px → x=87
 	highScoreBannerOpt := &text.DrawOptions{}
-	highScoreBannerOpt.GeoM.Translate(60, 35)
+	highScoreBannerOpt.GeoM.Translate(87, 22)
 	highScoreBannerOpt.ColorScale.ScaleWithColor(color.RGBA{255, 100, 100, 255})
 	text.Draw(screen, "HIGH SCORE!", highScoreTextFace, highScoreBannerOpt)
 
-	// Subtitle
+	// "YOU HAVE GRADUATED!" = 19 chars = 114px → x=63
 	subtitleOpt := &text.DrawOptions{}
-	subtitleOpt.GeoM.Translate(40, 55)
+	subtitleOpt.GeoM.Translate(63, 34)
 	subtitleOpt.ColorScale.ScaleWithColor(color.RGBA{200, 200, 200, 255})
 	text.Draw(screen, "YOU HAVE GRADUATED!", highScoreTextFace, subtitleOpt)
 
-	// Score display
+	// Score — roughly centered
 	scoreOpt := &text.DrawOptions{}
-	scoreOpt.GeoM.Translate(60, 75)
+	scoreOpt.GeoM.Translate(70, 46)
 	scoreOpt.ColorScale.ScaleWithColor(color.RGBA{255, 150, 100, 255})
 	text.Draw(screen, fmt.Sprintf("SCORE: %d", s.currentScore), highScoreTextFace, scoreOpt)
 
 	if s.currentPosition < 3 {
-		// Show single letter entry mode
-
-		// Current letter number (1, 2, or 3)
+		// "Letter X of 3:" = 14 chars = 84px → x=78
 		letterNumOpt := &text.DrawOptions{}
-		letterNumOpt.GeoM.Translate(80, 105)
+		letterNumOpt.GeoM.Translate(78, 62)
 		letterNumOpt.ColorScale.ScaleWithColor(color.RGBA{200, 200, 200, 255})
 		text.Draw(screen, fmt.Sprintf("Letter %d of 3:", s.currentPosition+1), highScoreTextFace, letterNumOpt)
 
-		// Display entered letters so far (greyed out)
-		displayX := 50.0
-		displayY := 130.0
+		// Three letters with 18px gap, total ~42px wide → center at x=99
+		displayX := 99.0
+		displayY := 78.0
 		for i := 0; i < 3; i++ {
 			ch := string(availableLetters[s.initials[i]])
-			optColor := color.RGBA{100, 100, 100, 255}
+			optColor := color.RGBA{100, 100, 100, 255} // unvisited: grey
 			if i < s.currentPosition {
-				optColor = color.RGBA{200, 200, 200, 255}
+				optColor = color.RGBA{100, 220, 100, 255} // confirmed: green
+			} else if i == s.currentPosition {
+				optColor = color.RGBA{255, 255, 100, 255} // focused: yellow
 			}
 
 			opt := &text.DrawOptions{}
-			opt.GeoM.Translate(displayX+float64(i)*30, displayY)
+			opt.GeoM.Translate(displayX+float64(i)*18, displayY)
 			opt.ColorScale.ScaleWithColor(optColor)
 			text.Draw(screen, ch, highScoreTextFace, opt)
 		}
 
-		// Large display of current letter being edited
+		// Large current letter — single char → x=117
 		currentLetterOpt := &text.DrawOptions{}
-		currentLetterOpt.GeoM.Translate(110, 170)
+		currentLetterOpt.GeoM.Translate(117, 96)
 		currentLetterOpt.ColorScale.ScaleWithColor(color.RGBA{255, 255, 100, 255})
 		ch := string(availableLetters[s.initials[s.currentPosition]])
 		text.Draw(screen, ch, highScoreTextFace, currentLetterOpt)
 
-		// Instructions
+		// "UP/DOWN: Scroll" = 15 chars = 90px → x=75
 		instrOpt := &text.DrawOptions{}
-		instrOpt.GeoM.Translate(30, 220)
+		instrOpt.GeoM.Translate(75, 118)
 		instrOpt.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
 		text.Draw(screen, "UP/DOWN: Scroll", highScoreTextFace, instrOpt)
 
+		// "B: Set Letter" = 13 chars = 78px → x=81
 		instrOpt2 := &text.DrawOptions{}
-		instrOpt2.GeoM.Translate(40, 235)
+		instrOpt2.GeoM.Translate(81, 130)
 		instrOpt2.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
-		text.Draw(screen, "B/ACTION: Set Letter", highScoreTextFace, instrOpt2)
+		text.Draw(screen, "B: Set Letter", highScoreTextFace, instrOpt2)
 
 		if s.currentPosition > 0 {
+			// "A: Change prev" = 14 chars = 84px → x=78
 			instrOpt3 := &text.DrawOptions{}
-			instrOpt3.GeoM.Translate(40, 250)
+			instrOpt3.GeoM.Translate(78, 142)
 			instrOpt3.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
-			text.Draw(screen, "A: Change previous", highScoreTextFace, instrOpt3)
+			text.Draw(screen, "A: Change prev", highScoreTextFace, instrOpt3)
 		}
 	} else if s.currentPosition == 3 {
-		// Show confirmation prompt
+		// All three letters green, same layout as above
+		displayX := 99.0
+		displayY := 78.0
+		for i := 0; i < 3; i++ {
+			ch := string(availableLetters[s.initials[i]])
+			opt := &text.DrawOptions{}
+			opt.GeoM.Translate(displayX+float64(i)*18, displayY)
+			opt.ColorScale.ScaleWithColor(color.RGBA{100, 220, 100, 255}) // all green
+			text.Draw(screen, ch, highScoreTextFace, opt)
+		}
 
-		// All three letters
-		initString := string([]rune{
-			rune(availableLetters[s.initials[0]]),
-			rune(availableLetters[s.initials[1]]),
-			rune(availableLetters[s.initials[2]]),
-		})
+		// "ENTER" = 5 chars = 30px → x=105
+		enterOpt := &text.DrawOptions{}
+		enterOpt.GeoM.Translate(105, 96)
+		enterOpt.ColorScale.ScaleWithColor(color.RGBA{255, 255, 100, 255})
+		text.Draw(screen, "ENTER", highScoreTextFace, enterOpt)
 
-		initialsOpt := &text.DrawOptions{}
-		initialsOpt.GeoM.Translate(90, 135)
-		initialsOpt.ColorScale.ScaleWithColor(color.RGBA{200, 200, 200, 255})
-		text.Draw(screen, initString, highScoreTextFace, initialsOpt)
-
-		// OK prompt
-		promptOpt := &text.DrawOptions{}
-		promptOpt.GeoM.Translate(100, 170)
-		promptOpt.ColorScale.ScaleWithColor(color.RGBA{255, 255, 100, 255})
-		text.Draw(screen, "OK?", highScoreTextFace, promptOpt)
-
-		// Instructions
+		// "A: Confirm and save" = 19 chars = 114px → x=63
 		instrOpt := &text.DrawOptions{}
-		instrOpt.GeoM.Translate(30, 220)
+		instrOpt.GeoM.Translate(63, 118)
 		instrOpt.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
-		text.Draw(screen, "A/ACTION: Confirm and save", highScoreTextFace, instrOpt)
+		text.Draw(screen, "A: Confirm and save", highScoreTextFace, instrOpt)
 
+		// "B: Edit last letter" = 19 chars = 114px → x=63
 		instrOpt2 := &text.DrawOptions{}
-		instrOpt2.GeoM.Translate(50, 235)
+		instrOpt2.GeoM.Translate(63, 130)
 		instrOpt2.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
 		text.Draw(screen, "B: Edit last letter", highScoreTextFace, instrOpt2)
 	}
@@ -305,7 +308,7 @@ func (s *HighScoreScene) drawResults(screen *ebiten.Image) {
 	// Top 7 scores table
 	scoreStartX := 40.0
 	scoreStartY := 50.0
-	scoreLineHeight := 20.0
+	scoreLineHeight := 10.0
 
 	// Header
 	headerOpt := &text.DrawOptions{}
@@ -331,7 +334,7 @@ func (s *HighScoreScene) drawResults(screen *ebiten.Image) {
 
 	// Continue prompt
 	continueOpt := &text.DrawOptions{}
-	continueOpt.GeoM.Translate(40, float64(sH)-40)
+	continueOpt.GeoM.Translate(40, float64(sH)-20)
 	continueOpt.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
 	text.Draw(screen, "Press any key to continue", highScoreTextFace, continueOpt)
 }

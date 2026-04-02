@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "classroom_maze.tmx",
+    "activeFile": "classroom_busy.tmx",
     "expandedProjectPaths": [
     ],
     "exportAsImage.useCurrentScale": true,
@@ -96,18 +96,16 @@
         "classroom_busy.tmx",
         "CLASSROOM_MAX.tsx",
         "classroom_busy2.tmx",
-        "classroom_final.tmx",
-        "CLASSROOM.tsx",
-        "classroom_maze.tmx"
+        "classroom_final.tmx"
     ],
     "project": "classroom_0.tiled-project",
     "recentFiles": [
+        "classroom_final.tmx",
+        "classroom_busy2.tmx",
+        "CLASSROOM_MAX.tsx",
+        "classroom_busy.tmx",
         "CLASSROOM.tsx",
         "classroom_maze.tmx",
-        "classroom_busy.tmx",
-        "CLASSROOM_MAX.tsx",
-        "classroom_busy2.tmx",
-        "classroom_final.tmx",
         "classroom_2.tmx",
         "classroom_1.tmx"
     ],
