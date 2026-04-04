@@ -495,7 +495,8 @@ func (s *ClassroomScene) Update() error {
 			s.game.scene = NewHighScoreScene(s.game, gp.Score)
 		} else {
 			// Otherwise show level transition scene
-			s.game.scene = NewLevelTransitionScene(s.game)
+			timeLeft := int(gp.RemainingTime / 60)
+			s.game.scene = NewLevelTransitionScene(s.game, timeLeft)
 		}
 		return nil
 	}

@@ -18,9 +18,10 @@ type LevelTransitionScene struct {
 	game         *Game
 	framecounter int
 	nextLevel    int
+	timeLeft     int
 }
 
-func NewLevelTransitionScene(game *Game) *LevelTransitionScene {
+func NewLevelTransitionScene(game *Game, timeLeft int) *LevelTransitionScene {
 	/////////////////////////////////////////////////////
 	// Start the music!
 	// This will trigger the fade-in automatically.
@@ -36,6 +37,7 @@ func NewLevelTransitionScene(game *Game) *LevelTransitionScene {
 		game:         game,
 		framecounter: 0,
 		nextLevel:    game.gameplay.Level,
+		timeLeft:     timeLeft,
 	}
 }
 
@@ -63,9 +65,17 @@ func (s *LevelTransitionScene) Draw(screen *ebiten.Image) {
 
 	// "Good job" message
 	goodJobOpt := &text.DrawOptions{}
-	goodJobOpt.GeoM.Translate(80, 50)
+	goodJobOpt.GeoM.Translate(100, 50)
 	goodJobOpt.ColorScale.ScaleWithColor(color.RGBA{255, 220, 60, 255})
 	text.Draw(screen, "Good job!", transitionTextFace, goodJobOpt)
+
+	// "Time Bonus" message
+	totalTimeBonus := s.timeLeft * timeBonusPerSecond
+	timeBonusString := fmt.Sprintf("Time Bonus!: %d sec x %d = %d Points", s.timeLeft, timeBonusPerSecond, totalTimeBonus)
+	timeBonusOpt := &text.DrawOptions{}
+	timeBonusOpt.GeoM.Translate(20, 65)
+	timeBonusOpt.ColorScale.ScaleWithColor(color.RGBA{0, 255, 0, 255})
+	text.Draw(screen, timeBonusString, transitionTextFace, timeBonusOpt)
 
 	// Level name - "Level 2: Pre-K" format
 	levelName := gp.GetLevelName()
