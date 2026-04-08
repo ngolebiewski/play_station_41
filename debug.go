@@ -5,6 +5,7 @@ import "github.com/ngolebiewski/play_station_41/gpad"
 func DebugJumpToLevel(g *Game) {
 	d := gpad.PressDigits()
 	if d != -1 {
+		g.gameplay.Level = d
 		g.scene = NewClassroomScene(g, d)
 	}
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"log"
+	"math"
 
 	"github.com/hajimehoshi/bitmapfont/v4"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -15,7 +16,7 @@ import (
 var gameOverTextFace = text.NewGoXFace(bitmapfont.Face)
 
 const (
-	gameOverDuration = 300 // frames before auto-transitioning
+	gameOverDuration = 600 // frames before auto-transitioning
 )
 
 type GameOverScene struct {
@@ -47,54 +48,69 @@ func NewGameOverScene(game *Game, isTimeUp bool) *GameOverScene {
 func (s *GameOverScene) Update() error {
 	s.framecounter++
 
-	gpad.UpdateTouch()
+	if s.framecounter > 20 {
+		gpad.UpdateTouch()
 
-	gp := s.game.gameplay
+		gp := s.game.gameplay
 
-	// Menu navigation
-	if gpad.MoveUp() {
-		s.selectedOption = 0
-	}
-	if gpad.MoveDown() {
-		if gp.GameOver {
+		// Menu navigation
+		if gpad.MoveUp() {
 			s.selectedOption = 0
-		} else {
-			s.selectedOption = 1
 		}
-	}
+		if gpad.MoveDown() {
+			if gp.GameOver {
+				s.selectedOption = 0
+			} else {
+				s.selectedOption = 1
+			}
+		}
 
-	// Select option
-	if gpad.PressB() || gpad.PressStart() {
-		if s.isTimeUp && gp.Lives > 0 {
-			// Try Again or Start Over options
-			if s.selectedOption == 0 {
-				// Try Again - retry same level with same layout
-				gp.IsRetryingLevel = true
-				gp.TimerTriggered = false
-				gp.ObjectsFound = 0
-				s.game.scene = NewClassroomScene(s.game, gp.Level)
-			} else if s.selectedOption == 1 {
-				// Start Over - go to title
+		// Select option
+		if gpad.PressB() || gpad.PressStart() {
+			if s.isTimeUp && gp.Lives > 0 {
+				// Try Again or Start Over options
+				if s.selectedOption == 0 {
+					// Try Again - retry same level with same layout
+					gp.IsRetryingLevel = true
+					gp.TimerTriggered = false
+					gp.ObjectsFound = 0
+					s.game.scene = NewClassroomScene(s.game, gp.Level)
+				} else if s.selectedOption == 1 {
+					// Start Over - go to title
+					gp.Level = 1
+					gp.Lives = 3
+					gp.Score = 0
+					gp.Points = 0
+					gp.TimerTriggered = false
+					gp.GameOver = false
+					gp.Lives = 3
+					s.game.scene = NewTitleScene(s.game)
+				}
+			} else if gp.GameOver {
+				// Game Over - only option is to go to title
+				// TODO: In the future, this will link to high score scene
 				gp.Level = 1
 				gp.Lives = 3
 				gp.Score = 0
 				gp.Points = 0
-				gp.TimerTriggered = false
-				gp.GameOver = false
-				gp.Lives = 3
 				s.game.scene = NewTitleScene(s.game)
 			}
-		} else if gp.GameOver {
-			// Game Over - only option is to go to title
-			// TODO: In the future, this will link to high score scene
-			gp.Level = 1
-			gp.Lives = 3
-			gp.Score = 0
-			gp.Points = 0
-			s.game.scene = NewTitleScene(s.game)
 		}
 	}
 
+	// Timeout, auto restart the game after 10 seconds
+	if s.framecounter > gameOverDuration {
+		gp := s.game.gameplay
+		// Start Over - go to title
+		gp.Level = 1
+		gp.Lives = 3
+		gp.Score = 0
+		gp.Points = 0
+		gp.TimerTriggered = false
+		gp.GameOver = false
+		gp.Lives = 3
+		s.game.scene = NewTitleScene(s.game)
+	}
 	return nil
 }
 
@@ -149,14 +165,27 @@ func (s *GameOverScene) Draw(screen *ebiten.Image) {
 		tryOpt.ColorScale.ScaleWithColor(tryAgainColor)
 		text.Draw(screen, "> Try Again", gameOverTextFace, tryOpt)
 
+		// // STATIC START OVER
+		// startOpt := &text.DrawOptions{}
+		// startOpt.GeoM.Translate(float64(sW)/2-40, float64(sH)/2+50)
+		// startOpt.ColorScale.ScaleWithColor(startOverColor)
+		// text.Draw(screen, "> Start Over", gameOverTextFace, startOpt)
+
+		// Calculate the remaining seconds and show in the START OVER text
+		// gameOverDuration should be your counter in frames
+		remainingSecs := int(math.Ceil(float64(gameOverDuration)/60 - float64(s.framecounter)/60))
+		// Create the display string
+		startOverStr := fmt.Sprintf("> Start Over %d", remainingSecs)
 		startOpt := &text.DrawOptions{}
+		// Keep your existing positioning
 		startOpt.GeoM.Translate(float64(sW)/2-40, float64(sH)/2+50)
 		startOpt.ColorScale.ScaleWithColor(startOverColor)
-		text.Draw(screen, "> Start Over", gameOverTextFace, startOpt)
+		// Draw the updated string
+		text.Draw(screen, startOverStr, gameOverTextFace, startOpt)
 
-		hintOpt := &text.DrawOptions{}
-		hintOpt.GeoM.Translate(float64(sW)/2-60, float64(sH)/2+90)
-		hintOpt.ColorScale.ScaleWithColor(color.RGBA{200, 200, 200, 255})
-		text.Draw(screen, "UP/DOWN to select", gameOverTextFace, hintOpt)
+		// hintOpt := &text.DrawOptions{}
+		// hintOpt.GeoM.Translate(float64(sW)/2-60, float64(sH)-20)
+		// hintOpt.ColorScale.ScaleWithColor(color.RGBA{200, 200, 200, 255})
+		// text.Draw(screen, "UP/DOWN to select", gameOverTextFace, hintOpt)
 	}
 }

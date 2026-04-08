@@ -6,6 +6,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/ngolebiewski/play_station_41/gpad"
 	"github.com/ngolebiewski/play_station_41/music"
 )
@@ -74,8 +75,11 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	// ebitenutil.DebugPrint(screen, "Play Station 41\nAKA PS41")
 	g.scene.Draw(screen)
+	if g.debug {
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("\n\n\n\n\n\n\n\n\nTPS: %0.2f", ebiten.ActualTPS()))
+	}
+
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {

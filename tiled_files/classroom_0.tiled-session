@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "classroom_maze.tmx",
+    "activeFile": "classroom_busy.tmx",
     "expandedProjectPaths": [
     ],
     "exportAsImage.useCurrentScale": true,
@@ -24,8 +24,8 @@
             "scale": 2.7869,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 97.95830492662097,
-                "y": 250.63690839283788
+                "x": 120.20524597222719,
+                "y": 191.79016111091175
             }
         },
         "classroom_2.tmx": {
@@ -35,8 +35,41 @@
             "scale": 1.5,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": 163.33333333333331,
-                "y": 242.99999999999997
+                "x": 200.33333333333331,
+                "y": 240.33333333333331
+            }
+        },
+        "classroom_busy.tmx": {
+            "expandedObjectLayers": [
+                4
+            ],
+            "scale": 2,
+            "selectedLayer": 4,
+            "viewCenter": {
+                "x": 110.5,
+                "y": 207.75
+            }
+        },
+        "classroom_busy2.tmx": {
+            "expandedObjectLayers": [
+                4
+            ],
+            "scale": 3,
+            "selectedLayer": 3,
+            "viewCenter": {
+                "x": 168.99999999999997,
+                "y": 149.83333333333334
+            }
+        },
+        "classroom_final.tmx": {
+            "expandedObjectLayers": [
+                4
+            ],
+            "scale": 4,
+            "selectedLayer": 4,
+            "viewCenter": {
+                "x": 103.5,
+                "y": 257.125
             }
         },
         "classroom_maze.tmx": {
@@ -44,10 +77,10 @@
                 4
             ],
             "scale": 3,
-            "selectedLayer": 3,
+            "selectedLayer": 0,
             "viewCenter": {
-                "x": 456.66666666666663,
-                "y": 573.8333333333333
+                "x": 602,
+                "y": 474.16666666666663
             }
         }
     },
@@ -60,16 +93,21 @@
     "map.tileWidth": 16,
     "map.width": 12,
     "openFiles": [
-        "classroom_maze.tmx",
-        "classroom_1.tmx"
+        "classroom_busy.tmx",
+        "CLASSROOM_MAX.tsx",
+        "classroom_busy2.tmx",
+        "classroom_final.tmx"
     ],
     "project": "classroom_0.tiled-project",
     "recentFiles": [
-        "classroom_1.tmx",
+        "classroom_final.tmx",
+        "classroom_busy2.tmx",
+        "CLASSROOM_MAX.tsx",
+        "classroom_busy.tmx",
+        "CLASSROOM.tsx",
         "classroom_maze.tmx",
         "classroom_2.tmx",
-        "CLASSROOM.tsx",
-        "CLASSROOM_MAX.tsx"
+        "classroom_1.tmx"
     ],
     "tileset.lastUsedFilter": "Tiled tileset files (*.tsx *.xml)",
     "tileset.lastUsedFormat": "tsx",

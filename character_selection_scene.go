@@ -29,34 +29,27 @@ var studentNames = map[int]string{
 	0:  "Reese",
 	1:  "Adeline",
 	2:  "Lennon",
-	3:  "Lennon",
-	4:  "Dylan",
-	5:  "Uma",
-	6:  "Ansel",
-	7:  "Sylvie",
-	8:  "Bella",
-	9:  "Hudson",
-	10: "Teddy",
-	11: "Teddy",
-	12: "Teddy",
-	13: "Sena",
-	14: "Sena",
-	15: "Camila",
-	16: "Camila",
-	17: "Camila",
-	18: "Calder",
-	19: "Calder",
-	20: "Marlo",
-	21: "Marlo",
-	22: "Peter",
-	23: "Bodhi",
-	24: "Hudson",
-	25: "Mr. J",
-	26: "Ms. G",
-	27: "Ms. Kim",
-	28: "Jack",
-	29: "Liam",
-	30: "Ms. C",
+	3:  "Dylan",
+	4:  "Uma",
+	5:  "Ansel",
+	6:  "Sylvie", // Filled the gap here
+	7:  "Bella",
+	8:  "Teddy",
+	9:  "Sena",
+	10: "Visitor",
+	11: "Camila",
+	12: "Calder",
+	13: "Marlo",
+	14: "Stuffie",
+	15: "Peter",
+	16: "Bodhi",
+	17: "Hudson",
+	18: "Mr. J",
+	19: "Ms. G",
+	20: "Ms. Kim",
+	21: "Jack",
+	22: "Liam",
+	23: "Ms. C",
 }
 
 // studentName returns the display name for character slice index i.
@@ -529,13 +522,14 @@ func (s *CharacterSelectionScene) Draw(screen *ebiten.Image) {
 	}
 
 	// Touch START button
+	// -10 'magic number' here so text doesn't overflow bottom border and to pull the button in from the right a bit
 	vector.DrawFilledRect(screen,
 		float32(startBtnX), float32(startBtnY),
-		float32(startBtnW), float32(startBtnH),
+		float32(startBtnW-10), float32(startBtnH+5),
 		color.RGBA{0, 120, 200, 255}, false)
 	vector.StrokeRect(screen,
 		float32(startBtnX), float32(startBtnY),
-		float32(startBtnW), float32(startBtnH),
+		float32(startBtnW-10), float32(startBtnH+5),
 		1, color.RGBA{0, 220, 255, 255}, false)
 	startTxtOpts := &text.DrawOptions{}
 	startTxtOpts.GeoM.Translate(float64(startBtnX+20), float64(startBtnY+1))

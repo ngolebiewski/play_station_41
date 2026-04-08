@@ -305,7 +305,7 @@ func (s *ClassroomScene) Update() error {
 	// ── Proximity-based object collection (no button press needed) ────────────
 	// Use larger hitbox for object collection (more forgiving)
 	getHitboxDim := float64(getHitboxSize * scale)
-	
+
 	// Only allow collection if not all objects are found yet
 	if gp.ObjectsFound < gp.ObjectsToFind {
 		for _, obj := range gp.PlacedObjects {
@@ -387,7 +387,11 @@ func (s *ClassroomScene) Update() error {
 		for _, obj := range gp.PlacedObjects {
 			if !obj.IsCollected && !obj.IsTarget && s.checkPlayerObjectCollision(obj, getHitboxDim, getHitboxDim) {
 				s.game.audioManager.PlaySE("blip")
-				s.camera.Shake(15, 2.0)
+				if s.game.gameplay.Level == 7 || s.game.gameplay.Level == 8 {
+					// s.camera.Shake(5, 0.1)
+				} else {
+					s.camera.Shake(15, 2.0)
+				} // too aggressive makes me motion sick on the busy levels
 				gp.Points++ // Award 1 point
 
 				// Show floating text for points earned
@@ -491,7 +495,8 @@ func (s *ClassroomScene) Update() error {
 			s.game.scene = NewHighScoreScene(s.game, gp.Score)
 		} else {
 			// Otherwise show level transition scene
-			s.game.scene = NewLevelTransitionScene(s.game)
+			timeLeft := int(gp.RemainingTime / 60)
+			s.game.scene = NewLevelTransitionScene(s.game, timeLeft)
 		}
 		return nil
 	}
@@ -849,6 +854,10 @@ func getTilemapPath(level int) string {
 		return "tiled_files/classroom_2.tmx"
 	case 5:
 		return "tiled_files/classroom_maze.tmx"
+	case 7:
+		return "tiled_files/classroom_busy2.tmx"
+	case 8:
+		return "tiled_files/classroom_final.tmx"
 	default:
 		return "tiled_files/classroom_1.tmx"
 	}
@@ -857,9 +866,7 @@ func getTilemapPath(level int) string {
 // getTileset returns the appropriate tileset image for the given level.
 func getTileset(game *Game, level int) *ebiten.Image {
 	switch level {
-	case 2:
-		return game.assets.ClassroomTileset_2
-	case 5:
+	case 2, 5, 7:
 		return game.assets.ClassroomTileset_2
 	default:
 		return game.assets.ClassroomTileset_1
