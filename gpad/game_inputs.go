@@ -9,7 +9,7 @@ import (
 
 const (
 	deadZone = .2
-	id       = 0
+	id       = 1
 
 	// Touch tuning
 	dragThreshold    = 12  // pixels of movement before a drag direction locks in
@@ -177,8 +177,8 @@ func MoveUp() bool {
 	return dpadTouch.up ||
 		ebiten.IsKeyPressed(ebiten.KeyUp) ||
 		ebiten.IsKeyPressed(ebiten.KeyW) ||
-		ebiten.IsGamepadButtonPressed(0, 12) ||
-		ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftTop) ||
+		ebiten.IsGamepadButtonPressed(id, 12) ||
+		ebiten.IsStandardGamepadButtonPressed(id, ebiten.StandardGamepadButtonLeftTop) ||
 		ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickVertical) < -deadZone
 }
 
@@ -186,8 +186,8 @@ func MoveDown() bool {
 	return dpadTouch.down ||
 		ebiten.IsKeyPressed(ebiten.KeyDown) ||
 		ebiten.IsKeyPressed(ebiten.KeyS) ||
-		ebiten.IsGamepadButtonPressed(0, 13) ||
-		ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftBottom) ||
+		ebiten.IsGamepadButtonPressed(id, 13) ||
+		ebiten.IsStandardGamepadButtonPressed(id, ebiten.StandardGamepadButtonLeftBottom) ||
 		ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickVertical) > deadZone
 }
 
@@ -195,8 +195,8 @@ func MoveLeft() bool {
 	return dpadTouch.left ||
 		ebiten.IsKeyPressed(ebiten.KeyLeft) ||
 		ebiten.IsKeyPressed(ebiten.KeyA) ||
-		ebiten.IsGamepadButtonPressed(0, 14) ||
-		ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftLeft) ||
+		ebiten.IsGamepadButtonPressed(id, 14) ||
+		ebiten.IsStandardGamepadButtonPressed(id, ebiten.StandardGamepadButtonLeftLeft) ||
 		ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickHorizontal) < -deadZone
 }
 
@@ -204,35 +204,35 @@ func MoveRight() bool {
 	return dpadTouch.right ||
 		ebiten.IsKeyPressed(ebiten.KeyRight) ||
 		ebiten.IsKeyPressed(ebiten.KeyD) ||
-		ebiten.IsGamepadButtonPressed(0, 15) ||
-		ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftRight) ||
+		ebiten.IsGamepadButtonPressed(id, 15) ||
+		ebiten.IsStandardGamepadButtonPressed(id, ebiten.StandardGamepadButtonLeftRight) ||
 		ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickHorizontal) > deadZone
 }
 
 func PressStart() bool {
 	return inpututil.IsKeyJustPressed(ebiten.KeyP) ||
-		inpututil.IsStandardGamepadButtonJustPressed(0, 9)
+		inpututil.IsStandardGamepadButtonJustPressed(id, 9)
 }
 
 func PressSelect() bool {
 	return inpututil.IsKeyJustPressed(ebiten.KeyShift) ||
-		inpututil.IsStandardGamepadButtonJustPressed(0, 8)
+		inpututil.IsStandardGamepadButtonJustPressed(id, 8)
 }
 
 func PressB() bool {
 	return bButtonTouch ||
 		inpututil.IsKeyJustPressed(ebiten.KeySpace) ||
 		inpututil.IsKeyJustPressed(ebiten.KeyEnter) ||
-		inpututil.IsStandardGamepadButtonJustPressed(0, ebiten.StandardGamepadButtonRightBottom) ||
-		inpututil.IsStandardGamepadButtonJustPressed(0, 0)
+		inpututil.IsStandardGamepadButtonJustPressed(id, ebiten.StandardGamepadButtonRightBottom) ||
+		inpututil.IsStandardGamepadButtonJustPressed(id, 0)
 }
 
 func PressA() bool {
 	return aButtonMouse ||
 		inpututil.IsKeyJustPressed(ebiten.KeyZ) ||
 		inpututil.IsKeyJustPressed(ebiten.KeyDelete) ||
-		inpututil.IsStandardGamepadButtonJustPressed(0, ebiten.StandardGamepadButtonRightRight) ||
-		inpututil.IsStandardGamepadButtonJustPressed(0, 1)
+		inpututil.IsStandardGamepadButtonJustPressed(id, ebiten.StandardGamepadButtonRightRight) ||
+		inpututil.IsStandardGamepadButtonJustPressed(id, 1)
 }
 
 func PressFullscreen() bool {

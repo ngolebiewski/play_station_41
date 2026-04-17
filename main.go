@@ -60,10 +60,10 @@ func (g *Game) Update() error {
 	if g.debug {
 		gpad.TestInputs()
 		DebugJumpToLevel(g)
-		ids := ebiten.AppendGamepadIDs(nil)
-		for _, id := range ids {
-			fmt.Printf("Device Found: %s | ID: %d\n", ebiten.GamepadName(id), id)
-		}
+		// ids := ebiten.AppendGamepadIDs(nil)
+		// for _, id := range ids {
+		// 	fmt.Printf("Device Found: %s | ID: %d\n", ebiten.GamepadName(id), id)
+		// }
 	}
 
 	return nil
