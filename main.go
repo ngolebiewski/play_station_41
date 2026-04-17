@@ -21,30 +21,39 @@ type Game struct {
 }
 
 func NewGame() *Game {
-	// 1. Audio Setup
+	// 1. Audio Setup - Catch the error instead of panicking
 	audioContext := audio.NewContext(48000)
-	if err := music.PreloadSFX(audioContext); err != nil {
-		log.Fatal(err)
+
+	var manager *music.AudioManager
+
+	// Check if the Pi actually initialized an audio device
+	if audioContext != nil {
+		if err := music.PreloadSFX(audioContext); err != nil {
+			// Print the error to terminal, but don't stop the game
+			fmt.Printf("Warning: Audio hardware found but SFX failed: %v\n", err)
+		} else {
+			manager = music.NewAudioManager(audioContext)
+			manager.SFXVolume = 0.15
+		}
+	} else {
+		fmt.Println("Running in SILENT MODE: No audio device detected on Pi 5.")
 	}
-	manager := music.NewAudioManager(audioContext)
 
 	// 2. Asset Setup
 	assets := LoadAssets()
 	player := NewPlayer()
 	player.image = assets.DefaultPlayer
 
-	// 4. Create the Game struct pointer FIRST
+	// 3. Create the Game struct
 	g := &Game{
 		assets:       assets,
 		player:       player,
 		debug:        false,
-		audioManager: manager,
+		audioManager: manager, // This will be nil if audio failed
 		gameplay:     NewGameplayState(assets.ObjectsTileset),
 	}
-	g.audioManager.SFXVolume = 0.15
 
-	// 4. NOW initialize the starting scene and assign it
-	// This ensures g.scene is NOT nil when Update() runs
+	// 4. Initialize the starting scene
 	g.scene = NewTitleScene(g)
 
 	return g
