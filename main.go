@@ -54,8 +54,8 @@ func (g *Game) Update() error {
 	if gpad.PressToQuit() {
 		g.quitFrames++
 
-		// 120 frames = 2 seconds at 60fps
-		if g.quitFrames >= 120 {
+		// 120 frames = 3 seconds at 60fps
+		if g.quitFrames >= 180 {
 			return fmt.Errorf("intentional arcade exit")
 		}
 	} else {
