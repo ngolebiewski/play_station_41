@@ -11,11 +11,12 @@ import (
 )
 
 type Game struct {
-	scene    Scene
-	assets   *Assets
-	player   *Player
-	debug    bool
-	gameplay *GameplayState
+	scene      Scene
+	assets     *Assets
+	player     *Player
+	debug      bool
+	gameplay   *GameplayState
+	quitFrames int
 }
 
 func NewGame() *Game {
@@ -50,9 +51,18 @@ func (g *Game) Update() error {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
 
-	// if gpad.PressSelect() && gpad.PressStart() {
+	if gpad.PressToQuit() {
+		g.quitFrames++
 
-	// }
+		// 120 frames = 2 seconds at 60fps
+		if g.quitFrames >= 120 {
+			return fmt.Errorf("intentional arcade exit")
+		}
+	} else {
+		// Reset the timer if either button is released
+		g.quitFrames = 0
+	}
+
 	if gpad.PressDebug() {
 		g.debug = !g.debug
 		fmt.Println("Debug mode on: ", g.debug)

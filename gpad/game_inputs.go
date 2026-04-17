@@ -251,6 +251,11 @@ func PressP() bool {
 	return inpututil.IsKeyJustPressed(ebiten.KeyP)
 }
 
+func PressToQuit() bool {
+	// checks if you are holding SELECT + START
+	return ebiten.IsGamepadButtonPressed(id, 9) && ebiten.IsGamepadButtonPressed(id, 8)
+}
+
 func PressDigits() int {
 	for i := 0; i <= 9; i++ {
 		key := ebiten.KeyDigit0 + ebiten.Key(i)
