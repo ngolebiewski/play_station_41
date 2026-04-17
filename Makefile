@@ -29,7 +29,7 @@ pi:
 	docker build --platform linux/arm64 \
 		--build-arg BUILD_PLATFORM=linux/arm64 \
 		--build-arg TARGET_ARCH=arm64 \
-		--build-arg BINARY_OUT=$(BINARY_NAME)_pi64 \
+		--build-arg BINARY_OUT=$(BINARY_NAME)_pi \
 		-t $(BINARY_NAME)-pi64-builder .
 	@docker create --name temp-pi64 $(BINARY_NAME)-pi64-builder
 	@docker cp temp-pi64:/app/$(BINARY_NAME)_pi $(BUILD_DIR)/pi/$(BINARY_NAME)_pi
@@ -45,7 +45,7 @@ pi32:
 		--build-arg BINARY_OUT=$(BINARY_NAME)_pi32 \
 		-t $(BINARY_NAME)-pi32-builder .
 	@docker create --name temp-pi32 $(BINARY_NAME)-pi32-builder
-	@docker cp temp-pi32:/app/$(BINARY_NAME)_pi32bit $(BUILD_DIR)/pi/$(BINARY_NAME)_pi32bit
+	@docker cp temp-pi32:/app/$(BINARY_NAME)_pi32 $(BUILD_DIR)/pi/$(BINARY_NAME)_pi32bit
 	@docker rm temp-pi32
 
 wasm:

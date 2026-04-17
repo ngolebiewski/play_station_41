@@ -1,0 +1,10 @@
+build/
+.git/
+.github/
+*.wasm
+*.exe
+*_macos
+*_pi
+*_pi32bit
+node_modules/
+.DS_Store
