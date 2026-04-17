@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"image/color"
-	"log"
 
 	"github.com/hajimehoshi/bitmapfont/v4"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -37,16 +36,6 @@ type HighScoreScene struct {
 }
 
 func NewHighScoreScene(game *Game, currentScore int) *HighScoreScene {
-	/////////////////////////////////////////////////////
-	// Start the music!
-	if game.audioManager != nil {
-		err := game.audioManager.ChangeSong("running")
-		if err != nil {
-			log.Printf("Audio Error: %v", err)
-		}
-	}
-	/////////////////////////////////////////////////////
-
 	hsm := NewHighScoreManager()
 	scores, _ := hsm.LoadHighScores()
 
@@ -99,14 +88,14 @@ func (s *HighScoreScene) Update() error {
 
 			// ─── A/Action button: Confirm letter and move to next ─────────────
 			if gpad.PressB() || gpad.PressStart() {
-				s.game.audioManager.PlaySE("pickup") // Visual feedback
-				s.currentPosition++                  // Move to next letter or confirmation prompt
+
+				s.currentPosition++ // Move to next letter or confirmation prompt
 				s.lastInputFrame = s.framecounter
 			}
 
 			// ─── B button: Go back to previous letter (if not first) ────
 			if gpad.PressA() && s.currentPosition > 0 {
-				s.game.audioManager.PlaySE("blip") // Feedback
+
 				s.currentPosition--
 				s.lastInputFrame = s.framecounter
 			}

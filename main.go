@@ -6,39 +6,19 @@ import (
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/ngolebiewski/play_station_41/gpad"
-	"github.com/ngolebiewski/play_station_41/music"
 )
 
 type Game struct {
-	scene        Scene
-	assets       *Assets
-	player       *Player
-	debug        bool
-	audioManager *music.AudioManager
-	gameplay     *GameplayState
+	scene    Scene
+	assets   *Assets
+	player   *Player
+	debug    bool
+	gameplay *GameplayState
 }
 
 func NewGame() *Game {
-	// 1. Audio Setup - Catch the error instead of panicking
-	audioContext := audio.NewContext(48000)
-
-	var manager *music.AudioManager
-
-	// Check if the Pi actually initialized an audio device
-	if audioContext != nil {
-		if err := music.PreloadSFX(audioContext); err != nil {
-			// Print the error to terminal, but don't stop the game
-			fmt.Printf("Warning: Audio hardware found but SFX failed: %v\n", err)
-		} else {
-			manager = music.NewAudioManager(audioContext)
-			manager.SFXVolume = 0.15
-		}
-	} else {
-		fmt.Println("Running in SILENT MODE: No audio device detected on Pi 5.")
-	}
 
 	// 2. Asset Setup
 	assets := LoadAssets()
@@ -47,11 +27,10 @@ func NewGame() *Game {
 
 	// 3. Create the Game struct
 	g := &Game{
-		assets:       assets,
-		player:       player,
-		debug:        false,
-		audioManager: manager, // This will be nil if audio failed
-		gameplay:     NewGameplayState(assets.ObjectsTileset),
+		assets:   assets,
+		player:   player,
+		debug:    false,
+		gameplay: NewGameplayState(assets.ObjectsTileset),
 	}
 
 	// 4. Initialize the starting scene
@@ -61,9 +40,7 @@ func NewGame() *Game {
 }
 
 func (g *Game) Update() error {
-	if g.audioManager != nil {
-		g.audioManager.Update()
-	}
+
 	if g.scene != nil {
 		if err := g.scene.Update(); err != nil {
 			return err

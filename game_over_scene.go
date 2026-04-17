@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"image/color"
-	"log"
 	"math"
 
 	"github.com/hajimehoshi/bitmapfont/v4"
@@ -27,15 +26,6 @@ type GameOverScene struct {
 }
 
 func NewGameOverScene(game *Game, isTimeUp bool) *GameOverScene {
-	/////////////////////////////////////////////////////
-	// Start the music!
-	if game.audioManager != nil {
-		err := game.audioManager.ChangeSong("running")
-		if err != nil {
-			log.Printf("Audio Error: %v", err)
-		}
-	}
-	/////////////////////////////////////////////////////
 
 	return &GameOverScene{
 		game:           game,
