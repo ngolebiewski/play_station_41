@@ -248,7 +248,7 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 
 func (s *ClassroomScene) Update() error {
 	if s.game.debug && gpad.PressP() {
-		s.game.scene = NewHighScoreScene(s.game, 8999)
+		s.game.scene = NewHighScoreScene(s.game, 1041)
 	}
 
 	p := s.game.player
