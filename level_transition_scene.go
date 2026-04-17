@@ -70,8 +70,8 @@ func (s *LevelTransitionScene) Draw(screen *ebiten.Image) {
 	text.Draw(screen, "Good job!", transitionTextFace, goodJobOpt)
 
 	// "Time Bonus" message
-	totalTimeBonus := s.timeLeft * timeBonusPerSecond
-	timeBonusString := fmt.Sprintf("Time Bonus!: %d sec x %d = %d Points", s.timeLeft, timeBonusPerSecond, totalTimeBonus)
+	// totalTimeBonus := s.timeLeft * timeBonusPerSecond
+	timeBonusString := fmt.Sprintf("Time Bonus!: %d sec x %d = %d Points", s.timeLeft/60, timeBonusPerSecond, (s.timeLeft/60)*timeBonusPerSecond)
 	timeBonusOpt := &text.DrawOptions{}
 	timeBonusOpt.GeoM.Translate(20, 65)
 	timeBonusOpt.ColorScale.ScaleWithColor(color.RGBA{0, 255, 0, 255})

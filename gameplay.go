@@ -71,6 +71,7 @@ type GameplayState struct {
 	TimePerLevel   int  // Frames available per level
 	RemainingTime  int  // Current remaining time
 	TimerTriggered bool // True if timer reached 0
+	TimeCompleted  int  // Time remaining when level was completed (for HUD display)
 
 	// Overlay
 	ShowingTargetOverlay bool
@@ -357,14 +358,15 @@ func (gs *GameplayState) ObjectFound() {
 	// Only mark level complete when ALL objects are found
 	if gs.ObjectsFound >= gs.ObjectsToFind {
 		gs.HasFoundObject = true
-		gs.FoundMessageFrames = 30 // 1 second at 60fps
+		gs.FoundMessageFrames = 30          // 1 second at 60fps
+		gs.TimeCompleted = gs.RemainingTime // Capture time before advancing level
 
 		// Calculate time bonus: 5 points per second remaining
-		secondsRemaining := gs.RemainingTime / 60
+		secondsRemaining := gs.TimeCompleted / 60
 		timeBonus := secondsRemaining * 5
 		gs.Points += timeBonus
 
-		gs.Score += calculateLevelScore(gs.Level, gs.RemainingTime)
+		gs.Score += calculateLevelScore(gs.Level, gs.TimeCompleted)
 		gs.Level++
 		gs.RemainingTime = GetLevelTimeLimit(gs.Level)
 	}

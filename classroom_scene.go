@@ -442,7 +442,7 @@ func (s *ClassroomScene) Update() error {
 
 			// If level complete, create points animation
 			if gp.LevelComplete {
-				secondsRemaining := gp.RemainingTime / 60
+				secondsRemaining := gp.TimeCompleted / 60
 				timeBonus := secondsRemaining * 5
 				timeBonusText := fmt.Sprintf("Time bonus %d sec x 5 points!", secondsRemaining)
 				s.pointsAnim = &pointsAnimation{
@@ -490,13 +490,10 @@ func (s *ClassroomScene) Update() error {
 	// Handle level progression
 	if gp.LevelComplete && !gp.GameOver {
 		// Check if player just completed Level 8 (5th Grade) - graduation!
-		if gp.Level == 9 {
-			// Show high score scene after graduation
-			s.game.scene = NewHighScoreScene(s.game, gp.Score)
+		if gp.Level > 8 {
+			s.game.scene = NewHighScoreScene(s.game, s.game.gameplay.Score)
 		} else {
-			// Otherwise show level transition scene
-			timeLeft := int(gp.RemainingTime / 60)
-			s.game.scene = NewLevelTransitionScene(s.game, timeLeft)
+			s.game.scene = NewLevelTransitionScene(s.game, gp.TimeCompleted)
 		}
 		return nil
 	}
@@ -782,8 +779,12 @@ func (s *ClassroomScene) drawHUD(screen *ebiten.Image) {
 	hudBg.Fill(color.RGBA{0, 0, 0, 240})
 	screen.DrawImage(hudBg, &ebiten.DrawImageOptions{})
 
-	// Timer
-	secondsRemaining := gp.RemainingTime / 60
+	// Timer — use TimeCompleted if level is complete, otherwise RemainingTime
+	displayTime := gp.RemainingTime
+	if gp.LevelComplete {
+		displayTime = gp.TimeCompleted
+	}
+	secondsRemaining := displayTime / 60
 	timerOpt := &text.DrawOptions{}
 	timerOpt.GeoM.Translate(5, 5)
 	text.Draw(screen, fmt.Sprintf("Time:%d", secondsRemaining), hudTextFace, timerOpt)
