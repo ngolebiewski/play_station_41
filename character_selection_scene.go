@@ -131,13 +131,7 @@ type CharacterSelectionScene struct {
 }
 
 func NewCharacterSelectionScene(game *Game) *CharacterSelectionScene {
-	// Start the music!
-	// if game.audioManager != nil {
-	// 	err := game.audioManager.ChangeSong("classroom_beat")
-	// 	if err != nil {
-	// 		log.Printf("Audio Error: %v", err)
-	// 	}
-	// }
+
 	game.gameplay.Lives = 3
 	game.gameplay.GameOver = false
 
@@ -228,7 +222,6 @@ func (s *CharacterSelectionScene) updateSlot() {
 			s.selectedIndex = next
 			s.selectionX = next % charGridX
 			s.selectionY = next / charGridX
-			s.game.audioManager.PlaySE("blip")
 		}
 
 		if s.slotFrame >= totalSpin {
@@ -237,7 +230,6 @@ func (s *CharacterSelectionScene) updateSlot() {
 			s.selectionY = s.slotTarget / charGridX
 			s.slot = slotLanding
 			s.slotFrame = 0
-			s.game.audioManager.PlaySE("bloop")
 		}
 
 	case slotLanding:
@@ -274,23 +266,23 @@ func (s *CharacterSelectionScene) Update() error {
 
 	if s.inputCooldown == 0 {
 		if gpad.MoveUp() {
-			s.game.audioManager.PlaySE("blip")
+
 			s.selectionY = max(0, s.selectionY-1)
 			s.inputCooldown = 10
 			hasInput = true
 		} else if gpad.MoveDown() {
-			s.game.audioManager.PlaySE("blip")
+
 			maxY := maxIdx / charGridX
 			s.selectionY = min(maxY, s.selectionY+1)
 			s.inputCooldown = 10
 			hasInput = true
 		} else if gpad.MoveLeft() {
-			s.game.audioManager.PlaySE("blip")
+
 			s.selectionX = max(0, s.selectionX-1)
 			s.inputCooldown = 10
 			hasInput = true
 		} else if gpad.MoveRight() {
-			s.game.audioManager.PlaySE("blip")
+
 			newIdx := s.selectionY*charGridX + s.selectionX + 1
 			if newIdx <= maxIdx {
 				s.selectionX = min(charGridX-1, s.selectionX+1)
@@ -333,7 +325,7 @@ func (s *CharacterSelectionScene) Update() error {
 			cx, cy := s.tileScreenPos(i)
 			if tx >= cx && tx < cx+gridCellSize && ty >= cy && ty < cy+gridCellSize {
 				hasInput = true
-				s.game.audioManager.PlaySE("blip")
+
 				if s.isRandomTile(i) {
 					s.startSlot()
 				} else {
@@ -549,6 +541,6 @@ func (s *CharacterSelectionScene) confirmSelection() {
 		s.game.player.characterIndex = origIdx
 		s.game.player.image = s.characters[origIdx]
 	}
-	s.game.audioManager.PlaySE("bloop")
+
 	s.game.scene = NewClassroomScene(s.game, 1)
 }

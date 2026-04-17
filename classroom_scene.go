@@ -152,16 +152,6 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 	mapPixelW := float64(m.Width*m.TileWidth) * scale
 	mapPixelH := float64(m.Height*m.TileHeight) * scale
 
-	/////////////////////////////////////////////////////
-	// Start the music!
-	if game.audioManager != nil {
-		err := game.audioManager.ChangeSong("classroom")
-		if err != nil {
-			log.Printf("Audio Error: %v", err)
-		}
-	}
-	/////////////////////////////////////////////////////
-
 	spawns := tiled.GetSpawns(m)
 
 	var targetSpawns []tiled.SpawnPoint
@@ -310,7 +300,6 @@ func (s *ClassroomScene) Update() error {
 	if gp.ObjectsFound < gp.ObjectsToFind {
 		for _, obj := range gp.PlacedObjects {
 			if !obj.IsCollected && obj.IsTarget && s.checkPlayerObjectCollision(obj, getHitboxDim, getHitboxDim) {
-				s.game.audioManager.PlaySE("pickup")
 
 				// Capture screen-space position for the tween before marking collected
 				screenX := obj.X - s.camera.DrawX()
@@ -348,7 +337,6 @@ func (s *ClassroomScene) Update() error {
 	if gpad.PressA() {
 		for _, obj := range gp.PlacedObjects {
 			if !obj.IsCollected && obj.IsTarget && s.checkPlayerObjectCollisionWithRange(obj, getHitboxDim, getHitboxDim, 16) {
-				s.game.audioManager.PlaySE("pickup")
 
 				// Capture screen-space position for the tween before marking collected
 				screenX := obj.X - s.camera.DrawX()
@@ -386,7 +374,7 @@ func (s *ClassroomScene) Update() error {
 	if gpad.PressB() {
 		for _, obj := range gp.PlacedObjects {
 			if !obj.IsCollected && !obj.IsTarget && s.checkPlayerObjectCollision(obj, getHitboxDim, getHitboxDim) {
-				s.game.audioManager.PlaySE("blip")
+
 				if s.game.gameplay.Level == 7 || s.game.gameplay.Level == 8 {
 					// s.camera.Shake(5, 0.1)
 				} else {
@@ -483,7 +471,6 @@ func (s *ClassroomScene) Update() error {
 
 	// Debug shake (keep for dev convenience)
 	if gpad.PressB() && s.game.debug {
-		s.game.audioManager.PlaySE("zoing")
 		s.camera.Shake(20, 3.0)
 	}
 

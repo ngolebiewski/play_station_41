@@ -21,15 +21,7 @@ var textStr = "START"
 var textW, textH = text.Measure(textStr, gameFont, 0)
 
 func NewTitleScene(game *Game) *TitleScene {
-	/////////////////////////////////////////////////////
-	// Start the music!
-	// if game.audioManager != nil {
-	// 	err := game.audioManager.ChangeSong("running")
-	// 	if err != nil {
-	// 		log.Printf("Audio Error: %v", err)
-	// 	}
-	// }
-	/////////////////////////////////////////////////////
+
 	return &TitleScene{game: game, img: game.assets.TitleImage}
 }
 

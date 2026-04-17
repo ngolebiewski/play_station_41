@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"image/color"
-	"log"
 
 	"github.com/hajimehoshi/bitmapfont/v4"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -22,16 +21,6 @@ type LevelTransitionScene struct {
 }
 
 func NewLevelTransitionScene(game *Game, timeLeft int) *LevelTransitionScene {
-	/////////////////////////////////////////////////////
-	// Start the music!
-	// This will trigger the fade-in automatically.
-	if game.audioManager != nil {
-		err := game.audioManager.ChangeSong("scenechange")
-		if err != nil {
-			log.Printf("Audio Error: %v", err)
-		}
-	}
-	/////////////////////////////////////////////////////
 
 	return &LevelTransitionScene{
 		game:         game,
