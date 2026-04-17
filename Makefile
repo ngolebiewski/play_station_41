@@ -32,7 +32,7 @@ pi:
 		--build-arg BINARY_OUT=$(BINARY_NAME)_pi64 \
 		-t $(BINARY_NAME)-pi64-builder .
 	@docker create --name temp-pi64 $(BINARY_NAME)-pi64-builder
-	@docker cp temp-pi64:/app/$(BINARY_NAME)_pi64 $(BUILD_DIR)/pi/$(BINARY_NAME)_pi64
+	@docker cp temp-pi64:/app/$(BINARY_NAME)_pi $(BUILD_DIR)/pi/$(BINARY_NAME)_pi
 	@docker rm temp-pi64
 
 # 32-bit ARM (Pi 3/4/Zero on 32-bit OS)
@@ -45,7 +45,7 @@ pi32:
 		--build-arg BINARY_OUT=$(BINARY_NAME)_pi32 \
 		-t $(BINARY_NAME)-pi32-builder .
 	@docker create --name temp-pi32 $(BINARY_NAME)-pi32-builder
-	@docker cp temp-pi32:/app/$(BINARY_NAME)_pi32 $(BUILD_DIR)/pi/$(BINARY_NAME)_pi32
+	@docker cp temp-pi32:/app/$(BINARY_NAME)_pi32bit $(BUILD_DIR)/pi/$(BINARY_NAME)_pi32bit
 	@docker rm temp-pi32
 
 wasm:
@@ -61,8 +61,8 @@ release: all
 	@echo "Creating GitHub Release for $(VERSION)..."
 	gh release create $(VERSION) \
 		$(BUILD_DIR)/macos/$(BINARY_NAME)_macos \
-		$(BUILD_DIR)/pi/$(BINARY_NAME)_pi64 \
-		$(BUILD_DIR)/pi/$(BINARY_NAME)_pi32 \
+		$(BUILD_DIR)/pi/$(BINARY_NAME)_pi \
+		$(BUILD_DIR)/pi/$(BINARY_NAME)_pi32bit \
 		$(BUILD_DIR)/windows/$(BINARY_NAME).exe \
 		$(BUILD_DIR)/wasm/$(BINARY_NAME).wasm \
 		--title "Release $(VERSION)" \

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
@@ -97,6 +98,14 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	ebiten.SetWindowSize(sW*sX, sH*sX)
+
+	// This is safe for both Pi 5 and WASM
+	// Run with DISPLAY=:0 ARCADE_MODE=1 ./playstation41_pi
+	if os.Getenv("ARCADE_MODE") == "1" {
+		ebiten.SetFullscreen(true)
+		ebiten.SetCursorMode(ebiten.CursorModeHidden) // Also hides mouse for arcade
+	}
+
 	gpad.Init(sW, sH)
 	ebiten.SetWindowTitle("Play Station 41")
 	game := NewGame()
