@@ -154,7 +154,7 @@ func (s *HighScoreScene) Update() error {
 			gp.TimerTriggered = false
 			gp.GameOver = false
 			gp.LevelComplete = false
-			s.game.scene = NewTitleScene(s.game)
+			s.game.scene = NewCreditsScene(s.game)
 		}
 
 		// Update NES message frame
@@ -364,5 +364,5 @@ func (s *HighScoreScene) drawNESMessage(screen *ebiten.Image) {
 	subOpt := &text.DrawOptions{}
 	subOpt.GeoM.Translate(float64(sW)/2-100, float64(sH)/2-10)
 	subOpt.ColorScale.ScaleWithColor(color.RGBA{200, 200, 200, 255})
-	text.Draw(screen, "RetroPI coming soon...", highScoreTextFace, subOpt)
+	text.Draw(screen, "RetroPie coming soon...", highScoreTextFace, subOpt)
 }
