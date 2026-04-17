@@ -32,7 +32,7 @@ var studentNames = map[int]string{
 	3:  "Dylan",
 	4:  "Uma",
 	5:  "Ansel",
-	6:  "Sylvie", // Filled the gap here
+	6:  "Sylvie",
 	7:  "Bella",
 	8:  "Teddy",
 	9:  "Sena",
