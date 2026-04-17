@@ -49,6 +49,10 @@ func (g *Game) Update() error {
 	if gpad.PressFullscreen() {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
+
+	if gpad.PressSelect() && gpad.PressStart() {
+
+	}
 	if gpad.PressDebug() {
 		g.debug = !g.debug
 		fmt.Println("Debug mode on: ", g.debug)
@@ -75,6 +79,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	ebiten.SetWindowSize(sW*sX, sH*sX)
+	ebiten.SetInitFocused(true)
 
 	// This is safe for both Pi 5 and WASM
 	// Run with DISPLAY=:0 ARCADE_MODE=1 ./playstation41_pi
