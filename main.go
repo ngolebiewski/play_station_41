@@ -50,9 +50,9 @@ func (g *Game) Update() error {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
 
-	if gpad.PressSelect() && gpad.PressStart() {
+	// if gpad.PressSelect() && gpad.PressStart() {
 
-	}
+	// }
 	if gpad.PressDebug() {
 		g.debug = !g.debug
 		fmt.Println("Debug mode on: ", g.debug)
@@ -60,6 +60,10 @@ func (g *Game) Update() error {
 	if g.debug {
 		gpad.TestInputs()
 		DebugJumpToLevel(g)
+		ids := ebiten.AppendGamepadIDs(nil)
+		for _, id := range ids {
+			fmt.Printf("Device Found: %s | ID: %d\n", ebiten.GamepadName(id), id)
+		}
 	}
 
 	return nil
@@ -79,7 +83,14 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	ebiten.SetWindowSize(sW*sX, sH*sX)
-	ebiten.SetInitFocused(true)
+	op := &ebiten.RunGameOptions{}
+
+	// Default is false, which means it starts FOCUSED.
+	op.InitUnfocused = false
+
+	// This ensures it stays running even if the DSI touch driver
+	// flickers focus for a split second.
+	ebiten.SetRunnableOnUnfocused(true)
 
 	// This is safe for both Pi 5 and WASM
 	// Run with DISPLAY=:0 ARCADE_MODE=1 ./playstation41_pi
