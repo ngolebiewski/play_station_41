@@ -8,6 +8,9 @@ RUN apt-get update && apt-get install -y \
     libgl1-mesa-dev \
     xorg-dev \
     libasound2-dev \
+    libwayland-dev \
+    libxkbcommon-dev \
+    wayland-protocols \
     pkg-config && \
     rm -rf /var/lib/apt/lists/*
 
