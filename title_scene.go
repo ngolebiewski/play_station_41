@@ -14,6 +14,9 @@ import (
 type TitleScene struct {
 	game *Game
 	img  *ebiten.Image
+	demoTimer int
+	sparkleTimer int
+	sparkleFlag bool
 }
 
 var gameFont = text.NewGoXFace(bitmapfont.Face)
@@ -22,7 +25,7 @@ var textW, textH = text.Measure(textStr, gameFont, 0)
 
 func NewTitleScene(game *Game) *TitleScene {
 
-	return &TitleScene{game: game, img: game.assets.TitleImage}
+	return &TitleScene{game: game, img: game.assets.TitleImage, demoTimer: 0, sparkleTimer: 0, sparkleFlag: false}
 }
 
 func (s *TitleScene) Update() error {
@@ -34,9 +37,27 @@ func (s *TitleScene) Update() error {
 	// Update touch d-pad state each tick
 	gpad.UpdateTouch()
 
+	// Increment demo timer
+	s.demoTimer++
+
+	// Increment sparkle timer
+	s.sparkleTimer++
+	if s.sparkleTimer % 600 == 0 {
+		s.sparkleFlag = true
+	} else {
+		s.sparkleFlag = false
+	}
+
+	// If demo timer > 600 (10 seconds at 60fps), switch to demo scene
+	if s.demoTimer > 600 {
+		s.game.scene = NewDemoScene(s.game)
+		return nil
+	}
+
 	// Tap anywhere on title screen OR press B to start
 	touchTapped := gpad.TouchEnabled() && len(inpututil.AppendJustReleasedTouchIDs(nil)) > 0
 	if gpad.PressB() || gpad.PressStart() || touchTapped {
+		s.demoTimer = 0 // Reset demo timer on input
 		s.game.scene = NewCharacterSelectionScene(s.game)
 	}
 
@@ -59,6 +80,13 @@ func (s *TitleScene) Draw(screen *ebiten.Image) {
 	opts.GeoM.Translate(sW/2-textW/2, sH*7/8-textH/2)
 	opts.ColorScale.ScaleWithColor(color.White)
 	text.Draw(screen, textStr, gameFont, opts)
+
+	// Sparkle effect on start button
+	if s.sparkleFlag {
+		sparkleX := sW/2 + textW/2 + 5
+		sparkleY := sH*7/8 - textH/2 - 5
+		vector.FillRect(screen, float32(sparkleX), float32(sparkleY), 5, 5, color.White, false)
+	}
 
 	// Hint text when touch is active
 	if gpad.TouchEnabled() {
