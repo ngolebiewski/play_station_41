@@ -42,7 +42,7 @@ func (s *TitleScene) Update() error {
 
 	// Increment sparkle timer
 	s.sparkleTimer++
-	if s.sparkleTimer % 600 == 0 {
+	if s.sparkleTimer%180 < 15 {
 		s.sparkleFlag = true
 	} else {
 		s.sparkleFlag = false
@@ -85,7 +85,7 @@ func (s *TitleScene) Draw(screen *ebiten.Image) {
 	if s.sparkleFlag {
 		sparkleX := sW/2 + textW/2 + 5
 		sparkleY := sH*7/8 - textH/2 - 5
-		vector.FillRect(screen, float32(sparkleX), float32(sparkleY), 5, 5, color.White, false)
+		vector.FillRect(screen, float32(sparkleX), float32(sparkleY), 10, 10, color.RGBA{255, 255, 0, 255}, false)
 	}
 
 	// Hint text when touch is active
