@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/bitmapfont/v4"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	gotiled "github.com/lafriks/go-tiled"
 	"github.com/ngolebiewski/play_station_41/gpad"
 	"github.com/ngolebiewski/play_station_41/tiled"
 )
@@ -18,7 +19,7 @@ type DemoScene struct {
 	game     *Game
 	timer    int
 	phase    int
-	tilemap  *tiled.Map
+	tilemap  *gotiled.Map
 	renderer *tiled.Renderer
 	floatingTexts []*floatingText
 }
