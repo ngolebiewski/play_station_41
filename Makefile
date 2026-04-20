@@ -57,6 +57,17 @@ wasm:
 
 # --- Utility Targets ---
 
+bump:
+	@CURRENT="$(VERSION)"; \
+	MAJOR=$$(echo $$CURRENT | sed 's/v\([0-9]*\)\..*/\1/'); \
+	MINOR=$$(echo $$CURRENT | sed 's/v[0-9]*\.\([0-9]*\)\..*/\1/'); \
+	PATCH=$$(echo $$CURRENT | sed 's/v[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/'); \
+	NEW_PATCH=$$((PATCH + 1)); \
+	NEW_TAG="v$$MAJOR.$$MINOR.$$NEW_PATCH"; \
+	echo "Bumping version: $$CURRENT → $$NEW_TAG"; \
+	git tag $$NEW_TAG; \
+	echo "Created tag $$NEW_TAG. Run 'git push --tags' to push it."
+
 release: all
 	@echo "Creating GitHub Release for $(VERSION)..."
 	gh release create $(VERSION) \
