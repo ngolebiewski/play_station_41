@@ -9,13 +9,14 @@ import (
 
 const (
 	deadZone = .2
-	id       = 0
 
 	// Touch tuning
 	dragThreshold    = 12  // pixels of movement before a drag direction locks in
 	doubleTapMs      = 300 // milliseconds between taps to count as double-tap
 	doubleTapMaxMove = 20  // max pixel drift between the two taps
 )
+
+var ids = []ebiten.GamepadID{0, 1}
 
 // touchEnabled is set true the first time a touch is detected on the title screen.
 var touchEnabled bool
@@ -174,73 +175,138 @@ func abs(n int) int {
 // ── public input API ─────────────────────────────────────────────────────────
 
 func MoveUp() bool {
-	return dpadTouch.up ||
+	if dpadTouch.up ||
 		ebiten.IsKeyPressed(ebiten.KeyUp) ||
-		ebiten.IsKeyPressed(ebiten.KeyW) ||
-		ebiten.IsGamepadButtonPressed(0, 12) ||
-		ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftTop) ||
-		ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickVertical) < -deadZone
+		ebiten.IsKeyPressed(ebiten.KeyW) {
+		return true
+	}
+	for _, id := range ids {
+		if ebiten.IsGamepadButtonPressed(id, 12) ||
+			ebiten.IsStandardGamepadButtonPressed(id, ebiten.StandardGamepadButtonLeftTop) ||
+			ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickVertical) < -deadZone {
+			return true
+		}
+	}
+	return false
 }
 
 func MoveDown() bool {
-	return dpadTouch.down ||
+	if dpadTouch.down ||
 		ebiten.IsKeyPressed(ebiten.KeyDown) ||
-		ebiten.IsKeyPressed(ebiten.KeyS) ||
-		ebiten.IsGamepadButtonPressed(0, 13) ||
-		ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftBottom) ||
-		ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickVertical) > deadZone
+		ebiten.IsKeyPressed(ebiten.KeyS) {
+		return true
+	}
+	for _, id := range ids {
+		if ebiten.IsGamepadButtonPressed(id, 13) ||
+			ebiten.IsStandardGamepadButtonPressed(id, ebiten.StandardGamepadButtonLeftBottom) ||
+			ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickVertical) > deadZone {
+			return true
+		}
+	}
+	return false
 }
 
 func MoveLeft() bool {
-	return dpadTouch.left ||
+	if dpadTouch.left ||
 		ebiten.IsKeyPressed(ebiten.KeyLeft) ||
-		ebiten.IsKeyPressed(ebiten.KeyA) ||
-		ebiten.IsGamepadButtonPressed(0, 14) ||
-		ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftLeft) ||
-		ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickHorizontal) < -deadZone
+		ebiten.IsKeyPressed(ebiten.KeyA) {
+		return true
+	}
+	for _, id := range ids {
+		if ebiten.IsGamepadButtonPressed(id, 14) ||
+			ebiten.IsStandardGamepadButtonPressed(id, ebiten.StandardGamepadButtonLeftLeft) ||
+			ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickHorizontal) < -deadZone {
+			return true
+		}
+	}
+	return false
 }
 
 func MoveRight() bool {
-	return dpadTouch.right ||
+	if dpadTouch.right ||
 		ebiten.IsKeyPressed(ebiten.KeyRight) ||
-		ebiten.IsKeyPressed(ebiten.KeyD) ||
-		ebiten.IsGamepadButtonPressed(0, 15) ||
-		ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftRight) ||
-		ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickHorizontal) > deadZone
+		ebiten.IsKeyPressed(ebiten.KeyD) {
+		return true
+	}
+	for _, id := range ids {
+		if ebiten.IsGamepadButtonPressed(id, 15) ||
+			ebiten.IsStandardGamepadButtonPressed(id, ebiten.StandardGamepadButtonLeftRight) ||
+			ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickHorizontal) > deadZone {
+			return true
+		}
+	}
+	return false
 }
 
 func PressStart() bool {
-	return inpututil.IsKeyJustPressed(ebiten.KeyP) ||
-		inpututil.IsStandardGamepadButtonJustPressed(0, 9)
+	if inpututil.IsKeyJustPressed(ebiten.KeyP) {
+		return true
+	}
+	for _, id := range ids {
+		if inpututil.IsStandardGamepadButtonJustPressed(id, 9) {
+			return true
+		}
+	}
+	return false
 }
 
 func PressSelect() bool {
-	return inpututil.IsKeyJustPressed(ebiten.KeyShift) ||
-		inpututil.IsStandardGamepadButtonJustPressed(0, 8)
+	if inpututil.IsKeyJustPressed(ebiten.KeyShift) {
+		return true
+	}
+	for _, id := range ids {
+		if inpututil.IsStandardGamepadButtonJustPressed(id, 8) {
+			return true
+		}
+	}
+	return false
 }
 
 func PressB() bool {
-	return bButtonTouch ||
+	if bButtonTouch ||
 		inpututil.IsKeyJustPressed(ebiten.KeySpace) ||
-		inpututil.IsKeyJustPressed(ebiten.KeyEnter) ||
-		inpututil.IsStandardGamepadButtonJustPressed(0, ebiten.StandardGamepadButtonRightBottom) ||
-		inpututil.IsStandardGamepadButtonJustPressed(0, 0)
+		inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+		return true
+	}
+	for _, id := range ids {
+		if inpututil.IsStandardGamepadButtonJustPressed(id, ebiten.StandardGamepadButtonRightBottom) ||
+			inpututil.IsStandardGamepadButtonJustPressed(id, 0) {
+			return true
+		}
+	}
+	return false
 }
 
 func PressA() bool {
-	return aButtonMouse ||
+	if aButtonMouse ||
 		inpututil.IsKeyJustPressed(ebiten.KeyZ) ||
-		inpututil.IsKeyJustPressed(ebiten.KeyDelete) ||
-		inpututil.IsStandardGamepadButtonJustPressed(0, ebiten.StandardGamepadButtonRightRight) ||
-		inpututil.IsStandardGamepadButtonJustPressed(0, 1)
+		inpututil.IsKeyJustPressed(ebiten.KeyDelete) {
+		return true
+	}
+	for _, id := range ids {
+		if inpututil.IsStandardGamepadButtonJustPressed(id, ebiten.StandardGamepadButtonRightRight) ||
+			inpututil.IsStandardGamepadButtonJustPressed(id, 1) {
+			return true
+		}
+	}
+	return false
+}
+
+func PressToQuit() bool {
+	// Hold Start+Select or Escape Key to quit (currently set to 3 seconds, so no accidental triggers)
+	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
+		return true
+	}
+	for _, id := range ids {
+		if ebiten.IsGamepadButtonPressed(id, 9) && ebiten.IsGamepadButtonPressed(id, 8) {
+			return true
+		}
+	}
+	return false
 }
 
 func PressFullscreen() bool {
 	return inpututil.IsKeyJustPressed(ebiten.KeyF)
-}
-
-func PressQuit() bool {
-	return inpututil.IsKeyJustPressed(ebiten.KeyQ) || inpututil.IsKeyJustPressed(ebiten.KeyEscape)
 }
 
 func PressDebug() bool {
@@ -259,6 +325,10 @@ func PressDigits() int {
 		}
 	}
 	return -1
+}
+
+func PressQuit() bool {
+	return inpututil.IsKeyJustPressed(ebiten.KeyQ) || inpututil.IsKeyJustPressed(ebiten.KeyEscape)
 }
 
 func TestInputs() {
@@ -291,6 +361,9 @@ func TestInputs() {
 	}
 	if PressQuit() {
 		fmt.Println("Quit")
+	}
+	if PressToQuit() {
+		fmt.Println("Quitting - hold 3 seconds")
 	}
 	if PressDebug() {
 		fmt.Println("H for Debug")

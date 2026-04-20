@@ -19,6 +19,7 @@ type Game struct {
 	debug        bool
 	audioManager *music.AudioManager
 	gameplay     *GameplayState
+	quitFrames   int
 }
 
 func NewGame() *Game {
@@ -72,6 +73,19 @@ func (g *Game) Update() error {
 	if gpad.PressFullscreen() {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
+
+	if gpad.PressToQuit() {
+		g.quitFrames++
+
+		// 120 frames = 3 seconds at 60fps
+		if g.quitFrames >= 180 {
+			return fmt.Errorf("intentional arcade exit")
+		}
+	} else {
+		// Reset the timer if either button is released
+		g.quitFrames = 0
+	}
+
 	if gpad.PressDebug() {
 		g.debug = !g.debug
 		fmt.Println("Debug mode on: ", g.debug)
