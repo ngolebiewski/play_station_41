@@ -7,8 +7,8 @@ VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || echo v0.0.0)
 TIMESTAMP := $(shell date +"%-m-%-d-%y_%-I:%M%p")
 WASM_EXEC_PATH=$(shell go env GOROOT)/$(shell if [ -d "$(shell go env GOROOT)/lib/wasm" ]; then echo "lib/wasm"; else echo "misc/wasm"; fi)/wasm_exec.js
 
-# Added pi32 to the 'all' target
-all: local windows pi pi32 wasm
+# Removed pi32 from the 'all' target
+all: local windows pi wasm
 
 # --- Build Targets ---
 
@@ -35,8 +35,9 @@ pi:
 	@docker cp temp-pi64:/app/$(BINARY_NAME)_pi $(BUILD_DIR)/pi/$(BINARY_NAME)_pi
 	@docker rm temp-pi64
 
-# 32-bit ARM (Pi 3/4/Zero on 32-bit OS)
+# 32-bit ARM (Pi 3/4/Zero on 32-bit OS) if you need.
 pi32:
+	@echo "⚠️ Legacy 32-bit build. Not included in release."
 	@echo "Building $(VERSION) for Raspberry Pi (32-bit ARM)..."
 	@mkdir -p $(BUILD_DIR)/pi
 	docker build --platform linux/arm/v7 \
@@ -73,7 +74,6 @@ release: all
 	gh release create $(VERSION) \
 		$(BUILD_DIR)/macos/$(BINARY_NAME)_macos \
 		$(BUILD_DIR)/pi/$(BINARY_NAME)_pi \
-		$(BUILD_DIR)/pi/$(BINARY_NAME)_pi32bit \
 		$(BUILD_DIR)/windows/$(BINARY_NAME).exe \
 		$(BUILD_DIR)/wasm/$(BINARY_NAME).wasm \
 		--title "Release $(VERSION)" \
