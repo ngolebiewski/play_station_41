@@ -50,6 +50,8 @@ var studentNames = map[int]string{
 	21: "Jack",
 	22: "Liam",
 	23: "Ms. C",
+	24: "Harper",
+	25: "Maisie",
 }
 
 // studentName returns the display name for character slice index i.
