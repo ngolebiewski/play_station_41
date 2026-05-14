@@ -1,8 +1,9 @@
-.PHONY: all local windows pi pi32 wasm clean bump release
+.PHONY: all local windows pi pi32 wasm clean bump-major bump-minor bump-patch release
 
 # --- Variables ---
 BINARY_NAME=playstation41
 BUILD_DIR=build
+# Pulls the most recent tag or defaults to v0.0.0 if none exist
 VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || echo v0.0.0)
 TIMESTAMP := $(shell date +"%-m-%-d-%y_%-I:%M%p")
 WASM_EXEC_PATH=$(shell go env GOROOT)/$(shell if [ -d "$(shell go env GOROOT)/lib/wasm" ]; then echo "lib/wasm"; else echo "misc/wasm"; fi)/wasm_exec.js
@@ -22,7 +23,6 @@ windows:
 	@mkdir -p $(BUILD_DIR)/windows
 	GOOS=windows GOARCH=amd64 go build -o $(BUILD_DIR)/windows/$(BINARY_NAME).exe .
 
-# 64-bit ARM (Pi 4/5/Zero 2W on 64-bit OS)
 pi:
 	@echo "Building $(VERSION) for Raspberry Pi (64-bit ARM)..."
 	@mkdir -p $(BUILD_DIR)/pi
@@ -35,7 +35,6 @@ pi:
 	@docker cp temp-pi64:/app/$(BINARY_NAME)_pi $(BUILD_DIR)/pi/$(BINARY_NAME)_pi
 	@docker rm temp-pi64
 
-# 32-bit ARM (Pi 3/4/Zero on 32-bit OS) if you need.
 pi32:
 	@echo "⚠️ Legacy 32-bit build. Not included in release."
 	@echo "Building $(VERSION) for Raspberry Pi (32-bit ARM)..."
@@ -56,18 +55,39 @@ wasm:
 	cp "$(WASM_EXEC_PATH)" $(BUILD_DIR)/wasm/
 	@if [ -f index.html ]; then cp index.html $(BUILD_DIR)/wasm/; fi
 
-# --- Utility Targets ---
+# --- Versioning Targets ---
 
-bump:
-	@CURRENT="$(VERSION)"; \
+bump-major:
+	@CURRENT=$(VERSION); \
+	MAJOR=$$(echo $$CURRENT | sed 's/v\([0-9]*\)\..*/\1/'); \
+	NEW_MAJOR=$$((MAJOR + 1)); \
+	NEW_TAG="v$$NEW_MAJOR.0.0"; \
+	echo "Bumping MAJOR: $$CURRENT → $$NEW_TAG"; \
+	git tag -a $$NEW_TAG -m "Release $$NEW_TAG"; \
+	echo "Created tag $$NEW_TAG. Run 'git push origin $$NEW_TAG' to push it."
+
+bump-minor:
+	@CURRENT=$(VERSION); \
+	MAJOR=$$(echo $$CURRENT | sed 's/v\([0-9]*\)\..*/\1/'); \
+	MINOR=$$(echo $$CURRENT | sed 's/v[0-9]*\.\([0-9]*\)\..*/\1/'); \
+	NEW_MINOR=$$((MINOR + 1)); \
+	NEW_TAG="v$$MAJOR.$$NEW_MINOR.0"; \
+	echo "Bumping MINOR: $$CURRENT → $$NEW_TAG"; \
+	git tag -a $$NEW_TAG -m "Release $$NEW_TAG"; \
+	echo "Created tag $$NEW_TAG. Run 'git push origin $$NEW_TAG' to push it."
+
+bump-patch:
+	@CURRENT=$(VERSION); \
 	MAJOR=$$(echo $$CURRENT | sed 's/v\([0-9]*\)\..*/\1/'); \
 	MINOR=$$(echo $$CURRENT | sed 's/v[0-9]*\.\([0-9]*\)\..*/\1/'); \
 	PATCH=$$(echo $$CURRENT | sed 's/v[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/'); \
 	NEW_PATCH=$$((PATCH + 1)); \
 	NEW_TAG="v$$MAJOR.$$MINOR.$$NEW_PATCH"; \
-	echo "Bumping version: $$CURRENT → $$NEW_TAG"; \
-	git tag $$NEW_TAG; \
-	echo "Created tag $$NEW_TAG. Run 'git push --tags' to push it."
+	echo "Bumping PATCH: $$CURRENT → $$NEW_TAG"; \
+	git tag -a $$NEW_TAG -m "Release $$NEW_TAG"; \
+	echo "Created tag $$NEW_TAG. Run 'git push origin $$NEW_TAG' to push it."
+
+# --- Release & Cleanup ---
 
 release: all
 	@echo "Creating GitHub Release for $(VERSION)..."
