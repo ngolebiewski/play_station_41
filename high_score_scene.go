@@ -137,7 +137,7 @@ func (s *HighScoreScene) Update() error {
 			}
 
 			// ─── B: Go back to edit third letter ──────────────────────
-			if gpad.PressB() {
+			if gpad.PressA() {
 				s.currentPosition = 2
 				s.lastInputFrame = s.framecounter
 			}
@@ -288,13 +288,13 @@ func (s *HighScoreScene) drawInitialsEntry(screen *ebiten.Image) {
 		instrOpt := &text.DrawOptions{}
 		instrOpt.GeoM.Translate(63, 118)
 		instrOpt.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
-		text.Draw(screen, "A: Confirm and save", highScoreTextFace, instrOpt)
+		text.Draw(screen, "A: Edit Initials", highScoreTextFace, instrOpt)
 
 		// "B: Edit last letter" = 19 chars = 114px → x=63
 		instrOpt2 := &text.DrawOptions{}
 		instrOpt2.GeoM.Translate(63, 130)
 		instrOpt2.ColorScale.ScaleWithColor(color.RGBA{150, 150, 150, 255})
-		text.Draw(screen, "B: Edit last letter", highScoreTextFace, instrOpt2)
+		text.Draw(screen, "B: Confirm and Save", highScoreTextFace, instrOpt2)
 	}
 }
 

@@ -15,13 +15,13 @@ import (
 var transitionTextFace = text.NewGoXFace(bitmapfont.Face)
 
 type LevelTransitionScene struct {
-	game         *Game
-	framecounter int
-	nextLevel    int
-	timeLeft     int
+	game            *Game
+	framecounter    int
+	nextLevel       int
+	timeBonusPoints int
 }
 
-func NewLevelTransitionScene(game *Game, timeLeft int) *LevelTransitionScene {
+func NewLevelTransitionScene(game *Game, timeBonus int) *LevelTransitionScene {
 	/////////////////////////////////////////////////////
 	// Start the music!
 	// This will trigger the fade-in automatically.
@@ -34,10 +34,10 @@ func NewLevelTransitionScene(game *Game, timeLeft int) *LevelTransitionScene {
 	/////////////////////////////////////////////////////
 
 	return &LevelTransitionScene{
-		game:         game,
-		framecounter: 0,
-		nextLevel:    game.gameplay.Level,
-		timeLeft:     timeLeft,
+		game:            game,
+		framecounter:    0,
+		nextLevel:       game.gameplay.Level,
+		timeBonusPoints: timeBonus,
 	}
 }
 
@@ -69,9 +69,11 @@ func (s *LevelTransitionScene) Draw(screen *ebiten.Image) {
 	goodJobOpt.ColorScale.ScaleWithColor(color.RGBA{255, 220, 60, 255})
 	text.Draw(screen, "Good job!", transitionTextFace, goodJobOpt)
 
+	// Quick mod to remove the odd Time Bonus bug -> By only showing it in debug mode!
+
 	// "Time Bonus" message
-	totalTimeBonus := s.timeLeft * timeBonusPerSecond
-	timeBonusString := fmt.Sprintf("Time Bonus!: %d sec x %d = %d Points", s.timeLeft, timeBonusPerSecond, totalTimeBonus)
+	totalTimeSeconds := s.timeBonusPoints / timeBonusPerSecond
+	timeBonusString := fmt.Sprintf("Time Bonus!: %d sec x %d = %d Points", totalTimeSeconds, timeBonusPerSecond, s.timeBonusPoints)
 	timeBonusOpt := &text.DrawOptions{}
 	timeBonusOpt.GeoM.Translate(20, 65)
 	timeBonusOpt.ColorScale.ScaleWithColor(color.RGBA{0, 255, 0, 255})
