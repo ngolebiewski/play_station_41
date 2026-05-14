@@ -13,5 +13,5 @@ const (
 	// Level Transition timing
 	levelTransitionDuration = 180 // 1 seconds at 60fps
 
-	timeBonusPerSecond = 5
+	timeBonusPerSecond = 10
 )

@@ -350,7 +350,7 @@ func GetLevelTimeLimit(level int) int {
 }
 
 // ObjectFound should be called when the player collects a target object
-func (gs *GameplayState) ObjectFound() {
+func (gs *GameplayState) ObjectFound() int {
 	gs.ObjectsFound++
 	gs.Points += 41 // Award 41 points per object found
 
@@ -359,15 +359,17 @@ func (gs *GameplayState) ObjectFound() {
 		gs.HasFoundObject = true
 		gs.FoundMessageFrames = 30 // 1 second at 60fps
 
-		// Calculate time bonus: 5 points per second remaining
+		// Calculate time bonus: 10 points per second remaining
 		secondsRemaining := gs.RemainingTime / 60
-		timeBonus := secondsRemaining * 5
+		timeBonus := secondsRemaining * timeBonusPerSecond
 		gs.Points += timeBonus
 
 		gs.Score += calculateLevelScore(gs.Level, gs.RemainingTime)
 		gs.Level++
 		gs.RemainingTime = GetLevelTimeLimit(gs.Level)
+		return timeBonus
 	}
+	return -1
 }
 
 // Helper functions

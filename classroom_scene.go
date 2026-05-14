@@ -124,7 +124,8 @@ type ClassroomScene struct {
 	// Floating points animation during level completion
 	pointsAnim *pointsAnimation
 	// Floating text messages for point awards
-	floatingTexts []*floatingText
+	floatingTexts   []*floatingText
+	timeBonusPoints int
 }
 
 func NewClassroomScene(game *Game, level int) *ClassroomScene {
@@ -241,6 +242,7 @@ func NewClassroomScene(game *Game, level int) *ClassroomScene {
 		playerSpawnY:    playerSpawnY,
 		tweensOff:       make([]*objectTweenOff, 0),
 		floatingTexts:   make([]*floatingText, 0),
+		timeBonusPoints: 0,
 	}
 
 	return scene
@@ -323,7 +325,15 @@ func (s *ClassroomScene) Update() error {
 				// Register this object as found immediately to prevent race conditions
 				if !obj.CountedAsFound {
 					obj.CountedAsFound = true
-					gp.ObjectFound()
+					timeBonus := gp.ObjectFound()
+					if timeBonus > -1 {
+						timeBonusString := fmt.Sprintf("Time Bonus!: %d", timeBonus)
+						// fmt.Println("line 329:", timeBonusString)
+						// s.addFloatingText(timeBonusString, float64(max(10.0, int(obj.X-50.0))), obj.Y-20, color.RGBA{255, 0, 0, 255}, true)
+						s.addFloatingText(timeBonusString, s.camera.DrawX()+5, s.camera.DrawY()+40, color.RGBA{0, 255, 0, 255}, true)
+						s.timeBonusPoints = timeBonus
+					}
+
 					// Show floating text for points earned
 					s.addFloatingText("+41", obj.X-5, obj.Y-10, color.RGBA{255, 255, 0, 255}, true)
 				}
@@ -361,7 +371,13 @@ func (s *ClassroomScene) Update() error {
 				// Register this object as found immediately to prevent race conditions
 				if !obj.CountedAsFound {
 					obj.CountedAsFound = true
-					gp.ObjectFound()
+					timeBonus := gp.ObjectFound()
+					if timeBonus > -1 {
+						timeBonusString := fmt.Sprintf("Time Bonus!: %d", timeBonus)
+						// fmt.Println("line 373", timeBonusString)
+						s.addFloatingText(timeBonusString, s.camera.DrawX()+5, s.camera.DrawY()+40, color.RGBA{0, 255, 0, 255}, true)
+						s.timeBonusPoints = timeBonus
+					}
 					// Show floating text for points earned
 					s.addFloatingText("+41", obj.X, obj.Y-10, color.RGBA{255, 255, 0, 255}, true)
 				}
@@ -495,8 +511,8 @@ func (s *ClassroomScene) Update() error {
 			s.game.scene = NewHighScoreScene(s.game, gp.Score)
 		} else {
 			// Otherwise show level transition scene
-			timeLeft := int(gp.RemainingTime / 60)
-			s.game.scene = NewLevelTransitionScene(s.game, timeLeft)
+			// timeLeft := int(gp.RemainingTime / 60)
+			s.game.scene = NewLevelTransitionScene(s.game, s.timeBonusPoints)
 		}
 		return nil
 	}
