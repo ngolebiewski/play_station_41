@@ -1,0 +1,33 @@
+name: Go Automated Quality Checks
+
+# Trigger this workflow whenever code is pushed to any branch or a PR is opened
+on:
+  push:
+    branches: [ "*" ]
+  pull_request:
+    branches: [ "*" ]
+
+jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Pull down the repository's source code onto the GitHub runner
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # 2. Establish the exact Go runtime matching your go.mod file
+    - name: Setup Go Environment
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25.1'
+        cache: true # Automatically cache Go modules to make future runs lightning fast
+
+    # 3. Download dependencies explicitly before executing the suite
+    - name: Install Project Dependencies
+      run: go mod download
+
+    # 4. Scan the repo via the wildcard syntax to trigger your gpad test cases
+    - name: Execute Test Suite
+      run: go test -v ./...
