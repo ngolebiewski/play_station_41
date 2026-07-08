@@ -40,6 +40,8 @@ jobs:
     - name: Install Project Dependencies
       run: go mod download
 
-    # 4. Execute the tests
+    # 4. Execute the tests with a headless flag
     - name: Execute Test Suite
+      env:
+        EBITENGINE_GRAPHICS_LIBRARY: "off" # Prevents GLFW from searching for a physical display server
       run: go test -v ./...
