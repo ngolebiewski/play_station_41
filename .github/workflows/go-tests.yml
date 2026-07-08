@@ -22,7 +22,7 @@ jobs:
         go-version: '1.25.1'
         cache: true
 
-    # 2. NEW STEP: Install the native Linux headers Ebitengine needs to compile
+    # 2. Install the native Linux headers AND xvfb (the virtual screen server)
     - name: Install Linux Graphics and Audio Dependencies
       run: |
         sudo apt-get update
@@ -34,14 +34,13 @@ jobs:
           libxinerama-dev \
           libxrandr-dev \
           libxxf86vm-dev \
-          pkg-config
+          pkg-config \
+          xvfb
 
     # 3. Download Go modules
     - name: Install Project Dependencies
       run: go mod download
 
-    # 4. Execute the tests with a headless flag
+    # 4. Execute the tests wrapped inside a virtual framebuffer shell
     - name: Execute Test Suite
-      env:
-        EBITENGINE_GRAPHICS_LIBRARY: "off" # Prevents GLFW from searching for a physical display server
-      run: go test -v ./...
+      run: xvfb-run go test -v ./...
