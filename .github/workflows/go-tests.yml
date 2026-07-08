@@ -1,6 +1,5 @@
 name: Go Automated Quality Checks
 
-# Trigger this workflow whenever code is pushed to any branch or a PR is opened
 on:
   push:
     branches: [ "*" ]
@@ -13,21 +12,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Pull down the repository's source code onto the GitHub runner
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    # 2. Establish the exact Go runtime matching your go.mod file
+    # 1. Establish the Go runtime
     - name: Setup Go Environment
       uses: actions/setup-go@v5
       with:
         go-version: '1.25.1'
-        cache: true # Automatically cache Go modules to make future runs lightning fast
+        cache: true
 
-    # 3. Download dependencies explicitly before executing the suite
+    # 2. NEW STEP: Install the native Linux headers Ebitengine needs to compile
+    - name: Install Linux Graphics and Audio Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libasound2-dev \
+          libgl1-mesa-dev \
+          libxcursor-dev \
+          libxi-dev \
+          libxinerama-dev \
+          libxrandr-dev \
+          libxxf86vm-dev \
+          pkg-config
+
+    # 3. Download Go modules
     - name: Install Project Dependencies
       run: go mod download
 
-    # 4. Scan the repo via the wildcard syntax to trigger your gpad test cases
+    # 4. Execute the tests
     - name: Execute Test Suite
       run: go test -v ./...
